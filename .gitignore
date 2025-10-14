@@ -1,0 +1,36 @@
+# Top-level .gitignore for the workspace
+
+# Node
+node_modules/
+
+# Build artifacts
+**/dist/
+**/build/
+**/out/
+
+# Environment / secrets
+.env
+.env.*
+*.local
+*.secret
+secrets.json
+firebase-service-account.json
+*.key
+*.pem
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Other
+coverage/
+**/.cache/

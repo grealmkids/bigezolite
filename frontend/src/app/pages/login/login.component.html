@@ -1,0 +1,75 @@
+<div class="login-container">
+  <div class="login-form">
+    <h1 class="title">Bigezo Lite</h1>
+    <h2 class="subtitle">Welcome Back</h2>
+    <p class="description">Please enter your credentials to sign in.</p>
+
+    <button (click)="onGoogleSignIn()" class="google-btn">
+      Sign in with Google
+    </button>
+
+    <div class="divider">OR</div>
+
+    <form (ngSubmit)="onSubmit()" [formGroup]="loginForm">
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          placeholder="you@example.com"
+        />
+        <!-- Add validation messages later -->
+      </div>
+
+      <div class="form-group">
+        <label for="phoneNumber">Phone Number</label>
+        <input
+          id="phoneNumber"
+          type="text"
+          formControlName="phoneNumber"
+          placeholder="e.g. +256700000000"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input
+          id="password"
+          type="password"
+          formControlName="password"
+          placeholder="••••••••"
+          required
+        />
+        <!-- Add validation messages later -->
+      </div>
+
+      <div *ngIf="errorMessage" class="error-message">
+        {{ errorMessage }}
+      </div>
+
+      <div *ngIf="showRegisterCTA" class="register-cta">
+        <p>No account found for this Google email.</p>
+        <button class="submit-btn" (click)="navigateToRegister()">
+          Go to Sign Up
+        </button>
+      </div>
+
+      <button
+        type="submit"
+        class="submit-btn"
+        [disabled]="
+          loginForm.get('password')?.invalid ||
+          (!loginForm.get('email')?.value &&
+            !loginForm.get('phoneNumber')?.value)
+        "
+      >
+        Sign In
+      </button>
+    </form>
+
+    <div class="footer-text">
+      Don't have an account? <a routerLink="/register">Sign up</a>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,89 @@
+@use 'sass:color';
+
+// Inherit common modal styles
+@use '../student-modal/student-modal.component.scss';
+
+.modal-card {
+    max-width: 900px; // Wider for this complex view
+}
+
+.modal-body {
+    padding: 0; // Remove padding to allow full-width sections
+}
+
+.add-record-form {
+    padding: 1.5rem;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+
+    h3 {
+        margin-top: 0;
+        margin-bottom: 1.5rem;
+    }
+
+    .form-row {
+        align-items: flex-end;
+    }
+
+    .form-group-action {
+        padding-bottom: 0.5rem; // Align button with inputs
+        button {
+            padding: 0.75rem 1.5rem;
+            background-color: var(--color-secondary);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            &:hover { background-color: color.adjust(#0059b3, $lightness: -10%); }
+            &:disabled { background-color: color.adjust(#0059b3, $lightness: 20%); cursor: not-allowed; }
+        }
+    }
+}
+
+.records-list {
+    padding: 1.5rem;
+
+    h3 {
+        margin-top: 0;
+        margin-bottom: 1rem;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        th {
+            font-weight: 600;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: #6c757d;
+        }
+
+        .actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .action-btn {
+            padding: 0.3rem 0.6rem;
+            border: 1px solid;
+            border-radius: 4px;
+            background-color: transparent;
+            font-size: 0.8rem;
+            cursor: pointer;
+
+            &.edit { border-color: #6c757d; color: #6c757d; }
+            &.save { border-color: #28a745; color: #28a745; }
+            &.cancel { border-color: #dc3545; color: #dc3545; }
+        }
+    }
+}

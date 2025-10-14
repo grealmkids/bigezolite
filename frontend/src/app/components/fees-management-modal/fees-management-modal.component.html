@@ -1,0 +1,95 @@
+<div class="modal-overlay" (click)="close.emit()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Fees for {{ student?.student_name }}</h2>
+      <button class="close-btn" (click)="close.emit()">&times;</button>
+    </div>
+
+    <div class="modal-body">
+      <!-- Form to Add New Fee Record -->
+      <div class="add-record-form">
+        <h3>Add New Term Record</h3>
+        <form [formGroup]="feeForm" (ngSubmit)="onAddFeeRecord()">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Term</label>
+              <select formControlName="term">
+                <option>1</option>
+                <option>2</option>
+                <option>3</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Year</label>
+              <input type="number" formControlName="year">
+            </div>
+            <div class="form-group">
+              <label>Total Fees Due</label>
+              <input type="number" formControlName="total_fees_due">
+            </div>
+            <div class="form-group">
+              <label>Due Date</label>
+              <input type="date" formControlName="due_date">
+            </div>
+            <div class="form-group">
+                <label>RSVP Number</label>
+                <input type="text" formControlName="rsvp_number">
+            </div>
+            <div class="form-group-action">
+              <button type="submit" [disabled]="feeForm.invalid">+ Add</button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- List of Existing Fee Records -->
+      <div class="records-list">
+        <h3>Payment History</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Term/Year</th>
+              <th>Total Due</th>
+              <th>Amount Paid</th>
+              <th>Balance</th>
+              <th>Due Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let record of feeRecords">
+              <td>Term {{ record.term }}, {{ record.year }}</td>
+              <td>{{ record.total_fees_due | currency:'UGX ':'symbol' }}</td>
+              <td>
+                <ng-container *ngIf="editingRecordId !== record.fee_record_id; else editAmountPaid">
+                  {{ record.amount_paid | currency:'UGX ':'symbol' }}
+                </ng-container>
+                <ng-template #editAmountPaid>
+                    <input type="number" [(ngModel)]="editingAmountPaid">
+                </ng-template>
+              </td>
+              <td>{{ record.balance_due | currency:'UGX ':'symbol' }}</td>
+              <td>{{ record.due_date | date:'mediumDate' }}</td>
+              <td class="actions">
+                <ng-container *ngIf="editingRecordId !== record.fee_record_id; else saveCancelButtons">
+                    <button class="action-btn edit" (click)="startEditing(record)">Edit</button>
+                </ng-container>
+                <ng-template #saveCancelButtons>
+                    <button class="action-btn save" (click)="onUpdateFeeRecord(record.fee_record_id)">Save</button>
+                    <button class="action-btn cancel" (click)="cancelEditing()">Cancel</button>
+                </ng-template>
+              </td>
+            </tr>
+            <tr *ngIf="feeRecords?.length === 0">
+                <td colspan="6" class="empty-state">No fee records found for this student.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="cancel-btn" (click)="close.emit()">Close</button>
+    </div>
+  </div>
+</div>

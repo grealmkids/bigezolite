@@ -1,0 +1,83 @@
+.page-container {
+  padding: 2rem;
+}
+
+.page-header {
+  margin-bottom: 2rem;
+
+  h1 {
+    font-size: 2rem;
+    font-weight: 600;
+  }
+
+  p {
+    color: #6c757d;
+  }
+}
+
+.communications-panel {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+
+  label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+
+  .form-control {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 1rem;
+  }
+
+  textarea.form-control {
+    resize: vertical;
+  }
+
+  .char-counter {
+    font-size: 0.8rem;
+    color: #6c757d;
+    text-align: right;
+    margin-top: 0.5rem;
+    display: flex;
+    justify-content: space-between;
+  }
+}
+
+.send-action {
+  margin-top: 2rem;
+  text-align: center;
+
+  .btn-primary {
+    padding: 0.75rem 2rem;
+    font-size: 1rem;
+    background-color: #0059b3;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+
+    &:disabled {
+      background-color: #a0c3e0;
+      cursor: not-allowed;
+    }
+  }
+
+  .credits-info {
+    margin-top: 1rem;
+    color: #6c757d;
+    font-size: 0.9rem;
+  }
+}

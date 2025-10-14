@@ -1,0 +1,39 @@
+<div class="page-container">
+  <div class="page-header">
+    <h1>Communications</h1>
+    <p>Send bulk SMS announcements to students and parents.</p>
+  </div>
+
+  <div class="communications-panel">
+    <div class="form-group">
+      <label for="recipient-filter">Recipient Filter</label>
+      <select id="recipient-filter" class="form-control" [(ngModel)]="recipientFilter">
+        <option value="All Students">All Students</option>
+        <option *ngFor="let class of classes" [value]="class">{{ class }}</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="message">Message</label>
+      <textarea 
+        id="message" 
+        class="form-control" 
+        [(ngModel)]="message" 
+        (ngModelChange)="onMessageChange($event)" 
+        rows="8"
+        placeholder="Type your announcement here...">
+      </textarea>
+      <div class="char-counter">
+        <span>{{ characterCount }} characters</span>
+        <span>(Consumes {{ smsCreditsConsumed }} SMS credit<span *ngIf="smsCreditsConsumed > 1">s</span>)</span>
+      </div>
+    </div>
+
+    <div class="send-action">
+      <button class="btn btn-primary" (click)="sendBulkSms()" [disabled]="!message">
+        Send Bulk SMS
+      </button>
+      <p class="credits-info">Your current SMS credit balance is: <strong>{{ communicationService.smsCreditBalance$ | async }}</strong></p>
+    </div>
+  </div>
+</div>

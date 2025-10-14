@@ -1,0 +1,91 @@
+<div class="form-container">
+  <div class="form-card">
+    <h1 class="title">Create Your School</h1>
+    <p class="description">
+      Fill in the details below to set up your school account.
+    </p>
+
+    <form (ngSubmit)="onSubmit()" [formGroup]="schoolForm">
+      <!-- School Name -->
+      <div class="form-group">
+        <label for="school_name">School Name</label>
+        <input
+          id="school_name"
+          type="text"
+          formControlName="school_name"
+          required
+        />
+      </div>
+
+      <!-- Admin Phone -->
+      <div class="form-group">
+        <label for="admin_phone">Administrator Phone</label>
+        <input
+          id="admin_phone"
+          type="text"
+          formControlName="admin_phone"
+          required
+        />
+      </div>
+
+      <!-- Location District -->
+      <div class="form-group">
+        <label for="location_district">District</label>
+        <select
+          id="location_district"
+          formControlName="location_district"
+          required
+        >
+          <option value="" disabled>Select a district</option>
+          <option *ngFor="let d of districts" [value]="d">{{ d }}</option>
+        </select>
+      </div>
+
+      <!-- School Type -->
+      <div class="form-group">
+        <label for="school_type">School Type</label>
+        <select id="school_type" formControlName="school_type" required>
+          <option value="" disabled>Select a school type</option>
+          <option value="Nursery School / Kindergarten">
+            Nursery School / Kindergarten
+          </option>
+          <option value="Primary School (Local)">Primary School (Local)</option>
+          <option value="Secondary School (Local)">
+            Secondary School (Local)
+          </option>
+          <option value="Nursery & Primary School (Local)">
+            Nursery & Primary School (Local)
+          </option>
+          <option value="International Primary">International Primary</option>
+          <option value="International Secondary">
+            International Secondary
+          </option>
+        </select>
+      </div>
+
+      <!-- Student Count Range -->
+      <div class="form-group">
+        <label for="student_count_range">Number of Students</label>
+        <select
+          id="student_count_range"
+          formControlName="student_count_range"
+          required
+        >
+          <option value="" disabled>Select a range</option>
+          <option value="<500"><500</option>
+          <option value="501-1000">501-1000</option>
+          <option value="1001-2000">1001-2000</option>
+          <option value=">2000">>2000</option>
+        </select>
+      </div>
+
+      <div *ngIf="errorMessage" class="error-message">
+        {{ errorMessage }}
+      </div>
+
+      <button type="submit" class="submit-btn" [disabled]="schoolForm.invalid">
+        Create School
+      </button>
+    </form>
+  </div>
+</div>

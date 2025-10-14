@@ -1,0 +1,85 @@
+<div class="page-container">
+  <div class="page-header">
+    <h1>Student Management</h1>
+    <button class="add-student-btn" (click)="openStudentModal()">+ Add New Student</button>
+  </div>
+
+  <div class="controls-container">
+    <div class="search-bar">
+      <input type="text" placeholder="Search by name or registration number..." #searchInput (input)="onSearch(searchInput.value)">
+    </div>
+    <div class="filters">
+        <select #classFilter (change)="onClassChange(classFilter.value)">
+            <option value="">All Classes</option>
+            <option *ngFor="let class of classes" [value]="class">{{class}}</option>
+        </select>
+        <select #statusFilter (change)="onStatusChange(statusFilter.value)">
+            <option value="">All Statuses</option>
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+            <option value="Expelled">Expelled</option>
+            <option value="Alumni">Alumni</option>
+            <option value="Suspended">Suspended</option>
+            <option value="Sick">Sick</option>
+        </select>
+        <select #yearFilter (change)="onYearChange(yearFilter.value)">
+            <option value="">All Years</option>
+            <option *ngFor="let year of years" [value]="year">{{year}}</option>
+        </select>
+    </div>
+  </div>
+
+  <div class="student-list-container">
+    <table class="student-table">
+      <thead>
+        <tr>
+          <th>Reg Number</th>
+          <th>Student Name</th>
+          <th>Class</th>
+          <th>Status</th>
+          <th>Fees Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let student of students$ | async">
+          <td>{{ student.reg_number }}</td>
+          <td>{{ student.student_name }}</td>
+          <td>{{ student.class_name }}</td>
+          <td><span class="status" [ngClass]="student.student_status.toLowerCase()">{{ student.student_status }}</span></td>
+          <td>
+            <span class="fees-status" [ngClass]="student.fees_status.toLowerCase()">{{ student.fees_status }}</span>
+          </td>
+          <td class="actions">
+            <button class="action-btn fees" (click)="openFeesModal(student)">FEES</button>
+            <button class="action-btn edit" (click)="openStudentModal(student)">EDIT</button>
+            <button class="action-btn sms" (click)="openSmsModal(student)">SMS</button>
+          </td>
+        </tr>
+        <tr *ngIf="(students$ | async)?.length === 0">
+            <td colspan="6" class="empty-state">No students found.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modals -->
+<app-student-modal 
+    *ngIf="isStudentModalOpen" 
+    [student]="selectedStudent" 
+    (close)="closeStudentModal()" 
+    (studentUpserted)="onStudentUpserted()">
+</app-student-modal>
+
+<app-fees-management-modal
+    *ngIf="isFeesModalOpen"
+    [student]="selectedStudent"
+    (close)="closeFeesModal()">
+</app-fees-management-modal>
+
+<app-sms-student-modal
+    *ngIf="isSmsModalOpen"
+    [student]="selectedStudent"
+    (close)="closeSmsModal()">
+</app-sms-student-modal>

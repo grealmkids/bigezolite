@@ -1,0 +1,113 @@
+
+// Custom Theming for Angular Material
+// For more information: https://material.angular.dev/guide/theming
+@use '@angular/material' as mat;
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap');
+
+// Include the core styles for Angular Material (typography, density, etc.)
+@include mat.core();
+
+:root {
+  --primary-color: #ff9933;
+  --secondary-color: #0059b3;
+  --background-color: #ffffff;
+  --text-color: #000000;
+  /* legacy aliases used throughout components */
+  --color-primary: #ff9933;
+  --color-secondary: #0059b3;
+}
+
+$bigezo-primary-palette: (
+  50: #fff3e0,
+  100: #ffe0b2,
+  200: #ffcc80,
+  300: #ffb74d,
+  400: #ffa726,
+  500: #ff9800,
+  600: #fb8c00,
+  700: #f57c00,
+  800: #ef6c00,
+  900: #e65100,
+  A100: #ffd180,
+  A200: #ffab40,
+  A400: #ff9100,
+  A700: #ff6d00,
+  contrast: (
+    50: #000000,
+    100: #000000,
+    200: #000000,
+    300: #000000,
+    400: #000000,
+    500: #000000,
+    600: #000000,
+    700: #000000,
+    800: #000000,
+    900: #000000,
+    A100: #000000,
+    A200: #000000,
+    A400: #000000,
+    A700: #000000,
+  )
+);
+
+$bigezo-secondary-palette: (
+  50: #e0f7fa,
+  100: #b2ebf2,
+  200: #80deea,
+  300: #4dd0e1,
+  400: #26c6da,
+  500: #00bcd4,
+  600: #00acc1,
+  700: #0097a7,
+  800: #00838f,
+  900: #006064,
+  A100: #84ffff,
+  A200: #18ffff,
+  A400: #00e5ff,
+  A700: #00b8d4,
+  contrast: (
+    50: #000000,
+    100: #000000,
+    200: #000000,
+    300: #000000,
+    400: #000000,
+    500: #000000,
+    600: #000000,
+    700: #000000,
+    800: #ffffff,
+    900: #ffffff,
+    A100: #000000,
+    A200: #000000,
+    A400: #000000,
+    A700: #000000,
+  )
+);
+
+$bigezo-primary: mat.m2-define-palette($bigezo-primary-palette, 500);
+$bigezo-secondary: mat.m2-define-palette($bigezo-secondary-palette, 500);
+
+// Create a legacy light theme (m2) from the palettes so components using the
+// compatibility theming API can consume them. This keeps your custom palette maps.
+$bigezo-theme: mat.m2-define-light-theme($bigezo-primary, $bigezo-secondary);
+
+@include mat.all-component-themes($bigezo-theme);
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  margin: 0;
+  padding: 0;
+}
+
+.logo {
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+.active-link {
+  background-color: var(--primary-color) !important;
+  color: white !important;
+}
+html, body { height: 100%; }
+body { margin: 0; }

@@ -1,0 +1,116 @@
+
+import { Response } from 'express';
+import * as schoolService from './school.service';
+import { AuthenticatedRequest } from '../../middleware/auth.middleware';
+
+export const createSchool = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        // The user ID comes from the authenticated token, not the request body.
+        const userId = req.user?.userId;
+        if (!userId) {
+            return res.status(403).json({ message: 'Forbidden: User not authenticated.' });
+        }
+
+        // NOTE: Allow users to create multiple school accounts. Previous logic
+        // prevented multiple schools per user; requirement updated to permit
+        // multiple schools, so we no longer block creation here.
+
+        const { school_name, admin_phone, location_district, student_count_range, school_type } = req.body;
+
+        // Basic validation
+        if (!school_name || !admin_phone || !location_district || !student_count_range || !school_type) {
+            return res.status(400).json({ message: 'Missing required school fields.' });
+        }
+
+        const school = await schoolService.createSchool({
+            user_id: userId,
+            ...req.body
+        });
+
+        res.status(201).json(school);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+export const getMySchool = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const userId = req.user?.userId;
+        if (!userId) {
+            return res.status(403).json({ message: 'Forbidden: User not authenticated.' });
+        }
+
+        const school = await schoolService.findSchoolByUserId(userId);
+        if (!school) {
+            return res.status(404).json({ message: 'No school found for this user.' });
+        }
+
+        res.status(200).json(school);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+export const listMySchools = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const userId = req.user?.userId;
+        if (!userId) return res.status(403).json({ message: 'Forbidden: User not authenticated.' });
+
+        const schools = await schoolService.findSchoolsByUserId(userId);
+        res.status(200).json(schools);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+export const getSchoolById = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const id = parseInt(req.params.id, 10);
+        const school = await schoolService.findSchoolById(id);
+        if (!school) return res.status(404).json({ message: 'School not found' });
+
+        // enforce ownership
+        if (school.user_id !== req.user?.userId) return res.status(403).json({ message: 'Forbidden' });
+
+        res.status(200).json(school);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+export const updateSchool = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const id = parseInt(req.params.id, 10);
+        const school = await schoolService.findSchoolById(id);
+        if (!school) return res.status(404).json({ message: 'School not found' });
+
+        if (school.user_id !== req.user?.userId) return res.status(403).json({ message: 'Forbidden' });
+
+        const updates = req.body as Partial<schoolService.School>;
+        const updated = await schoolService.updateSchoolById(id, updates);
+        res.status(200).json(updated);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+export const deleteSchool = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const id = parseInt(req.params.id, 10);
+        const school = await schoolService.findSchoolById(id);
+        if (!school) return res.status(404).json({ message: 'School not found' });
+
+        if (school.user_id !== req.user?.userId) return res.status(403).json({ message: 'Forbidden' });
+
+        const deleted = await schoolService.deleteSchoolById(id);
+        res.status(200).json(deleted);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};

@@ -1,0 +1,92 @@
+@use 'sass:color';
+
+// Reusing the login form styles for consistency
+:host {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 4rem 1rem;
+  background-color: #f4f7fa;
+}
+
+.form-container {
+  width: 100%;
+  max-width: 600px; // Wider form for more fields
+}
+
+.form-card {
+  background: var(--color-background);
+  padding: 2.5rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 0.5rem;
+}
+
+.description {
+  margin-bottom: 2rem;
+  color: #6c757d;
+}
+
+.form-group {
+  text-align: left;
+  margin-bottom: 1.5rem;
+
+  label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+  }
+
+  input,
+  select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    box-sizing: border-box;
+    background-color: white; // Ensure select has a background
+    font-family: inherit; // Ensure select inherits font
+    font-size: 1rem;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+
+    &:focus {
+      border-color: var(--color-primary);
+      outline: 0;
+      box-shadow: 0 0 0 0.2rem rgba(255, 153, 51, 0.25);
+    }
+  }
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 4px;
+  background-color: var(--color-primary);
+  color: white;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: color.adjust(#ff9933, $lightness: -10%);
+  }
+
+  &:disabled {
+    background-color: #ffc993;
+    cursor: not-allowed;
+  }
+}
+
+.error-message {
+  color: #dc3545;
+  margin-bottom: 1rem;
+}

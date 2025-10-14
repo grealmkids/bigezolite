@@ -1,0 +1,84 @@
+<app-loading-spinner></app-loading-spinner>
+
+<ng-container *ngIf="isLoggedIn; else authPages">
+  <ng-container *ngIf="hasSchool; else noSidenav">
+    <mat-sidenav-container class="sidenav-container">
+      <mat-sidenav #sidenav mode="side" opened class="sidenav">
+        <h2 class="logo">BIGEZO</h2>
+        <mat-nav-list>
+          <a
+            mat-list-item
+            routerLink="/dashboard"
+            routerLinkActive="active-link"
+          >
+            <mat-icon mat-list-icon>dashboard</mat-icon>
+            <span mat-line>Dashboard</span>
+          </a>
+          <a
+            mat-list-item
+            [routerLink]="hasSchool ? '/manage-school' : '/create-school'"
+            routerLinkActive="active-link"
+            class="sidenav-cta"
+          >
+            <mat-icon mat-list-icon>{{
+              hasSchool ? "manage_accounts" : "add_business"
+            }}</mat-icon>
+            <span mat-line>{{
+              hasSchool ? "Manage School" : "Create School Account"
+            }}</span>
+          </a>
+          <a
+            mat-list-item
+            routerLink="/student-management"
+            routerLinkActive="active-link"
+          >
+            <mat-icon mat-list-icon>people</mat-icon>
+            <span mat-line>Students</span>
+          </a>
+          <a
+            mat-list-item
+            routerLink="/communications"
+            routerLinkActive="active-link"
+          >
+            <mat-icon mat-list-icon>email</mat-icon>
+            <span mat-line>Communications</span>
+          </a>
+          <a
+            mat-list-item
+            routerLink="/subscription"
+            routerLinkActive="active-link"
+          >
+            <mat-icon mat-list-icon>subscriptions</mat-icon>
+            <span mat-line>Subscription</span>
+          </a>
+        </mat-nav-list>
+      </mat-sidenav>
+
+      <mat-sidenav-content>
+        <mat-toolbar color="primary">
+          <button mat-icon-button (click)="sidenav.toggle()">
+            <mat-icon>menu</mat-icon>
+          </button>
+          <span>{{ title }}</span>
+          <span class="spacer"></span>
+          <button mat-button (click)="logout()">
+            <mat-icon>exit_to_app</mat-icon>
+            <span>Logout</span>
+          </button>
+        </mat-toolbar>
+        <main class="main-content">
+          <router-outlet></router-outlet>
+        </main>
+      </mat-sidenav-content>
+    </mat-sidenav-container>
+  </ng-container>
+
+  <ng-template #noSidenav>
+    <!-- Logged-in but no school selected/created: show full-page routes (create-school etc.) -->
+    <router-outlet></router-outlet>
+  </ng-template>
+</ng-container>
+
+<ng-template #authPages>
+  <router-outlet></router-outlet>
+</ng-template>

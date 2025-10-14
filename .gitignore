@@ -18,6 +18,9 @@ firebase-service-account.json
 *.key
 *.pem
 
+# Explicitly ignore backend local env file
+backend/.env
+
 # OS files
 .DS_Store
 Thumbs.db

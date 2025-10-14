@@ -7,15 +7,51 @@ import { query } from '../../database/database';
 // service account JSON via env var FIREBASE_SERVICE_ACCOUNT (stringified JSON).
 if (!admin.apps.length) {
   try {
+    // Prefer a fully-provided service account JSON via FIREBASE_SERVICE_ACCOUNT (stringified JSON).
     if (process.env.FIREBASE_SERVICE_ACCOUNT) {
       const svc = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+      console.info('Initializing firebase-admin from FIREBASE_SERVICE_ACCOUNT for project:', svc.project_id || svc.projectId || process.env.FIREBASE_PROJECT_ID);
       admin.initializeApp({ credential: admin.credential.cert(svc as admin.ServiceAccount) });
+
+    // Support reading a service account JSON directly from disk (avoids embedding secrets in env)
+    } else if (process.env.FIREBASE_SERVICE_ACCOUNT_PATH) {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const svc = require(process.env.FIREBASE_SERVICE_ACCOUNT_PATH);
+        console.info('Initializing firebase-admin from FIREBASE_SERVICE_ACCOUNT_PATH for project:', svc.project_id || svc.projectId || process.env.FIREBASE_PROJECT_ID);
+        admin.initializeApp({ credential: admin.credential.cert(svc as admin.ServiceAccount) });
+      } catch (readErr) {
+        console.warn('Failed to read service account JSON from FIREBASE_SERVICE_ACCOUNT_PATH:', process.env.FIREBASE_SERVICE_ACCOUNT_PATH, String(readErr));
+        // fallthrough to ADC or other methods
+      }
+
+    // Otherwise, if individual service account pieces are provided, construct the ServiceAccount object.
+    } else if (process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY && process.env.FIREBASE_PROJECT_ID) {
+      // Replace escaped newlines with real newlines for PEM parsing
+      const rawKey = (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n');
+      const looksLikePem = rawKey.includes('-----BEGIN PRIVATE KEY-----') && rawKey.includes('-----END PRIVATE KEY-----');
+      if (!looksLikePem) {
+        console.error('FIREBASE_PRIVATE_KEY does not appear to be a valid PEM block after replacing \\n+ with real newlines. Initialization via FIREBASE_CLIENT_EMAIL + FIREBASE_PRIVATE_KEY aborted to avoid PEM parse errors.');
+        console.error('Ensure the private key is pasted with \\n+ escaped for newlines, for example:\nFIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\\nMIIE...\\n-----END PRIVATE KEY-----\\n"');
+      } else {
+        const svc = {
+          projectId: process.env.FIREBASE_PROJECT_ID,
+          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+          privateKey: rawKey,
+        } as admin.ServiceAccount;
+        console.info('Initializing firebase-admin from FIREBASE_CLIENT_EMAIL/FIREBASE_PRIVATE_KEY for project:', svc.projectId);
+        admin.initializeApp({ credential: admin.credential.cert(svc) });
+      }
+
     } else {
-      // Will use application default credentials if available in the environment.
+      // Fall back to application default credentials (ADC). ADC may point to a different
+      // Google project if the environment has GOOGLE_APPLICATION_CREDENTIALS set to a
+      // different service account, which causes aud mismatches. Prefer explicit creds.
+      console.info('Initializing firebase-admin using application default credentials (ADC). If you see aud mismatches, set FIREBASE_SERVICE_ACCOUNT or FIREBASE_CLIENT_EMAIL + FIREBASE_PRIVATE_KEY to the correct project.');
       admin.initializeApp();
     }
   } catch (e) {
-    console.warn('Failed to initialize firebase-admin with provided credentials, continuing — verifying tokens may fail if credentials are missing.', e);
+    console.warn('Failed to initialize firebase-admin with provided credentials, continuing — verifying tokens may fail if credentials are missing.', String(e));
     try {
       admin.initializeApp();
     } catch (err) {

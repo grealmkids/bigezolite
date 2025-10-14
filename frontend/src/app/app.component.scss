@@ -53,3 +53,46 @@
 .main-content {
   padding: 20px;
 }
+
+.app-footer {
+  border-top: 1px solid rgba(0,0,0,0.06);
+  background: #fafafa;
+  padding: 0.75rem 1.5rem;
+  position: sticky;
+  bottom: 0;
+  width: 100%;
+  box-shadow: 0 -1px 4px rgba(0,0,0,0.02);
+}
+
+.footer-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.footer-left {
+  color: #555;
+  font-weight: 600;
+}
+
+.footer-right {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.footer-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #333;
+  text-decoration: none;
+}
+
+.footer-link mat-icon {
+  font-size: 18px;
+  color: var(--color-primary);
+}

@@ -75,10 +75,36 @@
 
   <ng-template #noSidenav>
     <!-- Logged-in but no school selected/created: show full-page routes (create-school etc.) -->
-    <router-outlet></router-outlet>
+    <mat-toolbar color="primary">
+      <span>{{ title }}</span>
+      <span class="spacer"></span>
+      <button mat-button (click)="logout()">
+        <mat-icon>exit_to_app</mat-icon>
+        <span>Logout</span>
+      </button>
+    </mat-toolbar>
+    <main class="main-content">
+      <router-outlet></router-outlet>
+    </main>
   </ng-template>
 </ng-container>
 
 <ng-template #authPages>
   <router-outlet></router-outlet>
 </ng-template>
+
+<footer class="app-footer">
+  <div class="footer-inner">
+    <div class="footer-left">A product of G-Realm Studio</div>
+    <div class="footer-right">
+      <a class="footer-link" href="mailto:apps@grealm.org" aria-label="Email">
+        <mat-icon>email</mat-icon>
+        <span>apps&#64;grealm.org</span>
+      </a>
+      <a class="footer-link" href="tel:+256773913902" aria-label="Phone">
+        <mat-icon>phone</mat-icon>
+        <span>+256773913902</span>
+      </a>
+    </div>
+  </div>
+</footer>

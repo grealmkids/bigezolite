@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { School, SchoolService } from '../../services/school.service';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -15,6 +16,7 @@ export class DashboardComponent implements OnInit {
   school$: Observable<School | null> | undefined;
   schools: School[] = [];
 
+  private authService = inject(AuthService);
   constructor(private schoolService: SchoolService, public router: Router) { }
 
   ngOnInit(): void {
@@ -28,5 +30,11 @@ export class DashboardComponent implements OnInit {
 
   navigateToCommunications(): void {
     this.router.navigate(['/communications']);
+  }
+
+  logout(): void {
+    // call the shared AuthService logout which clears local session and redirects to login
+    this.authService.logout();
+    this.router.navigate(['/login']);
   }
 }

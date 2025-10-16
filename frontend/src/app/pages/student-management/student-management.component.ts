@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { LoadingService } from '../../services/loading.service';
 import { Observable, Subject, combineLatest, BehaviorSubject, of } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap, startWith, take } from 'rxjs/operators';
 import { Student, StudentService } from '../../services/student.service';
@@ -8,16 +9,18 @@ import { FeesManagementModalComponent } from '../../components/fees-management-m
 import { SmsStudentModalComponent } from '../../components/sms-student-modal/sms-student-modal.component';
 import { SchoolService } from '../../services/school.service';
 import { ClassCategorizationService, SchoolType } from '../../services/class-categorization.service';
+import { LoadingSpinnerComponent } from '../../components/loading-spinner/loading-spinner.component';
 
 @Component({
   selector: 'app-student-management',
   standalone: true,
-  imports: [CommonModule, StudentModalComponent, FeesManagementModalComponent, SmsStudentModalComponent],
+  imports: [CommonModule, StudentModalComponent, FeesManagementModalComponent, SmsStudentModalComponent, LoadingSpinnerComponent],
   templateUrl: './student-management.component.html',
   styleUrl: './student-management.component.scss'
 })
 export class StudentManagementComponent implements OnInit {
   students$: Observable<Student[]> | undefined;
+  isLoading = false;
   private searchTerms = new Subject<string>();
   private classFilter = new BehaviorSubject<string>('');
   private statusFilter = new BehaviorSubject<string>('');
@@ -33,9 +36,10 @@ export class StudentManagementComponent implements OnInit {
   loadingClasses = false;
 
   constructor(
-    private studentService: StudentService,
-    private schoolService: SchoolService,
-    private classCategorizationService: ClassCategorizationService
+  private studentService: StudentService,
+  private schoolService: SchoolService,
+  private classCategorizationService: ClassCategorizationService,
+  private loadingService: LoadingService
   ) { }
 
   onSearch(term: string): void {
@@ -80,10 +84,23 @@ export class StudentManagementComponent implements OnInit {
     this.students$ = filters$.pipe(
       debounceTime(300),
       distinctUntilChanged((prev, curr) => JSON.stringify(prev) === JSON.stringify(curr)),
-      switchMap(([searchTerm, classTerm, statusTerm, yearTerm]) => 
-        this.studentService.getStudents(searchTerm, classTerm, statusTerm, yearTerm)
-      ),
+      switchMap(([searchTerm, classTerm, statusTerm, yearTerm]) => {
+        this.isLoading = true;
+        this.loadingService.show();
+        return this.studentService.getStudents(searchTerm, classTerm, statusTerm, yearTerm);
+      })
     );
+    // Hide spinner when students$ emits
+    this.students$.subscribe({
+      next: () => {
+        this.isLoading = false;
+        this.loadingService.hide();
+      },
+      error: () => {
+        this.isLoading = false;
+        this.loadingService.hide();
+      }
+    });
   }
 
   // Student Modal Methods
@@ -98,8 +115,10 @@ export class StudentManagementComponent implements OnInit {
   }
 
   onStudentUpserted(): void {
-    this.searchTerms.next(''); // Refresh the list
     this.closeStudentModal();
+    setTimeout(() => {
+      this.searchTerms.next(''); // Refresh the list after modal closes
+    }, 100);
   }
 
   // Fees Management Modal Methods

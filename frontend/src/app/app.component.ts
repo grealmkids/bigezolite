@@ -1,5 +1,5 @@
 
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ViewChild } from '@angular/core';
 import { Router, RouterOutlet, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { LoadingSpinnerComponent } from './components/loading-spinner/loading-spinner.component';
@@ -9,10 +9,11 @@ import { SchoolService } from './services/school.service';
 
 // Angular Material Modules
 import { MatToolbarModule } from '@angular/material/toolbar';
-import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatSidenavModule, MatSidenav } from '@angular/material/sidenav';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -34,11 +35,14 @@ import { MatButtonModule } from '@angular/material/button';
 export class AppComponent implements OnInit {
   title = 'bigezo';
   private authService = inject(AuthService);
-  private router = inject(Router);
+  public router = inject(Router);
   private webSocketService = inject(WebSocketService);
-  private schoolService = inject(SchoolService);
+  public schoolService = inject(SchoolService);
   hasSchool = false;
   showSidenav = true;
+  private subs: Subscription[] = [];
+
+  @ViewChild('sidenav') sidenav!: MatSidenav;
 
   ngOnInit(): void {
     this.webSocketService.getMessages().subscribe((message: any) => {
@@ -52,6 +56,20 @@ export class AppComponent implements OnInit {
     this.schoolService.listMySchools().subscribe(schools => {
       this.hasSchool = !!(schools && schools.length > 0);
     });
+
+    // If another component selects a school, open the sidenav and mark hasSchool
+    this.subs.push(this.schoolService.selectedSchool$.subscribe(s => {
+      if (s) {
+        this.hasSchool = true;
+        this.showSidenav = true;
+        try {
+          // ViewChild may not be ready immediately; guard
+          if (this.sidenav && !this.sidenav.opened) this.sidenav.open();
+        } catch (ex) {
+          // ignore; best-effort
+        }
+      }
+    }));
 
     // Hide sidenav for the top-level dashboard route so the landing dashboard is a simple card grid
     this.router.events.subscribe(() => {
@@ -67,5 +85,9 @@ export class AppComponent implements OnInit {
   logout(): void {
     this.authService.logout();
     this.router.navigate(['/login']);
+  }
+
+  ngOnDestroy(): void {
+    this.subs.forEach(s => s.unsubscribe());
   }
 }

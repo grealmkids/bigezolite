@@ -22,8 +22,22 @@ export class SchoolService {
   private apiUrl = 'http://localhost:3000/api/v1'; // Assuming backend runs on port 3000
   private mySchool = new BehaviorSubject<School | null>(null);
   private mySchools = new BehaviorSubject<School[] | null>(null);
+  private selectedSchool = new BehaviorSubject<School | null>(null);
+  public selectedSchool$ = this.selectedSchool.asObservable();
+  private readonly STORAGE_KEY = 'bigezo_selected_school';
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {
+    // Restore selected school from localStorage if present
+    try {
+      const raw = localStorage.getItem(this.STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw) as School;
+        this.selectedSchool.next(parsed);
+      }
+    } catch (e) {
+      // ignore parse errors
+    }
+  }
 
   /**
    * Gets the school associated with the currently authenticated user.
@@ -83,8 +97,29 @@ export class SchoolService {
 
   updateMySchool(id: number, updates: Partial<School>) {
     return this.http.put<School>(`${this.apiUrl}/schools/${id}`, updates).pipe(
-      tap(school => this.mySchool.next(school))
+      tap(school => {
+        this.mySchool.next(school);
+        // if the updated school is currently selected, update the selectedSchool as well
+        const cur = this.selectedSchool.value;
+        if (cur && cur.school_id === school.school_id) {
+          this.selectedSchool.next(school);
+          try { localStorage.setItem(this.STORAGE_KEY, JSON.stringify(school)); } catch (e) { /* ignore */ }
+        }
+      })
     );
+  }
+
+  selectSchool(school: School | null) {
+    this.selectedSchool.next(school);
+    try {
+      if (school) {
+        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(school));
+      } else {
+        localStorage.removeItem(this.STORAGE_KEY);
+      }
+    } catch (e) {
+      // ignore storage errors
+    }
   }
 
   deleteMySchool(id: number) {

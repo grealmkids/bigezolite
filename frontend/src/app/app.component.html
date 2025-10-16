@@ -5,6 +5,14 @@
     <mat-sidenav-container class="sidenav-container">
       <mat-sidenav #sidenav mode="side" opened class="sidenav">
         <h2 class="logo">BIGEZO</h2>
+        <div class="current-school-block" *ngIf="(schoolService.selectedSchool$ | async) as current">
+          <div class="current-school-label">Current school</div>
+          <div class="current-school-name">{{ current.school_name }}</div>
+          <button mat-button class="change-school-btn" (click)="schoolService.selectSchool(null); router.navigate(['/dashboard'])">
+            <mat-icon>swap_horiz</mat-icon>
+            Change
+          </button>
+        </div>
         <mat-nav-list>
           <a
             mat-list-item

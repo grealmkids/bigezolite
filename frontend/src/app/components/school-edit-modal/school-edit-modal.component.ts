@@ -8,6 +8,7 @@ import { MatInputModule } from '@angular/material/input';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { School, SchoolService } from '../../services/school.service';
 import { Inject } from '@angular/core';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-school-edit-modal',
@@ -18,7 +19,8 @@ import { Inject } from '@angular/core';
     MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    MatSnackBarModule
   ],
   templateUrl: './school-edit-modal.component.html',
   styleUrls: ['./school-edit-modal.component.scss']
@@ -27,6 +29,7 @@ export class SchoolEditModalComponent {
   private fb = inject(FormBuilder);
   private dialogRef = inject(MatDialogRef<SchoolEditModalComponent>);
   private schoolService = inject(SchoolService);
+  private snack = inject(MatSnackBar);
 
   data!: { school: School };
 
@@ -63,11 +66,12 @@ export class SchoolEditModalComponent {
 
     this.schoolService.updateMySchool(this.data.school.school_id, updates).subscribe({
       next: (updated) => {
+        this.snack.open('School updated successfully', undefined, { duration: 2500 });
         this.dialogRef.close(updated);
       },
       error: (err) => {
         console.error('Failed to update school', err);
-        // keep dialog open; in a fuller implementation we'd surface an error message
+        this.snack.open('Failed to update school', 'Dismiss', { duration: 4000 });
       }
     });
   }

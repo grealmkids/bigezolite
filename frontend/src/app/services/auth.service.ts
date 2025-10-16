@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { Observable, tap, BehaviorSubject } from 'rxjs';
 import { Auth, signInWithPopup, GoogleAuthProvider } from '@angular/fire/auth';
 
 @Injectable({
@@ -10,6 +10,8 @@ export class AuthService {
   private apiUrl = 'http://localhost:3000/api/v1'; // Assuming backend runs on port 3000
   private tokenKey = 'bigezo_auth_token';
   private auth: Auth = inject(Auth);
+  private authState = new BehaviorSubject<boolean>(!!this.getToken());
+  public authState$ = this.authState.asObservable();
 
   constructor(private http: HttpClient) { }
 
@@ -73,6 +75,7 @@ export class AuthService {
 
   saveToken(token: string): void {
     localStorage.setItem(this.tokenKey, token);
+    this.authState.next(true);
   }
 
   getToken(): string | null {
@@ -85,5 +88,6 @@ export class AuthService {
 
   logout(): void {
     localStorage.removeItem(this.tokenKey);
+    this.authState.next(false);
   }
 }

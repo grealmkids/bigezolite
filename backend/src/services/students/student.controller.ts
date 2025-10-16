@@ -1,3 +1,23 @@
+// Update a student by ID
+export const updateStudent = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const schoolId = req.user?.schoolId;
+        const studentId = parseInt(req.params.studentId, 10);
+        console.log('[updateStudent] schoolId:', schoolId, 'studentId:', studentId, 'updates:', req.body);
+        if (!schoolId || !studentId) {
+            return res.status(400).json({ message: 'Missing school or student ID' });
+        }
+        const updates = req.body;
+        const updatedStudent = await studentService.updateStudentById(schoolId, studentId, updates);
+        if (!updatedStudent) {
+            return res.status(404).json({ message: 'Student not found or update failed' });
+        }
+        res.status(200).json(updatedStudent);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
 // Get a single student by ID
 export const getStudentById = async (req: AuthenticatedRequest, res: Response) => {
     try {

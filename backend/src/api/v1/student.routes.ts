@@ -17,6 +17,9 @@ router.get('/', studentController.getStudents);
 // GET /api/v1/students/:studentId - Get a single student's full details
 router.get('/:studentId', studentController.getStudentById);
 
+// PUT /api/v1/students/:studentId - Update a student's details
+router.put('/:studentId', studentController.updateStudent);
+
 // --- Nested Fee Routes ---
 
 // POST /api/v1/students/:studentId/fees - Create a new fee record for a student

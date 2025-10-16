@@ -1,3 +1,27 @@
+// Update a student by school and student ID
+export const updateStudentById = async (schoolId: number, studentId: number, updates: Partial<Student>) => {
+    // Build dynamic SQL for only provided fields
+    const allowedFields: (keyof Student)[] = [
+        'student_name', 'class_name', 'year_enrolled', 'student_status',
+        'parent_primary_name', 'parent_phone_sms', 'parent_name_mother', 'parent_name_father', 'residence_district'
+    ];
+    const setClauses: string[] = [];
+    const params: any[] = [];
+    let paramIndex = 1;
+    for (const field of allowedFields) {
+        if ((updates as any)[field] !== undefined) {
+            setClauses.push(`${field} = $${paramIndex}`);
+            params.push((updates as any)[field]);
+            paramIndex++;
+        }
+    }
+    if (setClauses.length === 0) return null;
+    // Add schoolId and studentId to params
+    params.push(schoolId, studentId);
+    const sql = `UPDATE students SET ${setClauses.join(', ')} WHERE school_id = $${paramIndex} AND student_id = $${paramIndex + 1} RETURNING *`;
+    const result = await query(sql, params);
+    return result.rows[0] || null;
+};
 // Find a single student by school and student ID
 export const findStudentById = async (schoolId: number, studentId: number) => {
     const sql = 'SELECT * FROM students WHERE school_id = $1 AND student_id = $2';

@@ -1,0 +1,11 @@
+:host {
+  display: block;
+}
+
+mat-form-field {
+  margin-bottom: 0.75rem;
+}
+
+mat-dialog-actions button + button {
+  margin-left: 0.5rem;
+}

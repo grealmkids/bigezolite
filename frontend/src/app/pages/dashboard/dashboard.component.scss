@@ -9,6 +9,112 @@
     margin: 0 auto;
 }
 
+.schools-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.small-create-cta {
+    padding: 0.5rem 1rem;
+    background: var(--color-primary);
+    color: white;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 700;
+}
+
+.schools-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.school-large-button {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 2rem;
+    text-align: left;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.school-card {
+    border-radius: 12px;
+    color: #1f2937;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 140px;
+    box-shadow: 0 8px 30px rgba(15, 23, 42, 0.06);
+    transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+    cursor: pointer;
+}
+
+.school-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+}
+
+.school-card-content {
+    padding: 1rem;
+}
+
+.school-name {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.school-card-actions {
+    padding: 0.75rem 1rem;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.btn {
+    padding: 0.5rem 0.9rem;
+    border-radius: 8px;
+    border: none;
+    font-weight: 700;
+}
+
+.btn-secondary {
+    background: rgba(255,255,255,0.9);
+    color: #0f172a;
+    border: 1px solid rgba(0,0,0,0.08);
+    box-shadow: 0 4px 12px rgba(15,23,42,0.06);
+}
+
+.btn-secondary .fa-edit {
+    margin-right: 0.5rem;
+}
+
+.school-card-actions .btn {
+    background: rgba(255,255,255,0.92);
+    color: #0f172a;
+}
+
+.school-large-button:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 24px rgba(0,0,0,0.08);
+}
+
+.school-name {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.school-meta {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
 .welcome-message {
     text-align: center;
     margin-bottom: 3rem;

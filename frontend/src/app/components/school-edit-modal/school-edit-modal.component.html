@@ -1,0 +1,40 @@
+<h2 mat-dialog-title>Edit School</h2>
+<div mat-dialog-content>
+  <form [formGroup]="form">
+    <mat-form-field appearance="fill" style="width: 100%">
+      <mat-label>School Name</mat-label>
+      <input matInput formControlName="school_name" />
+    </mat-form-field>
+
+    <mat-form-field appearance="fill" style="width: 100%">
+      <mat-label>Admin Phone</mat-label>
+      <input matInput formControlName="admin_phone" />
+    </mat-form-field>
+
+    <mat-form-field appearance="fill" style="width: 100%">
+      <mat-label>District</mat-label>
+      <input matInput formControlName="location_district" />
+    </mat-form-field>
+
+    <mat-form-field appearance="fill" style="width: 100%">
+      <mat-label>Student Count Range</mat-label>
+      <input matInput formControlName="student_count_range" />
+    </mat-form-field>
+
+    <mat-form-field appearance="fill" style="width: 100%">
+      <mat-label>School Type</mat-label>
+      <input matInput formControlName="school_type" />
+    </mat-form-field>
+  </form>
+</div>
+<div mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()">Cancel</button>
+  <button
+    mat-flat-button
+    color="primary"
+    (click)="save()"
+    [disabled]="form.invalid"
+  >
+    Save
+  </button>
+</div>

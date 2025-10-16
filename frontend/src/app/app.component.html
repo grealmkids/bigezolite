@@ -1,7 +1,7 @@
 <app-loading-spinner></app-loading-spinner>
 
 <ng-container *ngIf="isLoggedIn; else authPages">
-  <ng-container *ngIf="hasSchool; else noSidenav">
+  <ng-container *ngIf="showSidenav; else simpleShell">
     <mat-sidenav-container class="sidenav-container">
       <mat-sidenav #sidenav mode="side" opened class="sidenav">
         <h2 class="logo">BIGEZO</h2>
@@ -73,8 +73,7 @@
     </mat-sidenav-container>
   </ng-container>
 
-  <ng-template #noSidenav>
-    <!-- Logged-in but no school selected/created: show full-page routes (create-school etc.) -->
+  <ng-template #simpleShell>
     <mat-toolbar color="primary">
       <span>{{ title }}</span>
       <span class="spacer"></span>

@@ -9,23 +9,40 @@ import { SchoolService, School } from '../../services/school.service';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   template: `
-    <div class="manage-school">
+    <div class="manage-school card">
       <h2>Manage School</h2>
-      <div *ngIf="!school">Loading...</div>
-      <form *ngIf="school" [formGroup]="schoolForm" (ngSubmit)="onSave()">
-        <label>School Name</label>
-        <input formControlName="school_name" />
-        <label>Admin Phone</label>
-        <input formControlName="admin_phone" />
-        <label>Location District</label>
-        <input formControlName="location_district" />
-        <label>Student Count Range</label>
-        <input formControlName="student_count_range" />
-        <label>School Type</label>
-        <input formControlName="school_type" />
-        <div>
-          <button type="submit">Save</button>
-          <button type="button" (click)="onDelete()">Delete School</button>
+      <div *ngIf="!school" class="loading">Loading...</div>
+      <form *ngIf="school" class="school-form" [formGroup]="schoolForm" (ngSubmit)="onSave()">
+        <div class="form-row">
+          <label>School Name</label>
+          <input formControlName="school_name" />
+        </div>
+
+        <div class="form-row two-col">
+          <div>
+            <label>Admin Phone</label>
+            <input formControlName="admin_phone" />
+          </div>
+          <div>
+            <label>Location District</label>
+            <input formControlName="location_district" />
+          </div>
+        </div>
+
+        <div class="form-row two-col">
+          <div>
+            <label>Student Count Range</label>
+            <input formControlName="student_count_range" />
+          </div>
+          <div>
+            <label>School Type</label>
+            <input formControlName="school_type" />
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn primary" type="submit">Save</button>
+          <button class="btn danger" type="button" (click)="onDelete()">Delete School</button>
         </div>
       </form>
     </div>

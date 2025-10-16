@@ -38,6 +38,7 @@ export class AppComponent implements OnInit {
   private webSocketService = inject(WebSocketService);
   private schoolService = inject(SchoolService);
   hasSchool = false;
+  showSidenav = true;
 
   ngOnInit(): void {
     this.webSocketService.getMessages().subscribe((message: any) => {
@@ -50,6 +51,12 @@ export class AppComponent implements OnInit {
     // Initialize whether the current user has at least one school to show sidenav
     this.schoolService.listMySchools().subscribe(schools => {
       this.hasSchool = !!(schools && schools.length > 0);
+    });
+
+    // Hide sidenav for the top-level dashboard route so the landing dashboard is a simple card grid
+    this.router.events.subscribe(() => {
+      const url = this.router.url.split('?')[0];
+      this.showSidenav = !(url === '/dashboard');
     });
   }
 

@@ -1,5 +1,6 @@
 
 import axios from 'axios';
+import { config } from '../config';
 
 /**
  * sendSms - send a plain-text SMS via configured gateway
@@ -13,16 +14,16 @@ import axios from 'axios';
  */
 export async function sendSms(phoneNumber: string, message: string): Promise<any> {
   try {
-    const smsUrl = process.env.SMS_API_URL;
+    const smsUrl = config.sms.apiUrl;
     if (!smsUrl) throw new Error('SMS_API_URL not configured');
     const normalized = normalizePhone(phoneNumber);
 
     const params: Record<string, string> = {
-      username: process.env.SMS_USERNAME || '',
-      password: process.env.SMS_PASSWORD || '',
+      username: process.env.SMS_USERNAME || config.sms.username || '',
+      password: process.env.SMS_PASSWORD || config.sms.password || '',
       message,
       number: normalized,
-      sender: process.env.SMS_USERNAME || ''
+      sender: process.env.SMS_USERNAME || config.sms.username || ''
     };
 
     console.log(`Sending SMS to ${phoneNumber} -> normalized ${normalized}`);

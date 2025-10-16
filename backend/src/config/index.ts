@@ -22,8 +22,10 @@ export const config = {
     consumerSecret: process.env.PESAPAL_CONSUMER_SECRET,
   },
   sms: {
-    apiKey: process.env.SMS_API_KEY,
+    apiUrl: process.env.SMS_API_URL,
     username: process.env.SMS_USERNAME,
+    password: process.env.SMS_PASSWORD,
+    grealmNumber: process.env.GREALMNUMBER || process.env.JOBPOPNUMBER,
   },
   jwtSecret: process.env.JWT_SECRET || 'your_default_secret',
 };

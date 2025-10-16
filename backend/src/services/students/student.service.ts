@@ -13,7 +13,7 @@ export const createStudent = async (student: Omit<Student, 'student_id' | 'reg_n
     const countResult = await query(countQuery, [schoolId]);
     const counter = parseInt(countResult.rows[0].count, 10) + 1;
     const phoneLastSix = student.parent_phone_sms.slice(-6);
-    const reg_number = `${schoolId}-${phoneLastSix}-${counter}`;
+    const reg_number = `${schoolId}${phoneLastSix}${counter}`;
 
     const sql = `
         INSERT INTO students (school_id, reg_number, student_name, class_name, year_enrolled, student_status, parent_primary_name, parent_phone_sms, parent_name_mother, parent_name_father, residence_district)
@@ -49,7 +49,7 @@ export const findStudentsBySchool = async (schoolId: number, searchTerm?: string
     let paramIndex = 2;
 
     if (searchTerm) {
-        sql += ` AND (student_name ILIKE ${paramIndex} OR reg_number ILIKE ${paramIndex})`;
+        sql += ` AND (student_name ILIKE ${paramIndex} OR CAST(reg_number AS TEXT) ILIKE ${paramIndex})`;
         params.push(`%${searchTerm}%`);
         paramIndex++;
     }

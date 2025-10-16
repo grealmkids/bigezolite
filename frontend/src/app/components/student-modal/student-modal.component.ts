@@ -65,9 +65,21 @@ export class StudentModalComponent implements OnInit, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['student'] && this.student) {
+    if (this.student) {
       this.isEditMode = true;
-      this.studentForm.patchValue(this.student);
+      setTimeout(() => {
+        this.studentForm.patchValue({
+          student_name: this.student?.student_name || '',
+          class_name: this.student?.class_name || '',
+          year_enrolled: (this.student as any)?.year_enrolled || new Date().getFullYear(),
+          student_status: this.student?.student_status || 'Active',
+          parent_primary_name: (this.student as any)?.parent_primary_name || '',
+          parent_phone_sms: this.student?.parent_phone_sms || '',
+          parent_name_mother: (this.student as any)?.parent_name_mother || '',
+          parent_name_father: (this.student as any)?.parent_name_father || '',
+          residence_district: (this.student as any)?.residence_district || '',
+        });
+      }, 0);
     } else {
       this.isEditMode = false;
       this.studentForm.reset({ year_enrolled: new Date().getFullYear(), student_status: 'Active' });

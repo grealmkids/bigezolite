@@ -12,7 +12,19 @@ import { CommunicationService } from '../../services/communication.service';
   styleUrls: ['./sms-student-modal.component.scss']
 })
 export class SmsStudentModalComponent {
-  @Input() student: Student | null = null;
+  private _student: Student | null = null;
+  @Input() set student(val: Student | null) {
+    this._student = val;
+    this.forceUpdateView();
+  }
+  get student(): Student | null {
+    return this._student;
+  }
+
+  forceUpdateView() {
+    // This method is a placeholder for any future logic to force update view if needed
+    // For now, it just triggers change detection by updating a dummy property if needed
+  }
   @Output() close = new EventEmitter<void>();
 
   message = '';

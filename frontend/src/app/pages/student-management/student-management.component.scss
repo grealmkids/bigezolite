@@ -81,11 +81,15 @@
 .student-table {
     width: 100%;
     border-collapse: collapse;
+    overflow-x: auto;
+    display: block;
+    min-width: 600px;
 
     th, td {
         padding: 1rem;
         text-align: left;
         border-bottom: 1px solid #e9ecef;
+        word-break: break-word;
     }
 
     th {
@@ -104,6 +108,24 @@
         padding: 3rem;
         color: #6c757d;
     }
+}
+
+@media (max-width: 700px) {
+  .student-table {
+    min-width: 0;
+    font-size: 0.95em;
+    th, td {
+      padding: 0.5em;
+    }
+  }
+  .student-list-container {
+    border-radius: 0;
+    box-shadow: none;
+    padding: 0;
+  }
+  .page-container {
+    padding: 0.5em;
+  }
 }
 
 .status {
@@ -146,9 +168,14 @@
         background-color: var(--color-secondary);
         color: #fff;
     }
-    &.edit.filled {
-        background-color: #1976d2;
+    &.edit.filled.alt {
+        background-color: #8e24aa;
         color: #fff;
+    }
+    .icon {
+        display: inline-flex;
+        vertical-align: middle;
+        margin-right: 0.5em;
     }
     &.sms.filled {
         background-color: var(--color-primary);

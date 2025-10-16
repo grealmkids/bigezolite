@@ -1,3 +1,11 @@
+import { Pipe, PipeTransform } from '@angular/core';
+
+@Pipe({ name: 'noDash' })
+export class NoDashPipe implements PipeTransform {
+  transform(value: string): string {
+    return value ? value.split('-').join('') : '';
+  }
+}
 import { Component, OnInit } from '@angular/core';
 import { LoadingService } from '../../services/loading.service';
 import { Observable, Subject, combineLatest, BehaviorSubject, of } from 'rxjs';
@@ -14,7 +22,7 @@ import { LoadingSpinnerComponent } from '../../components/loading-spinner/loadin
 @Component({
   selector: 'app-student-management',
   standalone: true,
-  imports: [CommonModule, StudentModalComponent, FeesManagementModalComponent, SmsStudentModalComponent, LoadingSpinnerComponent],
+  imports: [CommonModule, StudentModalComponent, FeesManagementModalComponent, SmsStudentModalComponent, LoadingSpinnerComponent, NoDashPipe],
   templateUrl: './student-management.component.html',
   styleUrl: './student-management.component.scss'
 })

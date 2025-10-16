@@ -29,6 +29,9 @@ export interface StudentData {
   providedIn: 'root'
 })
 export class StudentService {
+  getStudentById(studentId: number): Observable<Student> {
+    return this.http.get<Student>(`${this.apiUrl}/${studentId}`);
+  }
   private apiUrl = 'http://localhost:3000/api/v1/students';
 
   constructor(private http: HttpClient) { }

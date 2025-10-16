@@ -1,3 +1,23 @@
+// Get a single student by ID
+export const getStudentById = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const schoolId = req.user?.schoolId;
+        const studentId = parseInt(req.params.studentId, 10);
+        console.log('[getStudentById] req.user:', req.user);
+        console.log('[getStudentById] schoolId:', schoolId, 'studentId:', studentId);
+        if (!schoolId || !studentId) {
+            return res.status(400).json({ message: 'Missing school or student ID' });
+        }
+        const student = await studentService.findStudentById(schoolId, studentId);
+        if (!student) {
+            return res.status(404).json({ message: 'Student not found' });
+        }
+        res.status(200).json(student);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
 
 import { Response } from 'express';
 import * as studentService from './student.service';

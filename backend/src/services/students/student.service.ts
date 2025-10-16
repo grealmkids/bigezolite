@@ -1,3 +1,9 @@
+// Find a single student by school and student ID
+export const findStudentById = async (schoolId: number, studentId: number) => {
+    const sql = 'SELECT * FROM students WHERE school_id = $1 AND student_id = $2';
+    const result = await query(sql, [schoolId, studentId]);
+    return result.rows[0] || null;
+};
 
 import { query } from '../../database/database';
 import { Student } from './student.controller'; // We'll define the interface in the controller for now

@@ -78,6 +78,9 @@ export const authenticateToken = async (req: AuthenticatedRequest, res: Response
       req.user.schoolId = schoolResult.rows[0].school_id;
     }
 
+    console.log('[auth.middleware] token:', token);
+    console.log('[auth.middleware] userId:', payload.userId, 'schoolId:', req.user.schoolId);
+
     next();
   } catch (err) {
     console.error('Authentication error:', err);

@@ -146,6 +146,7 @@ export class SchoolService {
     }
   }
 
+
   /**
    * Returns the currently selected school's type (synchronously) if available.
    * Falls back to reading the persisted storage key.
@@ -156,6 +157,23 @@ export class SchoolService {
     try {
       return localStorage.getItem(this.STORAGE_SCHOOL_TYPE);
     } catch (e) { return null; }
+  }
+
+  /**
+   * Returns the currently selected school's ID (synchronously) if available.
+   * Falls back to reading the persisted storage key.
+   */
+  getSelectedSchoolId(): number | null {
+    const school = this.selectedSchool.value;
+    if (school && school.school_id) return school.school_id;
+    try {
+      const raw = localStorage.getItem(this.STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        return parsed.school_id || null;
+      }
+    } catch (e) { /* ignore */ }
+    return null;
   }
 
   deleteMySchool(id: number) {

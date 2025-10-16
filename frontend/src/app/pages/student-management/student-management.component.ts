@@ -114,11 +114,10 @@ export class StudentManagementComponent implements OnInit {
   // Student Modal Methods
   openStudentModal(student: Student | null = null): void {
     if (student && student.student_id) {
-      this.studentService.getStudents(undefined, undefined, undefined, undefined)
-        .subscribe(students => {
-          const found = students.find(s => s.student_id === student.student_id);
-          console.log('[Edit Modal] fetched student:', found);
-          this.selectedStudent = found || student;
+      this.studentService.getStudentById(student.student_id)
+        .subscribe(fullStudent => {
+          console.log('[Edit Modal] fetched student:', fullStudent);
+          this.selectedStudent = fullStudent || student;
           this.isStudentModalOpen = true;
         });
     } else {
@@ -142,11 +141,10 @@ export class StudentManagementComponent implements OnInit {
   // Fees Management Modal Methods
   openFeesModal(student: Student): void {
     if (student && student.student_id) {
-      this.studentService.getStudents(undefined, undefined, undefined, undefined)
-        .subscribe(students => {
-          const found = students.find(s => s.student_id === student.student_id);
-          console.log('[Fees Modal] fetched student:', found);
-          this.selectedStudent = found || student;
+      this.studentService.getStudentById(student.student_id)
+        .subscribe(fullStudent => {
+          console.log('[Fees Modal] fetched student:', fullStudent);
+          this.selectedStudent = fullStudent || student;
           this.isFeesModalOpen = true;
         });
     } else {
@@ -163,11 +161,10 @@ export class StudentManagementComponent implements OnInit {
   // SMS Modal Methods
   openSmsModal(student: Student): void {
     if (student && student.student_id) {
-      this.studentService.getStudents(undefined, undefined, undefined, undefined)
-        .subscribe(students => {
-          const found = students.find(s => s.student_id === student.student_id);
-          console.log('[SMS Modal] fetched student:', found);
-          this.selectedStudent = found || student;
+      this.studentService.getStudentById(student.student_id)
+        .subscribe(fullStudent => {
+          console.log('[SMS Modal] fetched student:', fullStudent);
+          this.selectedStudent = fullStudent || student;
           this.isSmsModalOpen = true;
         });
     } else {

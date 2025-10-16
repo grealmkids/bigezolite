@@ -57,19 +57,19 @@
         <tr *ngFor="let student of students$ | async">
           <td>{{ student.reg_number | noDash }}</td>
           <td>{{ student.student_name }}</td>
-          <td>{{ student.class_name }}</td>
+          <td>{{ student?.class_name || "" }}</td>
           <td>
             <span
               class="status"
-              [ngClass]="student.student_status.toLowerCase()"
-              >{{ student.student_status }}</span
+              [ngClass]="(student?.student_status || '').toLowerCase()"
+              >{{ student?.student_status || "" }}</span
             >
           </td>
           <td>
             <span
               class="fees-status"
-              [ngClass]="student.fees_status.toLowerCase()"
-              >{{ student.fees_status }}</span
+              [ngClass]="(student?.fees_status || '').toLowerCase()"
+              >{{ student?.fees_status || "" }}</span
             >
           </td>
           <td class="actions">

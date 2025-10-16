@@ -97,10 +97,14 @@
   <router-outlet></router-outlet>
 </ng-template>
 
+<!-- Footer always after all content -->
 <footer class="app-footer">
   <div class="footer-inner">
-    <div class="footer-left">A product of G-Realm Studio</div>
-    <div class="footer-right">
+    <div class="footer-brand">
+      <mat-icon class="footer-logo">school</mat-icon>
+      <span class="footer-product">A product of <b>G-Realm Studio</b></span>
+    </div>
+    <div class="footer-links">
       <a class="footer-link" href="mailto:apps@grealm.org" aria-label="Email">
         <mat-icon>email</mat-icon>
         <span>apps&#64;grealm.org</span>

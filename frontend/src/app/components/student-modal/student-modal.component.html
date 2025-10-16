@@ -1,7 +1,7 @@
 <div class="modal-overlay" (click)="close.emit()">
   <div class="modal-card" (click)="$event.stopPropagation()">
     <div class="modal-header">
-      <h2>Add New Student</h2>
+      <h2>{{ isEditMode ? "Edit Student" : "Add New Student" }}</h2>
       <button class="close-btn" (click)="close.emit()">&times;</button>
     </div>
     <div class="modal-body">

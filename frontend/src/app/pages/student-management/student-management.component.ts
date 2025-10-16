@@ -113,8 +113,18 @@ export class StudentManagementComponent implements OnInit {
 
   // Student Modal Methods
   openStudentModal(student: Student | null = null): void {
-    this.selectedStudent = student;
-    this.isStudentModalOpen = true;
+    if (student && student.student_id) {
+      this.studentService.getStudents(undefined, undefined, undefined, undefined)
+        .subscribe(students => {
+          const found = students.find(s => s.student_id === student.student_id);
+          console.log('[Edit Modal] fetched student:', found);
+          this.selectedStudent = found || student;
+          this.isStudentModalOpen = true;
+        });
+    } else {
+      this.selectedStudent = null;
+      this.isStudentModalOpen = true;
+    }
   }
 
   closeStudentModal(): void {
@@ -131,8 +141,18 @@ export class StudentManagementComponent implements OnInit {
 
   // Fees Management Modal Methods
   openFeesModal(student: Student): void {
-    this.selectedStudent = student;
-    this.isFeesModalOpen = true;
+    if (student && student.student_id) {
+      this.studentService.getStudents(undefined, undefined, undefined, undefined)
+        .subscribe(students => {
+          const found = students.find(s => s.student_id === student.student_id);
+          console.log('[Fees Modal] fetched student:', found);
+          this.selectedStudent = found || student;
+          this.isFeesModalOpen = true;
+        });
+    } else {
+      this.selectedStudent = null;
+      this.isFeesModalOpen = true;
+    }
   }
 
   closeFeesModal(): void {
@@ -142,8 +162,18 @@ export class StudentManagementComponent implements OnInit {
 
   // SMS Modal Methods
   openSmsModal(student: Student): void {
-    this.selectedStudent = student;
-    this.isSmsModalOpen = true;
+    if (student && student.student_id) {
+      this.studentService.getStudents(undefined, undefined, undefined, undefined)
+        .subscribe(students => {
+          const found = students.find(s => s.student_id === student.student_id);
+          console.log('[SMS Modal] fetched student:', found);
+          this.selectedStudent = found || student;
+          this.isSmsModalOpen = true;
+        });
+    } else {
+      this.selectedStudent = null;
+      this.isSmsModalOpen = true;
+    }
   }
 
   closeSmsModal(): void {

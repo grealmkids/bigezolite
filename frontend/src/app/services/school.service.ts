@@ -25,6 +25,9 @@ export class SchoolService {
   private selectedSchool = new BehaviorSubject<School | null>(null);
   public selectedSchool$ = this.selectedSchool.asObservable();
   private readonly STORAGE_KEY = 'bigezo_selected_school';
+  private readonly STORAGE_SCHOOL_TYPE = 'bigezo_selected_school_type';
+  private selectedSchoolType = new BehaviorSubject<string | null>(null);
+  public selectedSchoolType$ = this.selectedSchoolType.asObservable();
 
   constructor(private http: HttpClient) {
     // Restore selected school from localStorage if present
@@ -33,6 +36,14 @@ export class SchoolService {
       if (raw) {
         const parsed = JSON.parse(raw) as School;
         this.selectedSchool.next(parsed);
+        // also restore school type if present
+        if (parsed && parsed.school_type) {
+          this.selectedSchoolType.next(parsed.school_type);
+          try { localStorage.setItem(this.STORAGE_SCHOOL_TYPE, parsed.school_type); } catch (e) { /* ignore */ }
+        } else {
+          const st = localStorage.getItem(this.STORAGE_SCHOOL_TYPE);
+          if (st) { this.selectedSchoolType.next(st); }
+        }
       }
     } catch (e) {
       // ignore parse errors
@@ -121,12 +132,30 @@ export class SchoolService {
     try {
       if (school) {
         localStorage.setItem(this.STORAGE_KEY, JSON.stringify(school));
+        if (school.school_type) {
+          this.selectedSchoolType.next(school.school_type);
+          try { localStorage.setItem(this.STORAGE_SCHOOL_TYPE, school.school_type); } catch (e) { /* ignore */ }
+        }
       } else {
         localStorage.removeItem(this.STORAGE_KEY);
+        try { localStorage.removeItem(this.STORAGE_SCHOOL_TYPE); } catch (e) { /* ignore */ }
+        this.selectedSchoolType.next(null);
       }
     } catch (e) {
       // ignore storage errors
     }
+  }
+
+  /**
+   * Returns the currently selected school's type (synchronously) if available.
+   * Falls back to reading the persisted storage key.
+   */
+  getSelectedSchoolType(): string | null {
+    const v = this.selectedSchoolType.value;
+    if (v) { return v; }
+    try {
+      return localStorage.getItem(this.STORAGE_SCHOOL_TYPE);
+    } catch (e) { return null; }
   }
 
   deleteMySchool(id: number) {

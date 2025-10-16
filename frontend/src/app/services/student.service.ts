@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
+import { catchError, tap } from 'rxjs/operators';
 
 export interface Student {
   student_id: number;
@@ -46,7 +47,21 @@ export class StudentService {
     if (yearTerm) {
       params = params.append('year', yearTerm);
     }
-    return this.http.get<Student[]>(this.apiUrl, { params });
+    const url = this.apiUrl;
+    console.log('[StudentService] GET', url, 'params:', params.toString());
+    return this.http.get<Student[]>(url, { params }).pipe(
+      tap(() => {
+        // successful request
+      }),
+      catchError(err => {
+        console.error('[StudentService] HTTP error while fetching students', err.status, err.message, err);
+        // surface 403 details for easier debugging
+        if (err.status === 403) {
+          console.warn('[StudentService] 403 Forbidden received. Check auth token and backend permissions.');
+        }
+        return throwError(() => err);
+      })
+    );
   }
 
   createStudent(studentData: StudentData): Observable<Student> {

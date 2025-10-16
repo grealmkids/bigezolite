@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SchoolService } from '../../services/school.service';
 import { ClassCategorizationService, SchoolType } from '../../services/class-categorization.service';
+import { debounceTime, distinctUntilChanged, take } from 'rxjs/operators';
 import { CommunicationService } from '../../services/communication.service';
 
 @Component({
@@ -25,12 +26,18 @@ export class CommunicationsComponent implements OnInit {
     public communicationService: CommunicationService
   ) { }
 
-  ngOnInit(): void {
-    this.schoolService.getMySchool().subscribe(school => {
-      if (school) {
-        this.classes = this.classCategorizationService.getClassesForSchoolType(school.school_type as SchoolType);
-      }
-    });
+   ngOnInit(): void {
+     // Populate classes dropdown based on localStorage schoolType only
+     try {
+       const schoolType = this.schoolService.getSelectedSchoolType();
+       if (schoolType) {
+         this.classes = this.classCategorizationService.getClassesForSchoolType(schoolType);
+       } else {
+         this.classes = [];
+       }
+     } catch (err) {
+       this.classes = [];
+     }
   }
 
   onMessageChange(message: string): void {

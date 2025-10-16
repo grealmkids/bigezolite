@@ -4,7 +4,9 @@ import { CommonModule } from '@angular/common';
 import { Student, StudentService, StudentData } from '../../services/student.service';
 import { SchoolService } from '../../services/school.service';
 import { ClassCategorizationService, SchoolType } from '../../services/class-categorization.service';
-import { take } from 'rxjs';
+import { take, of } from 'rxjs';
+import { switchMap, debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { School } from '../../services/school.service';
 
 @Component({
   selector: 'app-student-modal',
@@ -21,6 +23,7 @@ export class StudentModalComponent implements OnInit, OnChanges {
   studentForm: FormGroup;
   errorMessage: string | null = null;
   classes: string[] = [];
+  loadingClasses = false;
   isEditMode = false;
   districts: string[] = [
     'Abim','Adjumani','Agago','Alebtong','Amolatar','Amudat','Amuria','Amuru','Apac','Arua','Budaka','Bududa','Bugiri','Bugweri','Bugutu','Buikwe','Bukedea','Bukomansimbi','Bukwa','Bulambuli','Buliisa','Bundibugyo','Bushenyi','Busia','Butaleja','Butambala','Buvuma','Buyende','Dokolo','Gomba','Gulu','Hoima','Ibanda','Iganga','Isingiro','Jinja','Kaabong','Kabale','Kabarole','Kaberamaido','Kalangala','Kaliro','Kalungu','Kampala','Kamuli','Kamwenge','Kanungu','Kapchorwa','Kasese','Katakwi','Kayunga','Kazo','Kibaale','Kiboga','Kibuku','Kisoro','Kitatta','Kitgum','Koboko','Kole','Kotido','Kumi','Kwania','Kween','Kyegegwa','Kyenjojo','Kyaka','Kyankwanzi','Kyotera','Lamwo','Lira','Luuka','Luwero','Lwengo','Lyantonde','Manafwa','Maracha','Mbarara','Mbale','Mitooma','Mityana','Moroto','Moyo','Mpigi','Mukono','Nabilatuk','Nakapiripirit','Nakaseke','Nakasongola','Namayingo','Namisindwa','Namutumba','Napak','Nebbi','Ngora','Ntoroko','Ntungamo','Nwoya','Omoro','Otuke','Pader','Pakwach','Pallisa','Rakai','Rubirizi','Rukiga','Rukungiri','Sembabule','Serere','Sheema','Sironko','Soroti','Tororo','Wakiso','Yumbe'
@@ -46,11 +49,19 @@ export class StudentModalComponent implements OnInit, OnChanges {
   }
 
   ngOnInit(): void {
-    this.schoolService.getMySchool().pipe(take(1)).subscribe(school => {
-      if (school) {
-        this.classes = this.classCategorizationService.getClassesForSchoolType(school.school_type as SchoolType);
+    // Populate classes dropdown based on localStorage schoolType only
+    this.loadingClasses = true;
+    try {
+      const schoolType = this.schoolService.getSelectedSchoolType();
+      if (schoolType) {
+        this.classes = this.classCategorizationService.getClassesForSchoolType(schoolType);
+      } else {
+        this.classes = [];
       }
-    });
+    } catch (err) {
+      this.classes = [];
+    }
+    this.loadingClasses = false;
   }
 
   ngOnChanges(changes: SimpleChanges): void {

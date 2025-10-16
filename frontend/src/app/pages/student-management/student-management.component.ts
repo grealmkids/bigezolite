@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Observable, Subject, combineLatest, BehaviorSubject } from 'rxjs';
+import { Observable, Subject, combineLatest, BehaviorSubject, of } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap, startWith, take } from 'rxjs/operators';
 import { Student, StudentService } from '../../services/student.service';
 import { CommonModule } from '@angular/common';
@@ -30,6 +30,7 @@ export class StudentManagementComponent implements OnInit {
 
   classes: string[] = [];
   years = ['2023', '2024', '2025']; // This can also be dynamic
+  loadingClasses = false;
 
   constructor(
     private studentService: StudentService,
@@ -54,12 +55,21 @@ export class StudentManagementComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.schoolService.getMySchool().pipe(take(1)).subscribe(school => {
-      if (school) {
-        this.classes = this.classCategorizationService.getClassesForSchoolType(school.school_type as SchoolType);
+    // Populate classes dropdown based on localStorage schoolType only
+    this.loadingClasses = true;
+    try {
+      const schoolType = this.schoolService.getSelectedSchoolType();
+      if (schoolType) {
+        this.classes = this.classCategorizationService.getClassesForSchoolType(schoolType);
+      } else {
+        this.classes = [];
       }
-    });
+    } catch (err) {
+      this.classes = [];
+    }
+    this.loadingClasses = false;
 
+    // ...existing code for filters and students$...
     const filters$ = combineLatest([
       this.searchTerms.pipe(startWith('')),
       this.classFilter,

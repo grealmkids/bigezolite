@@ -22,12 +22,17 @@
         <div class="form-row">
           <div class="form-group">
             <label for="class_name">Class</label>
-            <select id="class_name" formControlName="class_name" required>
-              <option value="" disabled>Select a class</option>
-              <option *ngFor="let class of classes" [value]="class">
-                {{ class }}
-              </option>
-            </select>
+            <ng-container *ngIf="!loadingClasses; else loadingTpl">
+              <select id="class_name" formControlName="class_name" required>
+                <option value="" disabled>Select a class</option>
+                <option *ngFor="let class of classes" [value]="class">
+                  {{ class }}
+                </option>
+              </select>
+            </ng-container>
+            <ng-template #loadingTpl>
+              <div class="class-loading">Loading classes…</div>
+            </ng-template>
           </div>
           <div class="form-group">
             <label for="year_enrolled">Year Enrolled</label>

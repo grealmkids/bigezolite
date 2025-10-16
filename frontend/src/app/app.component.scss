@@ -42,6 +42,30 @@
   }
 }
 
+.current-school-status {
+    display: inline-block;
+    padding: 0.15em 0.8em;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    &.active {
+      background: #e3f6e8;
+      color: #1a7f37;
+      border: 1px solid #b6e2c6;
+    }
+    &.dormant {
+      background: #fffbe6;
+      color: #b59f00;
+      border: 1px solid #ffe58f;
+    }
+    &.suspended {
+      background: #ffeaea;
+      color: #d32f2f;
+      border: 1px solid #ffcdd2;
+    }
+  }
+
 .mat-nav-list .mat-list-item {
   color: #333;
   &:hover {

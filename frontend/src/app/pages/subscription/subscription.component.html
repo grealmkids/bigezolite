@@ -4,6 +4,13 @@
     <p>Purchase credits to send SMS communications to parents.</p>
   </div>
 
+  <div class="school-info" *ngIf="selectedSchool$ | async as school">
+    <h2>{{ school.school_name }}</h2>
+    <div class="school-status" [ngClass]="school.account_status.toLowerCase()">
+      Status: <span>{{ school.account_status }}</span>
+    </div>
+  </div>
+
   <div class="packages-container">
     <div class="package-card">
       <h3>Pay-As-You-Go 1</h3>

@@ -11,6 +11,12 @@
         >
           <div class="current-school-label">Current school</div>
           <div class="current-school-name">{{ current.school_name }}</div>
+          <div
+            class="current-school-status"
+            [ngClass]="current.account_status.toLowerCase()"
+          >
+            Status: <span>{{ current.account_status }}</span>
+          </div>
           <button
             mat-button
             class="change-school-btn"

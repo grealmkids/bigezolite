@@ -10,41 +10,8 @@ import { SchoolService, School } from '../../services/school.service';
   imports: [CommonModule, ReactiveFormsModule],
   template: `
     <div class="manage-school card">
-      <h2>Manage School</h2>
-      <div *ngIf="!school" class="loading">Loading...</div>
-      <form *ngIf="school" class="school-form" [formGroup]="schoolForm" (ngSubmit)="onSave()">
-        <div class="form-row">
-          <label>School Name</label>
-          <input formControlName="school_name" />
-        </div>
-
-        <div class="form-row two-col">
-          <div>
-            <label>Admin Phone</label>
-            <input formControlName="admin_phone" />
-          </div>
-          <div>
-            <label>Location District</label>
-            <input formControlName="location_district" />
-          </div>
-        </div>
-
-        <div class="form-row two-col">
-          <div>
-            <label>Student Count Range</label>
-            <input formControlName="student_count_range" />
-          </div>
-          <div>
-            <label>School Type</label>
-            <input formControlName="school_type" />
-          </div>
-        </div>
-
-        <div class="form-actions">
-          <button class="btn primary" type="submit">Save</button>
-          <button class="btn danger" type="button" (click)="onDelete()">Delete School</button>
-        </div>
-      </form>
+      <h2 class="welcome-admin" style="color: #0f172a;">Welcome Admin</h2>
+      <p class="manage-message" style="color: #2563eb; font-weight:700;">Manage your school data</p>
     </div>
   `
 })

@@ -5,10 +5,19 @@
     <mat-sidenav-container class="sidenav-container">
       <mat-sidenav #sidenav mode="side" opened class="sidenav">
         <h2 class="logo">BIGEZO</h2>
-        <div class="current-school-block" *ngIf="(schoolService.selectedSchool$ | async) as current">
+        <div
+          class="current-school-block"
+          *ngIf="schoolService.selectedSchool$ | async as current"
+        >
           <div class="current-school-label">Current school</div>
           <div class="current-school-name">{{ current.school_name }}</div>
-          <button mat-button class="change-school-btn" (click)="schoolService.selectSchool(null); router.navigate(['/dashboard'])">
+          <button
+            mat-button
+            class="change-school-btn"
+            (click)="
+              schoolService.selectSchool(null); router.navigate(['/dashboard'])
+            "
+          >
             <mat-icon>swap_horiz</mat-icon>
             Change
           </button>
@@ -22,22 +31,10 @@
             <mat-icon mat-list-icon>dashboard</mat-icon>
             <span mat-line>Dashboard</span>
           </a>
+          <!-- removed Manage School from sidenav - Create is still available via Dashboard -->
           <a
             mat-list-item
-            [routerLink]="hasSchool ? '/manage-school' : '/create-school'"
-            routerLinkActive="active-link"
-            class="sidenav-cta"
-          >
-            <mat-icon mat-list-icon>{{
-              hasSchool ? "manage_accounts" : "add_business"
-            }}</mat-icon>
-            <span mat-line>{{
-              hasSchool ? "Manage School" : "Create School Account"
-            }}</span>
-          </a>
-          <a
-            mat-list-item
-            routerLink="/student-management"
+            routerLink="/students"
             routerLinkActive="active-link"
           >
             <mat-icon mat-list-icon>people</mat-icon>

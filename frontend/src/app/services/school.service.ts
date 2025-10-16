@@ -105,6 +105,13 @@ export class SchoolService {
           this.selectedSchool.next(school);
           try { localStorage.setItem(this.STORAGE_KEY, JSON.stringify(school)); } catch (e) { /* ignore */ }
         }
+        // update schools list cache so UI updates immediately
+        const list = this.mySchools.value || [];
+        const idx = list.findIndex(ss => ss.school_id === school.school_id);
+        if (idx !== -1) {
+          list[idx] = school;
+          this.mySchools.next([...list]);
+        }
       })
     );
   }

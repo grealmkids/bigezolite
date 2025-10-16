@@ -77,10 +77,8 @@ export class DashboardComponent implements OnInit {
     // open an edit modal
     const ref = this.dialog.open(SchoolEditModalComponent, { data: { school: s }, width: '520px' });
     ref.afterClosed().subscribe(updated => {
-      if (updated) {
-        // refresh local list and update view
-        this.refreshSchools();
-      }
+      // always refresh list to reflect any changes made in the modal
+      this.refreshSchools();
     });
   }
 

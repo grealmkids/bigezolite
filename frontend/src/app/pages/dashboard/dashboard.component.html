@@ -3,9 +3,19 @@
     <!-- When user has schools: show create-small button top-right and list schools as large buttons -->
     <div class="schools-header">
       <h2>Your Schools</h2>
-      <a class="small-create-cta" routerLink="/create-school"
-        >Create New School</a
-      >
+      <div class="schools-header-ctas">
+        <a class="small-create-cta" routerLink="/create-school"
+          >Create New School</a
+        >
+        <button
+          class="refresh-schools"
+          title="See schools / Refresh"
+          (click)="refreshSchools()"
+        >
+          <mat-icon>refresh</mat-icon>
+          See schools
+        </button>
+      </div>
     </div>
 
     <div class="schools-grid">

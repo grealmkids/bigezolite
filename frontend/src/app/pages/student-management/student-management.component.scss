@@ -42,6 +42,24 @@
     margin-bottom: 2rem;
 }
 
+.controls-container {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.controls-container .filters select,
+.controls-container .filters input {
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    border: 1px solid rgba(0,0,0,0.08);
+    background: #fff;
+}
+
+.controls-container .filters select {
+    min-width: 160px;
+}
+
 .search-bar {
     input {
         width: 100%;

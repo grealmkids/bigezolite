@@ -1,5 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { Observable, Subscription } from 'rxjs';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { School, SchoolService } from '../../services/school.service';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink, NavigationEnd } from '@angular/router';
@@ -11,7 +12,7 @@ import { MatIconModule } from '@angular/material/icon';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, MatDialogModule, SchoolEditModalComponent, MatIconModule],
+  imports: [CommonModule, RouterLink, MatDialogModule, MatIconModule, MatSnackBarModule],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
 })
@@ -21,6 +22,7 @@ export class DashboardComponent implements OnInit {
 
   private authService = inject(AuthService);
   private dialog = inject(MatDialog);
+  private snack = inject(MatSnackBar);
   private subs: Subscription[] = [];
   constructor(private schoolService: SchoolService, public router: Router) { }
 
@@ -48,8 +50,20 @@ export class DashboardComponent implements OnInit {
     this.subs.forEach(s => s.unsubscribe());
   }
 
-  private refreshSchools(): void {
+  public refreshSchools(): void {
     this.schoolService.listMySchools().subscribe(s => this.schools = s || []);
+  }
+
+  public seeSchools(): void {
+    // If there are no schools, show helpful prompt and offer to navigate to create
+    if (!this.schools || this.schools.length === 0) {
+      const ref = this.snack.open('No schools yet, create new school account', 'Create', { duration: 5000 });
+      ref.onAction().subscribe(() => this.router.navigate(['/create-school']));
+      return;
+    }
+
+    // otherwise refresh and focus the schools area
+    this.refreshSchools();
   }
 
   navigateToSubscription(): void {

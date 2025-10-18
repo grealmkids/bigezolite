@@ -11,20 +11,7 @@
           <strong>Parent's Phone:</strong> {{ student?.parent_phone_sms || "" }}
         </p>
       </div>
-      <div
-        class="price-tag"
-        style="
-          background: #e3f6e8;
-          color: #1a7f37;
-          padding: 6px 16px;
-          border-radius: 16px;
-          display: inline-block;
-          font-weight: 600;
-          margin-bottom: 12px;
-        "
-      >
-        UGX 50<span style="font-size: 0.9em">/sms</span>
-      </div>
+
       <div class="form-group">
         <label for="message">Message</label>
         <textarea
@@ -48,9 +35,37 @@
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-secondary" (click)="close.emit()">Cancel</button>
-      <button class="btn btn-primary" (click)="sendSms()" [disabled]="!message">
-        Send SMS
+      <div class="send-status" *ngIf="sendResult">
+        <span
+          [class.success]="sendResult.success"
+          [class.error]="!sendResult.success"
+          >{{ sendResult.message }}</span
+        >
+      </div>
+      <!-- Toast container (transient) -->
+      <div class="toast-container" *ngIf="toastVisible">
+        <div
+          class="toast"
+          [class.success]="toastSuccess"
+          [class.error]="!toastSuccess"
+        >
+          {{ toastMessage }}
+        </div>
+      </div>
+      <button
+        class="btn btn-secondary"
+        (click)="close.emit()"
+        [disabled]="isSending"
+      >
+        Cancel
+      </button>
+      <button
+        class="btn btn-primary"
+        (click)="sendSms()"
+        [disabled]="!message || isSending"
+      >
+        <span *ngIf="isSending">Sending...</span>
+        <span *ngIf="!isSending">Send SMS</span>
       </button>
     </div>
   </div>

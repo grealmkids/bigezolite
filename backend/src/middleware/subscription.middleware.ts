@@ -18,7 +18,11 @@ export const checkSubscription = async (req: AuthenticatedRequest, res: Response
 
         const accountStatus = schoolResult.rows[0].account_status;
 
-        if (accountStatus !== 'Active') {
+        // Debug: log account status so callers can see why access was denied
+        console.debug('[checkSubscription] schoolId:', schoolId, 'account_status:', accountStatus);
+
+        // Accept 'Active' case-insensitively to avoid mismatch issues from manual DB edits
+        if (!accountStatus || String(accountStatus).toLowerCase() !== 'active') {
             return res.status(403).json({ message: 'Forbidden: Your account is not active. Please subscribe to use this feature.' });
         }
 

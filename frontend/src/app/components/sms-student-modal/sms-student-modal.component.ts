@@ -30,6 +30,12 @@ export class SmsStudentModalComponent {
   message = '';
   characterCount = 0;
   smsCreditsConsumed = 1;
+  isSending = false;
+  sendResult: { success: boolean; message: string } | null = null;
+  // Toast state (transient notification)
+  toastVisible = false;
+  toastMessage = '';
+  toastSuccess = false;
 
   constructor(private communicationService: CommunicationService) { }
 
@@ -41,10 +47,35 @@ export class SmsStudentModalComponent {
 
   sendSms(): void {
     if (this.student && this.message) {
-      this.communicationService.sendSingleSms(this.student.student_id, this.message).subscribe(() => {
-        console.log(`SMS sent to ${this.student?.parent_phone_sms}`);
-        this.close.emit();
+      this.isSending = true;
+      this.sendResult = null;
+      this.communicationService.sendSingleSms(this.student.student_id, this.message).subscribe({
+        next: () => {
+          this.isSending = false;
+          this.sendResult = { success: true, message: 'SMS sent successfully' };
+          this.showToast('SMS sent successfully', true);
+          // close modal after a short delay
+          setTimeout(() => this.close.emit(), 900);
+        },
+        error: (err) => {
+          this.isSending = false;
+          const msg = err?.error?.message || err?.message || 'Failed to send SMS';
+          this.sendResult = { success: false, message: msg };
+          // Prefer provider details if present
+          const providerDetail = err?.error?.details || null;
+          this.showToast(providerDetail ? `${msg}: ${providerDetail}` : msg, false);
+        }
       });
     }
+  }
+
+  private showToast(message: string, success: boolean) {
+    this.toastMessage = message;
+    this.toastSuccess = success;
+    this.toastVisible = true;
+    // auto-hide after 3s
+    setTimeout(() => {
+      this.toastVisible = false;
+    }, 3000);
   }
 }

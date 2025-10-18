@@ -29,4 +29,12 @@ export class CommunicationService {
   sendSingleSms(studentId: number, message: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/single-sms`, { studentId, message });
   }
+
+  setSmsCredentials(username: string, password: string, provider?: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/credentials`, { username, password, provider });
+  }
+
+  getSmsCredentials(): Observable<{ username: string; password: string; provider?: string } | null> {
+    return this.http.get<{ username: string; password: string; provider?: string }>(`${this.apiUrl}/credentials`);
+  }
 }

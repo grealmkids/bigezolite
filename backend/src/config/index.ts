@@ -27,5 +27,6 @@ export const config = {
     password: process.env.SMS_PASSWORD,
     grealmNumber: process.env.GREALMNUMBER || process.env.JOBPOPNUMBER,
   },
+  costPerSms: Number(process.env.COST_PER_SMS || 50),
   jwtSecret: process.env.JWT_SECRET || 'your_default_secret',
 };

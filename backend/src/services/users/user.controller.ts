@@ -5,6 +5,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import admin from 'firebase-admin';
 import { query } from '../../database/database';
+import { AuthenticatedRequest } from '../../middleware/auth.middleware';
 
 export const register = async (req: Request, res: Response) => {
   try {
@@ -57,5 +58,21 @@ export const login = async (req: Request, res: Response) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+// GET /api/v1/users/me
+export const me = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    if (!req.user || !req.user.userId) return res.status(401).json({ message: 'Not authenticated' });
+    const sql = 'SELECT user_id, email, full_name FROM users WHERE user_id = $1 LIMIT 1';
+    const result = await query(sql, [req.user.userId]);
+    if (result.rows.length === 0) return res.status(404).json({ message: 'User not found' });
+    const user = result.rows[0];
+    const isAdmin = typeof process.env.ADMIN_ACCOUNT === 'string' && process.env.ADMIN_ACCOUNT.trim().toLowerCase() === (user.email || '').toLowerCase();
+    return res.json({ user_id: user.user_id, email: user.email, full_name: user.full_name, isAdmin });
+  } catch (err: any) {
+    console.error('GET /users/me error:', err?.message || err);
+    return res.status(500).json({ message: 'Internal server error' });
   }
 };

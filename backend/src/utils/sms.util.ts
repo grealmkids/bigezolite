@@ -37,6 +37,36 @@ export async function sendSms(phoneNumber: string, message: string): Promise<any
 }
 
 /**
+ * checkBalance - query provider's balance endpoint using username/password
+ * Returns a numeric balance (as returned by provider parsed to number)
+ */
+export async function checkBalance(username?: string, password?: string): Promise<number> {
+  try {
+    const smsUrl = config.sms.apiUrl;
+    if (!smsUrl) throw new Error('SMS_API_URL not configured');
+
+    const params: Record<string, string> = {
+      method: 'Balance',
+      username: username || (process.env.SMS_USERNAME || config.sms.username || ''),
+      password: password || (process.env.SMS_PASSWORD || config.sms.password || ''),
+    };
+
+    const response = await axios.get(smsUrl, { params });
+    const data = response.data;
+
+    // Attempt to parse number from response (string or numeric)
+    const parsed = Number(String(data).replace(/[^0-9.\-]/g, ''));
+    if (Number.isNaN(parsed)) {
+      throw new Error(`Unable to parse balance from provider response: ${String(data)}`);
+    }
+    return parsed;
+  } catch (err: any) {
+    console.error('Error checking SMS balance:', err?.response?.data || err.message || err);
+    throw err;
+  }
+}
+
+/**
  * Normalize a phone number to Uganda international format without '+' (e.g. 256773913902)
  * Accepts inputs like '0773913902', '773913902', '+256773913902', '256773913902'
  */

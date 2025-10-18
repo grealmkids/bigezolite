@@ -1,13 +1,34 @@
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../../middleware/auth.middleware';
 import { getSmsCredits, processBulkSms, processSingleSms } from './communication.service';
+import { getSmsCredentialsForSchool } from './smsCredentials.service';
+import { checkBalance } from '../../utils/sms.util';
+import { upsertSmsAccount, addSmsTransaction } from './smsAccount.service';
+import { config } from '../../config';
+import { upsertSmsCredentials } from './smsCredentials.service';
 
 export const getSmsCreditBalance = async (req: AuthenticatedRequest, res: Response) => {
     try {
         const schoolId = req.user?.schoolId;
         if (!schoolId) return res.status(401).json({ message: 'Unauthorized: missing school context' });
-        const credits = await getSmsCredits(schoolId);
-        return res.json(credits);
+        // Require per-school credentials for balance check (no fallback to global env)
+        const creds = await getSmsCredentialsForSchool(schoolId);
+        if (!creds) {
+            return res.status(403).json({ message: 'Subscribe or Contact Support' });
+        }
+
+        // Query provider for raw balance
+        const rawBalance = await checkBalance(creds.username, creds.password);
+
+        // Persist provider raw balance
+        await upsertSmsAccount(schoolId, rawBalance);
+        await addSmsTransaction(schoolId, 'check', rawBalance, { raw: rawBalance });
+
+        // Apply algorithm: multiply by (10/7) then round DOWN to the previous 10
+        const multiplied = rawBalance * (10 / 7);
+        const roundedDownTo10 = Math.floor(multiplied / 10) * 10;
+
+        return res.json(roundedDownTo10);
     } catch (error: any) {
         // Try to include provider/network details if available
         const providerMessage = error?.message || (error?.response && error.response.data) || null;
@@ -42,5 +63,33 @@ export const sendSingleSms = async (req: AuthenticatedRequest, res: Response) =>
         const providerMessage = error?.message || (error?.response && error.response.data) || null;
         const statusCode = error?.statusCode || 500;
         return res.status(statusCode).json({ message: 'Error processing single SMS', details: providerMessage });
+    }
+};
+
+export const setSmsCredentials = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const schoolId = req.user?.schoolId;
+        if (!schoolId) return res.status(401).json({ message: 'Unauthorized: missing school context' });
+        const { username, password, provider } = req.body;
+        if (!username || !password) return res.status(400).json({ message: 'username and password are required' });
+        await upsertSmsCredentials(schoolId, username, password, provider || 'egosms');
+        return res.status(200).json({ message: 'Credentials saved' });
+    } catch (error: any) {
+        const providerMessage = error?.message || (error?.response && error.response.data) || null;
+        const statusCode = error?.statusCode || 500;
+        return res.status(statusCode).json({ message: 'Error saving credentials', details: providerMessage });
+    }
+};
+
+// GET saved credentials for the authenticated user's school
+export const getSmsCredentials = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const schoolId = req.user?.schoolId;
+        if (!schoolId) return res.status(401).json({ message: 'Unauthorized: missing school context' });
+        const creds = await getSmsCredentialsForSchool(schoolId);
+        if (!creds) return res.status(404).json({ message: 'No credentials found' });
+        return res.json({ username: creds.username, password: creds.password, provider: (creds as any).provider || 'egosms' });
+    } catch (error: any) {
+        return res.status(500).json({ message: 'Error fetching credentials', details: error?.message || null });
     }
 };

@@ -1,16 +1,4 @@
 <div class="page-container">
-  <div class="page-header">
-    <h1>SMS Credit Packages</h1>
-    <p>Purchase credits to send SMS communications to parents.</p>
-  </div>
-
-  <div class="school-info" *ngIf="selectedSchool$ | async as school">
-    <h2>{{ school.school_name }}</h2>
-    <div class="school-status" [ngClass]="school.account_status.toLowerCase()">
-      Status: <span>{{ school.account_status }}</span>
-    </div>
-  </div>
-
   <!-- Purchase form (shown when purchase clicked) -->
   <div class="purchase-form" *ngIf="showPurchase">
     <div class="purchase-card">

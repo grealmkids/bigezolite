@@ -103,7 +103,12 @@ export class AppComponent implements OnInit {
       this.communicationService.fetchSmsCreditBalance();
       // show the latest value once
       this.communicationService.smsCreditBalance$.pipe(take(1)).subscribe(bal => {
-        this.snack.open(`SMS Balance: ${bal}`, undefined, { duration: 3000 });
+        const formatted = (typeof bal === 'number') ? bal.toLocaleString() : String(bal);
+        this.snack.open(`SMS Balance: ${formatted}`, 'Close', {
+          verticalPosition: 'top',
+          horizontalPosition: 'center',
+          panelClass: ['sms-balance-snackbar']
+        });
       });
     } catch (e) {
       this.snack.open('Failed to check balance', 'Dismiss', { duration: 3000 });

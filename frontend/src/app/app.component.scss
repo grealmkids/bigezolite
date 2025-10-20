@@ -73,6 +73,11 @@
   }
 }
 
+/* compact stacked icon combo used for Check Balance */
+.icon-combo { display:inline-flex; width:36px; height:36px; align-items:center; justify-content:center; position:relative; }
+.icon-combo .icon-money { position:absolute; top:2px; left:6px; font-size:18px; color:#ff9933; }
+.icon-combo .icon-msg { position:absolute; bottom:2px; right:6px; font-size:14px; color:#0f172a; background:#fff; border-radius:6px; padding:1px; }
+
 .sidenav-cta {
   background: var(--color-primary);
   color: white !important;

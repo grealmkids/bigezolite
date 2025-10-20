@@ -142,8 +142,10 @@ export class ManageSchoolComponent implements OnInit {
     this.communicationService.fetchSmsCreditBalance();
     // subscribe to latest value and show a snackbar when we receive it
     this.communicationService.smsCreditBalance$.pipe(take(1)).subscribe(bal => {
+      // format number with thousands separators
+      const formatted = (typeof bal === 'number') ? bal.toLocaleString() : String(bal);
       // open a persistent snackbar at the top with a green brand style; user must click Close
-      this.snack.open(`SMS Balance: ${bal}`, 'Close', {
+      this.snack.open(`SMS Balance: ${formatted}`, 'Close', {
         verticalPosition: 'top',
         horizontalPosition: 'center',
         panelClass: ['sms-balance-snackbar']

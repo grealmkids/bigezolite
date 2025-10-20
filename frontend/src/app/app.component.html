@@ -54,6 +54,13 @@
             <mat-icon mat-list-icon>email</mat-icon>
             <span mat-line>Communications</span>
           </a>
+          <a mat-list-item (click)="checkBalance()" class="check-balance-item">
+            <span mat-list-icon class="icon-combo">
+              <mat-icon class="icon-money">account_balance_wallet</mat-icon>
+              <mat-icon class="icon-msg">sms</mat-icon>
+            </span>
+            <span mat-line>Check Balance</span>
+          </a>
           <a
             mat-list-item
             routerLink="/subscription"

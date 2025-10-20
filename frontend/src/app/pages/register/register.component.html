@@ -1,74 +1,78 @@
-<div class="register-container">
-  <div class="register-form">
-    <h1 class="title">Create Account</h1>
-    <p class="description">Get started with Bigezo Lite.</p>
+<div class="oc-landing">
+  <div class="oc-hero">
+    <div class="oc-hero-inner">
+      <div class="brand">Bigezo Lite</div>
+      <h1 class="oc-title">Create your school account</h1>
+      <p class="oc-sub">
+        Get started — manage students, fees and communication easily.
+      </p>
+    </div>
+    <div class="oc-hero-decor" aria-hidden></div>
+  </div>
 
-    <button (click)="onGoogleSignIn()" class="google-btn">
-      Sign up with Google
-    </button>
-
-    <div class="divider">OR</div>
-
-    <form (ngSubmit)="onSubmit()" [formGroup]="registerForm">
-      <div class="form-group">
-        <label for="name">Full Name</label>
-        <input
-          id="fullName"
-          type="text"
-          formControlName="fullName"
-          placeholder="e.g. John Doe"
-          required
-        />
-      </div>
-
-      <div class="form-group">
-        <label for="email">Email Address</label>
-        <input
-          id="email"
-          type="email"
-          formControlName="email"
-          placeholder="you@example.com"
-          required
-        />
-      </div>
-
-      <div class="form-group">
-        <label for="phoneNumber">Phone Number</label>
-        <input
-          id="phoneNumber"
-          type="text"
-          formControlName="phoneNumber"
-          placeholder="e.g. +256700000000"
-          required
-        />
-      </div>
-
-      <div class="form-group">
-        <label for="password">Password</label>
-        <input
-          id="password"
-          type="password"
-          formControlName="password"
-          placeholder="••••••••"
-          required
-        />
-      </div>
-
-      <div *ngIf="errorMessage" class="error-message">
-        {{ errorMessage }}
-      </div>
-
-      <button
-        type="submit"
-        class="submit-btn"
-        [disabled]="registerForm.invalid"
-      >
-        Create Account
+  <div class="oc-card-wrap">
+    <div class="oc-card">
+      <button (click)="onGoogleSignIn()" class="google-btn">
+        Sign up with Google
       </button>
-    </form>
+      <div class="divider">OR</div>
 
-    <div class="footer-text">
-      Already have an account? <a routerLink="/login">Sign in</a>
+      <form
+        (ngSubmit)="onSubmit()"
+        [formGroup]="registerForm"
+        class="form-compact"
+      >
+        <div class="form-row">
+          <input
+            id="fullName"
+            type="text"
+            formControlName="fullName"
+            placeholder="Full name"
+            required
+          />
+        </div>
+        <div class="form-row">
+          <input
+            id="email"
+            type="email"
+            formControlName="email"
+            placeholder="Email address"
+            required
+          />
+        </div>
+        <div class="form-row">
+          <input
+            id="phoneNumber"
+            type="text"
+            formControlName="phoneNumber"
+            placeholder="Phone number"
+            required
+          />
+        </div>
+        <div class="form-row">
+          <input
+            id="password"
+            type="password"
+            formControlName="password"
+            placeholder="Password"
+            required
+          />
+        </div>
+
+        <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+
+        <button
+          type="submit"
+          class="submit-btn"
+          [disabled]="registerForm.invalid"
+        >
+          Create Account
+        </button>
+      </form>
+
+      <div class="footer-text">
+        Already have an account? <a routerLink="/login">Sign in</a>
+      </div>
     </div>
   </div>
 </div>

@@ -69,29 +69,53 @@ export const order = async (req: AuthenticatedRequest, res: Response) => {
 
         // attempt to send email if SMTP config present in env
         // Accept either SMTP_USER/SMTP_PASS or EMAIL_USER/EMAIL_PASS and send to EMAIL_TO (preferred)
-        const smtpHost = process.env.SMTP_HOST;
-        const smtpUser = process.env.SMTP_USER || process.env.EMAIL_USER;
-        const smtpPass = process.env.SMTP_PASS || process.env.EMAIL_PASS;
+        const rawSmtpHost = process.env.SMTP_HOST;
+        const rawSmtpUser = process.env.SMTP_USER || process.env.EMAIL_USER;
+        const rawSmtpPass = process.env.SMTP_PASS || process.env.EMAIL_PASS;
+
+        // helper to remove surrounding quotes and trim
+        const clean = (v?: string) => {
+            if (!v) return v;
+            let s = v.trim();
+            if ((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'"))) {
+                s = s.slice(1, -1);
+            }
+            return s.trim();
+        };
+
+        const smtpHost = clean(rawSmtpHost);
+        const smtpUser = clean(rawSmtpUser);
+        const smtpPass = clean(rawSmtpPass);
+
         if (smtpHost && smtpUser && smtpPass) {
+            const smtpPort = Number(clean(process.env.SMTP_PORT)) || 587;
+            const explicitSecure = String(clean(process.env.SMTP_SECURE || '')).toLowerCase() === 'true';
+            const secure = explicitSecure || smtpPort === 465;
+
             const transporter = nodemailer.createTransport({
                 host: smtpHost,
-                port: Number(process.env.SMTP_PORT) || 587,
-                secure: process.env.SMTP_SECURE === 'true',
+                port: smtpPort,
+                secure,
                 auth: {
                     user: smtpUser,
                     pass: smtpPass
                 }
             });
 
-            const toAddress = process.env.EMAIL_TO || process.env.SMTP_TO || smtpUser;
-            const fromAddress = process.env.SMTP_FROM || process.env.EMAIL_FROM || smtpUser;
+            const toAddress = clean(process.env.EMAIL_TO) || clean(process.env.SMTP_TO) || smtpUser;
+            const fromAddress = clean(process.env.SMTP_FROM) || clean(process.env.EMAIL_FROM) || smtpUser;
 
-            await transporter.sendMail({
-                from: fromAddress,
-                to: toAddress,
-                subject: `New subscription order: ${schoolName}`,
-                text: message
-            });
+            try {
+                await transporter.sendMail({
+                    from: fromAddress,
+                    to: toAddress,
+                    subject: `New subscription order: ${schoolName}`,
+                    text: message
+                });
+            } catch (mailErr) {
+                // Log but don't fail the whole request
+                console.error('Failed to send order email (non-fatal):', mailErr);
+            }
         }
 
         // Try to update order status to 'notified' (best-effort)

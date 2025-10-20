@@ -1,40 +1,37 @@
-<div class="landing-root">
-  <div class="panel panel-left">
-    <div class="brand">Bigezo Lite</div>
-    <h1 class="hero">School administration made simple</h1>
-    <p class="tagline">
-      Manage schools, students, fees and communication — all from one clean
-      dashboard.
-    </p>
+<div class="oc-landing">
+  <div class="oc-hero">
+    <div class="oc-hero-inner">
+      <div class="brand">Bigezo Lite</div>
+      <h1 class="oc-title">School administration made simple</h1>
+      <p class="oc-sub">
+        Manage schools, students, fees and communication — all from one clean
+        dashboard.
+      </p>
 
-    <ul class="features">
-      <li>
-        <span class="emoji">🏫</span>
-        Manage multiple schools & staff
-      </li>
-      <li>
-        <span class="emoji">👩‍🎓</span>
-        Student records, attendance & profiles
-      </li>
-      <li>
-        <span class="emoji">💸</span>
-        Fees tracking, quick receipts & reporting
-      </li>
-      <li>
-        <span class="emoji">📲</span>
-        Built-in SMS & communication tools
-      </li>
-      <li>
-        <span class="emoji">🔒</span>
-        Secure Google sign-in and token-based auth
-      </li>
-    </ul>
-
-    <p class="left-cta">Lightweight • Fast • Designed for schools</p>
+      <div class="oc-features">
+        <div class="feature">
+          <mat-icon class="dot">school</mat-icon>
+          <div class="label">Manage multiple schools & staff</div>
+        </div>
+        <div class="feature">
+          <mat-icon class="dot">person</mat-icon>
+          <div class="label">Student records, attendance & profiles</div>
+        </div>
+        <div class="feature">
+          <mat-icon class="dot">payments</mat-icon>
+          <div class="label">Fees tracking, quick receipts & reporting</div>
+        </div>
+        <div class="feature">
+          <mat-icon class="dot">sms</mat-icon>
+          <div class="label">Built-in SMS & communication tools</div>
+        </div>
+      </div>
+    </div>
+    <div class="oc-hero-decor" aria-hidden></div>
   </div>
 
-  <div class="panel panel-right">
-    <div class="login-card">
+  <div class="oc-card-wrap">
+    <div class="oc-card">
       <button (click)="onGoogleSignIn()" class="google-btn">
         <svg
           class="google-icon"
@@ -79,7 +76,6 @@
             placeholder="Email (optional)"
           />
         </div>
-
         <div class="form-row">
           <input
             id="phoneNumber"
@@ -88,7 +84,6 @@
             placeholder="Phone number (e.g. +2567...)"
           />
         </div>
-
         <div class="form-row">
           <input
             id="password"

@@ -44,18 +44,24 @@ export async function checkBalance(username?: string, password?: string): Promis
   try {
     const smsUrl = config.sms.apiUrl;
     if (!smsUrl) throw new Error('SMS_API_URL not configured');
+    // Build query string similar to the Java example: method=Balance&username=...&password=...
+    const u = username || (process.env.SMS_USERNAME || config.sms.username || '');
+    const p = password || (process.env.SMS_PASSWORD || config.sms.password || '');
 
-    const params: Record<string, string> = {
-      method: 'Balance',
-      username: username || (process.env.SMS_USERNAME || config.sms.username || ''),
-      password: password || (process.env.SMS_PASSWORD || config.sms.password || ''),
-    };
+    const params = new URLSearchParams();
+    params.append('method', 'Balance');
+    params.append('username', u);
+    params.append('password', p);
 
-    const response = await axios.get(smsUrl, { params });
+    // Append the encoded params to the base URL. The provider expects the params appended.
+    const finalUrl = smsUrl + params.toString();
+
+    const response = await axios.get(finalUrl, { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } });
     const data = response.data;
 
-    // Attempt to parse number from response (string or numeric)
-    const parsed = Number(String(data).replace(/[^0-9.\-]/g, ''));
+    // The provider returns a plain numeric string (or may include commas). Strip non-numeric and parse.
+    const numericStr = String(data).replace(/,/g, '').replace(/[^0-9.\-]/g, '');
+    const parsed = Number(numericStr);
     if (Number.isNaN(parsed)) {
       throw new Error(`Unable to parse balance from provider response: ${String(data)}`);
     }

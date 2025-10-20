@@ -94,3 +94,18 @@ CREATE TABLE IF NOT EXISTS sms_transactions (
     details JSONB,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
+
+-- Orders table: persist subscription orders and notifications for auditing
+CREATE TABLE IF NOT EXISTS orders (
+    order_id SERIAL PRIMARY KEY,
+    school_id INTEGER REFERENCES schools(school_id) ON DELETE SET NULL,
+    school_name VARCHAR(255),
+    contact_phone VARCHAR(255),
+    package_type VARCHAR(128),
+    sms_count INTEGER,
+    price NUMERIC(12,2),
+    status VARCHAR(50) DEFAULT 'pending', -- pending, notified, failed
+    order_tracking_id VARCHAR(255),
+    meta JSONB,
+    created_at TIMESTAMPTZ DEFAULT now()
+);

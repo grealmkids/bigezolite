@@ -23,7 +23,9 @@ export const checkSubscription = async (req: AuthenticatedRequest, res: Response
 
         // Accept 'Active' case-insensitively to avoid mismatch issues from manual DB edits
         if (!accountStatus || String(accountStatus).toLowerCase() !== 'active') {
-            return res.status(403).json({ message: 'Forbidden: Your account is not active. Please subscribe to use this feature.' });
+            const raw = accountStatus ? String(accountStatus) : 'unknown';
+            const statusText = raw.charAt(0).toUpperCase() + raw.slice(1).toLowerCase();
+            return res.status(403).json({ message: `Forbidden: Your account is ${statusText}. Please subscribe to use this feature.` });
         }
 
         next();

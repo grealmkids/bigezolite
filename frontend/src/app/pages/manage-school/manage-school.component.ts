@@ -17,31 +17,34 @@ import { take } from 'rxjs/operators';
       <h2 class="welcome-admin" style="color: #0f172a;">Welcome Admin</h2>
       <p class="manage-message" style="color: #2563eb; font-weight:700;">Manage your school data</p>
       <div class="credentials-section">
-        <h3>SMS Provider Credentials</h3>
-        <p class="section-sub">Only administrators can update provider credentials used to send school SMS.</p>
-        <ng-container *ngIf="isAdmin; else notAdmin">
-          <form (ngSubmit)="saveCredentials()" class="credentials-form">
-            <div class="row">
+        <div class="credentials-card">
+          <div class="card-header">
+            <h3>SMS Provider Credentials</h3>
+            <p class="section-sub">Only administrators can update provider credentials used to send school SMS.</p>
+          </div>
+          <ng-container *ngIf="isAdmin; else notAdmin">
+            <form (ngSubmit)="saveCredentials()" class="credentials-form">
+            <div class="row floating">
+              <input id="smsUsername" type="text" placeholder=" " [(ngModel)]="smsUsername" name="smsUsername" />
               <label for="smsUsername">Username</label>
-              <input id="smsUsername" type="text" [(ngModel)]="smsUsername" name="smsUsername" />
             </div>
 
-            <div class="row">
+            <div class="row floating">
+              <input id="smsPassword" type="password" placeholder=" " [(ngModel)]="smsPassword" name="smsPassword" />
               <label for="smsPassword">Password</label>
-              <input id="smsPassword" type="password" [(ngModel)]="smsPassword" name="smsPassword" />
             </div>
 
-            <div class="row">
+            <div class="row floating">
+              <input id="smsProvider" type="text" placeholder=" " [(ngModel)]="smsProvider" name="smsProvider" />
               <label for="smsProvider">Provider (optional)</label>
-              <input id="smsProvider" type="text" [(ngModel)]="smsProvider" name="smsProvider" />
             </div>
 
             <div class="actions">
               <button type="submit" class="btn primary">Save SMS Credentials</button>
               <button type="button" class="btn secondary" (click)="checkBalance()">Check Balance</button>
             </div>
-          </form>
-        </ng-container>
+            </form>
+          </ng-container>
         <ng-template #notAdmin>
           <p class="muted">You do not have permission to manage SMS credentials.</p>
         </ng-template>
@@ -139,7 +142,13 @@ export class ManageSchoolComponent implements OnInit {
     this.communicationService.fetchSmsCreditBalance();
     // subscribe to latest value and show a snackbar when we receive it
     this.communicationService.smsCreditBalance$.pipe(take(1)).subscribe(bal => {
-      this.snack.open(`SMS Balance: ${bal}`, undefined, { duration: 3000 });
+      // open a persistent snackbar at the top with a green brand style; user must click Close
+      this.snack.open(`SMS Balance: ${bal}`, 'Close', {
+        verticalPosition: 'top',
+        horizontalPosition: 'center',
+        panelClass: ['sms-balance-snackbar']
+        // no duration -> stays open until dismissed by action
+      });
     });
   }
 }

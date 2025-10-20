@@ -13,7 +13,10 @@ import { MatSidenavModule, MatSidenav } from '@angular/material/sidenav';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { CommunicationService } from './services/communication.service';
 import { Subscription } from 'rxjs';
+import { take } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
@@ -28,6 +31,7 @@ import { Subscription } from 'rxjs';
     MatListModule,
     MatIconModule,
     MatButtonModule
+    ,MatSnackBarModule
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
@@ -38,6 +42,8 @@ export class AppComponent implements OnInit {
   public router = inject(Router);
   private webSocketService = inject(WebSocketService);
   public schoolService = inject(SchoolService);
+  private communicationService = inject(CommunicationService);
+  private snack = inject(MatSnackBar);
   hasSchool = false;
   showSidenav = true;
   private subs: Subscription[] = [];
@@ -89,5 +95,18 @@ export class AppComponent implements OnInit {
 
   ngOnDestroy(): void {
     this.subs.forEach(s => s.unsubscribe());
+  }
+
+  // Called from template to quickly check SMS balance (delegates to CommunicationService)
+  checkBalance(): void {
+    try {
+      this.communicationService.fetchSmsCreditBalance();
+      // show the latest value once
+      this.communicationService.smsCreditBalance$.pipe(take(1)).subscribe(bal => {
+        this.snack.open(`SMS Balance: ${bal}`, undefined, { duration: 3000 });
+      });
+    } catch (e) {
+      this.snack.open('Failed to check balance', 'Dismiss', { duration: 3000 });
+    }
   }
 }

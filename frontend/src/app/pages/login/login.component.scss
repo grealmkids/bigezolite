@@ -35,9 +35,15 @@
 }
 
 .hero {
-  font-size: 2.25rem;
-  margin: 1rem 0 0.5rem 0;
-  color: #0b1220;
+  font-size: 2.6rem;
+  line-height: 1.05;
+  margin: 0.25rem 0 0.5rem 0;
+  color: #081029;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+  background: linear-gradient(90deg, rgba(255,153,51,0.06), transparent);
+  padding: 0.5rem 0.25rem;
+  border-radius: 8px;
 }
 
 .tagline {
@@ -80,7 +86,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background: radial-gradient(1200px 400px at 0% 0%, rgba(255,153,51,0.06), transparent);
+  background: radial-gradient(1200px 400px at 0% 0%, rgba(2,6,23,0.02), transparent);
 }
 
 .login-card {
@@ -89,7 +95,7 @@
   padding: 2rem;
   background: linear-gradient(180deg, #ffffff 0%, #fff 100%);
   border-radius: 14px;
-  box-shadow: 0 12px 30px rgba(11, 17, 32, 0.08);
+  box-shadow: 0 20px 40px rgba(11, 17, 32, 0.08);
   text-align: center;
 }
 
@@ -114,6 +120,23 @@
   color: #94a3b8;
   font-weight: 700;
 }
+
+/* Decorative hero accent for login page */
+.panel-left::before {
+  content: '';
+  position: absolute;
+  left: 2rem;
+  top: 1.5rem;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, rgba(255,153,51,0.12), transparent 40%);
+  z-index: 0;
+  filter: blur(18px);
+  pointer-events: none;
+}
+
+.panel-left, .panel-right { position: relative; z-index: 1; }
 
 .form-compact {
   display: grid;

@@ -11,6 +11,74 @@
     </div>
   </div>
 
+  <!-- Purchase form (shown when purchase clicked) -->
+  <div class="purchase-form" *ngIf="showPurchase">
+    <div class="purchase-card">
+      <h3>Confirm Purchase</h3>
+      <form (ngSubmit)="confirmPurchase()">
+        <div class="field">
+          <label>School Name</label>
+          <input
+            type="text"
+            [(ngModel)]="form.schoolName"
+            name="schoolName"
+            readonly
+          />
+        </div>
+        <div class="field">
+          <label>Contact Phone</label>
+          <input
+            type="text"
+            [(ngModel)]="form.contactPhone"
+            name="contactPhone"
+            readonly
+          />
+        </div>
+        <div class="field">
+          <label>Selected Package</label>
+          <input
+            type="text"
+            [(ngModel)]="form.selectedPackage"
+            name="selectedPackage"
+            readonly
+          />
+        </div>
+        <div class="field">
+          <label>Number of SMS</label>
+          <input
+            type="number"
+            [(ngModel)]="form.numberOfSms"
+            name="numberOfSms"
+            readonly
+          />
+        </div>
+
+        <div class="payment-methods">
+          <h4>Payment Methods</h4>
+          <ol>
+            <li>
+              <strong>Airtel Merchant Code</strong><br />
+              Dial <code>*185*9#</code> then enter <code>6898018</code> (G-REALM
+              STUDIO)
+            </li>
+            <li>
+              <strong>MTN Momo Code</strong><br />
+              Dial <code>*185*9#</code> then enter <code>6898018</code> (G-REALM
+              STUDIO)
+            </li>
+          </ol>
+        </div>
+
+        <div class="actions">
+          <button type="submit" class="order-btn">Order</button>
+          <button type="button" class="cancel-btn" (click)="cancelPurchase()">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <div class="packages-container">
     <div class="package-card">
       <h3>Pay-As-You-Go 1</h3>

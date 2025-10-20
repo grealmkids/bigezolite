@@ -169,6 +169,8 @@
     }
 }
 
+/* Dashboard top intentionally left minimal; hero styles were moved to the login page per design request */
+
 .dashboard-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));

@@ -57,3 +57,23 @@
     font-size: 1rem;
   }
 }
+
+/* New layout for manage-school page */
+.manage-school.card { padding: 1.25rem; border-radius:12px; background:#fff; box-shadow:0 10px 30px rgba(2,6,23,0.06); color:#0f172a; }
+
+.credentials-section { max-width:520px; margin:1rem auto; }
+.credentials-form .row { display:flex; flex-direction:column; gap:0.35rem; margin-bottom:0.85rem; }
+.credentials-form input { padding:0.7rem 0.9rem; border-radius:8px; border:1px solid rgba(15,23,42,0.08); background:#fbfdff; font-size:0.95rem; }
+.credentials-form input:focus { outline:none; box-shadow:0 8px 28px rgba(37,99,235,0.06); border-color:#2563eb; }
+
+.actions { display:flex; gap:0.6rem; margin-top:0.75rem; }
+.btn { padding:0.6rem 1rem; border-radius:8px; border:none; cursor:pointer; font-weight:800; }
+.btn.primary { background: linear-gradient(90deg,#ffb36b 0%, #ff7a00 100%); color:#081022; }
+.btn.secondary { background: #f3f6ff; color:#0f172a; border:1px solid rgba(15,23,42,0.06); }
+
+.muted { color: #67748a; }
+
+@media (max-width: 600px) {
+  .credentials-section { padding: 0 0.5rem; }
+}
+

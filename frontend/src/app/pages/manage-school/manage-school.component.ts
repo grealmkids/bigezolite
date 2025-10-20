@@ -18,23 +18,27 @@ import { take } from 'rxjs/operators';
       <p class="manage-message" style="color: #2563eb; font-weight:700;">Manage your school data</p>
       <div class="credentials-section">
         <h3>SMS Provider Credentials</h3>
+        <p class="section-sub">Only administrators can update provider credentials used to send school SMS.</p>
         <ng-container *ngIf="isAdmin; else notAdmin">
-          <form (ngSubmit)="saveCredentials()">
-            <div>
-              <label>Username</label>
-              <input type="text" [(ngModel)]="smsUsername" name="smsUsername" />
+          <form (ngSubmit)="saveCredentials()" class="credentials-form">
+            <div class="row">
+              <label for="smsUsername">Username</label>
+              <input id="smsUsername" type="text" [(ngModel)]="smsUsername" name="smsUsername" />
             </div>
-            <div>
-              <label>Password</label>
-              <input type="password" [(ngModel)]="smsPassword" name="smsPassword" />
+
+            <div class="row">
+              <label for="smsPassword">Password</label>
+              <input id="smsPassword" type="password" [(ngModel)]="smsPassword" name="smsPassword" />
             </div>
-            <div>
-              <label>Provider (optional)</label>
-              <input type="text" [(ngModel)]="smsProvider" name="smsProvider" />
+
+            <div class="row">
+              <label for="smsProvider">Provider (optional)</label>
+              <input id="smsProvider" type="text" [(ngModel)]="smsProvider" name="smsProvider" />
             </div>
-            <div style="display:flex;gap:8px;margin-top:8px;">
-              <button type="submit">Save SMS Credentials</button>
-              <button type="button" (click)="checkBalance()">Check Balance</button>
+
+            <div class="actions">
+              <button type="submit" class="btn primary">Save SMS Credentials</button>
+              <button type="button" class="btn secondary" (click)="checkBalance()">Check Balance</button>
             </div>
           </form>
         </ng-container>

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
@@ -16,7 +16,7 @@ import { AuthService } from '../../services/auth.service';
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.scss']
 })
-export class RegisterComponent {
+export class RegisterComponent implements OnInit, OnDestroy {
   registerForm: FormGroup;
   errorMessage: string | null = null;
 
@@ -48,6 +48,14 @@ export class RegisterComponent {
       // clear the stored email after prefill
       localStorage.removeItem('bigezo_google_email');
     }
+  }
+
+  ngAfterViewInit(): void {
+    document.body.classList.add('auth-bg');
+  }
+
+  ngOnDestroy(): void {
+    document.body.classList.remove('auth-bg');
   }
 
   onSubmit(): void {

@@ -35,7 +35,7 @@
 .oc-features { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
 .feature { display:flex; gap:0.8rem; align-items:center; background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); padding:0.9rem 1rem; border-radius:10px; }
 .dot { width:36px; height:36px; border-radius:6px; background: transparent; display:flex; align-items:center; justify-content:center; font-size:18px; color: rgba(230,238,248,0.95); }
-.feature mat-icon.dot { font-size:22px; }
+.feature mat-icon.dot { font-size:22px; color: #ff9933; }
 .label { color: #e6eef8; font-weight:700; }
 
 .oc-hero-decor { position:absolute; right:-80px; top:-40px; width:420px; height:420px; background: radial-gradient(circle at 20% 20%, rgba(255,153,51,0.14), transparent 40%); filter: blur(28px); z-index:1; }

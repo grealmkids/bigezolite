@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -32,6 +32,14 @@ export class LoginComponent {
       phoneNumber: [''],
       password: ['', [Validators.required]]
     });
+  }
+
+  ngOnInit(): void {
+    document.body.classList.add('auth-bg');
+  }
+
+  ngOnDestroy(): void {
+    document.body.classList.remove('auth-bg');
   }
 
   onSubmit(): void {

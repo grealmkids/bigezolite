@@ -17,6 +17,16 @@
   --color-secondary: #0059b3;
 }
 
+/* When on auth pages (login/register) hide the global toolbar and set dark background */
+body.auth-bg {
+  background: radial-gradient(circle at 10% 20%, #0f172a 0%, #071124 20%, #031428 45%, #021022 100%) !important;
+  color: #e6eef8;
+}
+
+body.auth-bg mat-toolbar {
+  display: none !important;
+}
+
 $bigezo-primary-palette: (
   50: #fff3e0,
   100: #ffe0b2,

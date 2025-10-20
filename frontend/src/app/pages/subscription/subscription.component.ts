@@ -11,11 +11,12 @@ import { take } from 'rxjs/operators';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './subscription.component.html',
-  styleUrl: './subscription.component.scss'
+  styleUrls: ['./subscription.component.scss']
 })
 export class SubscriptionComponent implements OnInit {
   selectedSchool$: Observable<School | null>;
   showPurchase = false;
+  selectedPrice = 0;
   form: {
     schoolName: string;
     contactPhone: string;
@@ -43,19 +44,24 @@ export class SubscriptionComponent implements OnInit {
       this.form.selectedPackage = packageType;
       // preset numberOfSms based on packageType (simple mapping)
       switch (packageType) {
-        case 'Pay-As-You-Go 1': this.form.numberOfSms = 100; break;
-        case 'Pay-As-You-Go 2': this.form.numberOfSms = 410; break;
-        case 'Premium 1': this.form.numberOfSms = 10500; break;
-        case 'Custom': this.form.numberOfSms = 0; break;
-        default: this.form.numberOfSms = 0;
+        case 'Pay-As-You-Go 1': this.form.numberOfSms = 100; this.selectedPrice = 5000; break;
+        case 'Pay-As-You-Go 2': this.form.numberOfSms = 410; this.selectedPrice = 20000; break;
+        case 'Premium 1': this.form.numberOfSms = 10500; this.selectedPrice = 500000; break;
+        case 'Custom': this.form.numberOfSms = 0; this.selectedPrice = 0; break;
+        default: this.form.numberOfSms = 0; this.selectedPrice = 0;
       }
       this.showPurchase = true;
     });
   }
 
   confirmPurchase(): void {
-    // For now, do not call Pesapal — just log and close. Real payment remains in subscriptionService.
-    console.log('Order created', this.form);
+    // send order to backend which will notify via SMS and email
+    this.subscriptionService.order({ ...this.form, price: this.selectedPrice }).subscribe({
+      next: (res) => {
+        console.log('Order sent', res);
+      },
+      error: (err) => console.error('Order failed', err)
+    });
     this.showPurchase = false;
     // Optionally call subscriptionService.initiatePayment when integrating Pesapal
   }

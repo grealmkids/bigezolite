@@ -9,7 +9,7 @@ import { FeesService, FeeRecord, NewFeeRecord } from '../../services/fees.servic
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, FormsModule],
   templateUrl: './fees-management-modal.component.html',
-  styleUrl: './fees-management-modal.component.scss'
+  styleUrls: ['./fees-management-modal.component.scss']
 })
 export class FeesManagementModalComponent implements OnInit {
   @Input() student: Student | null = null;

@@ -13,7 +13,7 @@ import { School } from '../../services/school.service';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './student-modal.component.html',
-  styleUrl: './student-modal.component.scss'
+  styleUrls: ['./student-modal.component.scss']
 })
 export class StudentModalComponent implements OnInit, OnChanges {
   @Input() student: Student | null = null;

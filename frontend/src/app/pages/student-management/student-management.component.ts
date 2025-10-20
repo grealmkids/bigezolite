@@ -24,7 +24,7 @@ import { LoadingSpinnerComponent } from '../../components/loading-spinner/loadin
   standalone: true,
   imports: [CommonModule, StudentModalComponent, FeesManagementModalComponent, SmsStudentModalComponent, LoadingSpinnerComponent, NoDashPipe],
   templateUrl: './student-management.component.html',
-  styleUrl: './student-management.component.scss'
+  styleUrls: ['./student-management.component.scss']
 })
 export class StudentManagementComponent implements OnInit {
   students$: Observable<Student[]> | undefined;

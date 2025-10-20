@@ -32,6 +32,14 @@
           />
         </div>
         <div class="field">
+          <label>Price</label>
+          <input
+            type="text"
+            [value]="selectedPrice | currency : 'UGX' : true : '1.0-0'"
+            readonly
+          />
+        </div>
+        <div class="field">
           <label>Number of SMS</label>
           <input
             type="number"
@@ -67,7 +75,7 @@
     </div>
   </div>
 
-  <div class="packages-container">
+  <div class="packages-container" *ngIf="!showPurchase">
     <div class="package-card">
       <h3>Pay-As-You-Go 1</h3>
       <p class="price">UGX 5,000</p>
@@ -108,4 +116,5 @@
       </button>
     </div>
   </div>
+  <!-- end packages-container -->
 </div>

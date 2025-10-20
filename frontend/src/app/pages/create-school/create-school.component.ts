@@ -12,7 +12,7 @@ import { SchoolService } from '../../services/school.service';
     ReactiveFormsModule
   ],
   templateUrl: './create-school.component.html',
-  styleUrl: './create-school.component.scss'
+  styleUrls: ['./create-school.component.scss']
 })
 export class CreateSchoolComponent {
   schoolForm: FormGroup;

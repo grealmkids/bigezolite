@@ -26,4 +26,8 @@ export class SubscriptionService {
   getPaymentStatus(orderTrackingId: string): Observable<any> {
     return this.http.get(`${this.apiUrl}/payment-status/${orderTrackingId}`);
   }
+
+  order(orderPayload: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/order`, orderPayload);
+  }
 }

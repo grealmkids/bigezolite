@@ -8,6 +8,7 @@ export class NoDashPipe implements PipeTransform {
 }
 import { Component, OnInit } from '@angular/core';
 import { LoadingService } from '../../services/loading.service';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Observable, Subject, combineLatest, BehaviorSubject, of } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap, startWith, take } from 'rxjs/operators';
 import { Student, StudentService } from '../../services/student.service';
@@ -47,7 +48,8 @@ export class StudentManagementComponent implements OnInit {
   private studentService: StudentService,
   private schoolService: SchoolService,
   private classCategorizationService: ClassCategorizationService,
-  private loadingService: LoadingService
+  private loadingService: LoadingService,
+  private snack: MatSnackBar
   ) { }
 
   onSearch(term: string): void {
@@ -94,7 +96,7 @@ export class StudentManagementComponent implements OnInit {
       distinctUntilChanged((prev, curr) => JSON.stringify(prev) === JSON.stringify(curr)),
       switchMap(([searchTerm, classTerm, statusTerm, yearTerm]) => {
         this.isLoading = true;
-        this.loadingService.show();
+        // Use component-local loading flag (do not rely solely on global interceptor)
         return this.studentService.getStudents(searchTerm, classTerm, statusTerm, yearTerm);
       })
     );
@@ -102,11 +104,11 @@ export class StudentManagementComponent implements OnInit {
     this.students$.subscribe({
       next: () => {
         this.isLoading = false;
-        this.loadingService.hide();
       },
-      error: () => {
+      error: (err) => {
         this.isLoading = false;
-        this.loadingService.hide();
+        const msg = err?.error?.message || err?.message || 'Failed to load students';
+        this.snack.open(msg, 'OK', { duration: 5000, panelClass: ['sms-balance-snackbar'] });
       }
     });
   }

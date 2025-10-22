@@ -50,7 +50,7 @@ export const processBulkSms = async (schoolId: number, recipientFilter: any, mes
     }
 
     for (const phoneNumber of phoneNumbers) {
-        await sendSms(phoneNumber, message);
+        await sendSms(phoneNumber, message, creds.username, creds.password, creds.username);
     }
 
     // Record transaction and update account (attempt SMS accounts table update)
@@ -82,7 +82,7 @@ export const processSingleSms = async (schoolId: number, studentId: number, mess
         throw new Error('Insufficient SMS balance for single send');
     }
 
-    await sendSms(phoneNumber, message);
+    await sendSms(phoneNumber, message, creds.username, creds.password, creds.username);
 
     await addSmsTransaction(schoolId, 'debit', costPerSms, { type: 'single', studentId });
     const newProviderBalance = providerBalance - costPerSms;

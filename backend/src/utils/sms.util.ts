@@ -12,18 +12,23 @@ import { config } from '../config';
  * Returns: gateway response object
  * Throws: rethrows axios errors after logging
  */
-export async function sendSms(phoneNumber: string, message: string): Promise<any> {
+export async function sendSms(phoneNumber: string, message: string, username?: string, password?: string, sender?: string): Promise<any> {
   try {
     const smsUrl = config.sms.apiUrl;
     if (!smsUrl) throw new Error('SMS_API_URL not configured');
     const normalized = normalizePhone(phoneNumber);
 
+    // Prefer explicit credentials passed by caller (per-school). Fallback to env/config.
+    const u = username || process.env.SMS_USERNAME || config.sms.username || '';
+    const p = password || process.env.SMS_PASSWORD || config.sms.password || '';
+    const s = sender || u;
+
     const params: Record<string, string> = {
-      username: process.env.SMS_USERNAME || config.sms.username || '',
-      password: process.env.SMS_PASSWORD || config.sms.password || '',
+      username: u,
+      password: p,
       message,
       number: normalized,
-      sender: process.env.SMS_USERNAME || config.sms.username || ''
+      sender: s
     };
 
     console.log(`Sending SMS to ${phoneNumber} -> normalized ${normalized}`);

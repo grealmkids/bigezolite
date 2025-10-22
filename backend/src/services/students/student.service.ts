@@ -79,26 +79,29 @@ export const findStudentsBySchool = async (schoolId: number, searchTerm?: string
     let paramIndex = 2;
 
     if (searchTerm) {
-        sql += ` AND (student_name ILIKE ${paramIndex} OR CAST(reg_number AS TEXT) ILIKE ${paramIndex})`;
+        sql += ` AND (student_name ILIKE $${paramIndex} OR CAST(reg_number AS TEXT) ILIKE $${paramIndex})`;
         params.push(`%${searchTerm}%`);
         paramIndex++;
     }
 
     if (classTerm) {
-        sql += ` AND class_name = ${paramIndex}`;
-        params.push(classTerm);
+        // class_name is stored as text; ensure we pass a string
+        sql += ` AND class_name = $${paramIndex}`;
+        params.push(String(classTerm));
         paramIndex++;
     }
 
     if (statusTerm) {
-        sql += ` AND student_status = ${paramIndex}`;
-        params.push(statusTerm);
+        sql += ` AND student_status = $${paramIndex}`;
+        params.push(String(statusTerm));
         paramIndex++;
     }
 
     if (yearTerm) {
-        sql += ` AND year_enrolled = ${paramIndex}`;
-        params.push(yearTerm);
+        // year_enrolled is INT in DB; attempt to coerce numeric or cast in query
+        sql += ` AND year_enrolled = $${paramIndex}`;
+        const yearVal = Number(yearTerm);
+        params.push(Number.isNaN(yearVal) ? yearTerm : yearVal);
         paramIndex++;
     }
 

@@ -167,3 +167,23 @@
     .cancel-btn { background:#f3f4f6; color:#111; padding:0.6rem 1rem; border-radius:6px; border:none; }
   }
 }
+
+::ng-deep {
+  .success-snackbar {
+    background-color: #4CAF50;
+    color: white;
+    
+    .mat-simple-snackbar-action {
+      color: white;
+    }
+  }
+
+  .error-snackbar {
+    background-color: #f44336;
+    color: white;
+    
+    .mat-simple-snackbar-action {
+      color: white;
+    }
+  }
+}

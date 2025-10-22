@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { SubscriptionService } from '../../services/subscription.service';
 import { SchoolService, School } from '../../services/school.service';
 import { Observable } from 'rxjs';
@@ -9,7 +10,7 @@ import { take } from 'rxjs/operators';
 @Component({
   selector: 'app-subscription',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MatSnackBarModule],
   templateUrl: './subscription.component.html',
   styleUrls: ['./subscription.component.scss']
 })
@@ -26,9 +27,23 @@ export class SubscriptionComponent implements OnInit {
 
   constructor(
     private subscriptionService: SubscriptionService,
-    private schoolService: SchoolService
+    private schoolService: SchoolService,
+    private snackBar: MatSnackBar
   ) {
     this.selectedSchool$ = this.schoolService.selectedSchool$;
+  }
+
+  showSuccessMessage() {
+    this.snackBar.open(
+      '✓ Your subscription order was successful! Call 0773913902 in case of delayed response.', 
+      'Close', 
+      {
+        duration: 10000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top',
+        panelClass: ['success-snackbar']
+      }
+    );
   }
 
   ngOnInit(): void {
@@ -59,11 +74,19 @@ export class SubscriptionComponent implements OnInit {
     this.subscriptionService.order({ ...this.form, price: this.selectedPrice }).subscribe({
       next: (res) => {
         console.log('Order sent', res);
+        this.showSuccessMessage();
+        this.showPurchase = false;
       },
-      error: (err) => console.error('Order failed', err)
+      error: (err) => {
+        console.error('Order failed', err);
+        this.snackBar.open('Failed to place order. Please try again.', 'Close', {
+          duration: 5000,
+          horizontalPosition: 'center',
+          verticalPosition: 'top',
+          panelClass: ['error-snackbar']
+        });
+      }
     });
-    this.showPurchase = false;
-    // Optionally call subscriptionService.initiatePayment when integrating Pesapal
   }
 
   cancelPurchase(): void {

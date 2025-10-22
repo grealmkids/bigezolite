@@ -36,8 +36,11 @@ export class StudentService {
 
   constructor(private http: HttpClient) { }
 
-  getStudents(searchTerm?: string, classTerm?: string, statusTerm?: string, yearTerm?: string): Observable<Student[]> {
-    let params = new HttpParams();
+  getStudents(searchTerm?: string, classTerm?: string, statusTerm?: string, yearTerm?: string, page: number = 0, pageSize: number = 10): Observable<{ items: Student[]; total: number }> {
+    let params = new HttpParams()
+      .append('page', page.toString())
+      .append('limit', pageSize.toString());
+      
     if (searchTerm) {
       params = params.append('search', searchTerm);
     }
@@ -52,7 +55,7 @@ export class StudentService {
     }
     const url = this.apiUrl;
     console.log('[StudentService] GET', url, 'params:', params.toString());
-    return this.http.get<Student[]>(url, { params }).pipe(
+    return this.http.get<{ items: Student[]; total: number }>(url, { params }).pipe(
       tap(() => {
         // successful request
       }),

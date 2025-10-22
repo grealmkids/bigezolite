@@ -27,80 +27,16 @@ body.auth-bg mat-toolbar {
   display: none !important;
 }
 
-$bigezo-primary-palette: (
-  50: #fff3e0,
-  100: #ffe0b2,
-  200: #ffcc80,
-  300: #ffb74d,
-  400: #ffa726,
-  500: #ff9800,
-  600: #fb8c00,
-  700: #f57c00,
-  800: #ef6c00,
-  900: #e65100,
-  A100: #ffd180,
-  A200: #ffab40,
-  A400: #ff9100,
-  A700: #ff6d00,
-  contrast: (
-    50: #000000,
-    100: #000000,
-    200: #000000,
-    300: #000000,
-    400: #000000,
-    500: #000000,
-    600: #000000,
-    700: #000000,
-    800: #000000,
-    900: #000000,
-    A100: #000000,
-    A200: #000000,
-    A400: #000000,
-    A700: #000000,
-  )
-);
-
-$bigezo-secondary-palette: (
-  50: #e0f7fa,
-  100: #b2ebf2,
-  200: #80deea,
-  300: #4dd0e1,
-  400: #26c6da,
-  500: #00bcd4,
-  600: #00acc1,
-  700: #0097a7,
-  800: #00838f,
-  900: #006064,
-  A100: #84ffff,
-  A200: #18ffff,
-  A400: #00e5ff,
-  A700: #00b8d4,
-  contrast: (
-    50: #000000,
-    100: #000000,
-    200: #000000,
-    300: #000000,
-    400: #000000,
-    500: #000000,
-    600: #000000,
-    700: #000000,
-    800: #ffffff,
-    900: #ffffff,
-    A100: #000000,
-    A200: #000000,
-    A400: #000000,
-    A700: #000000,
-  )
-);
-
-$bigezo-primary: mat.m2-define-palette($bigezo-primary-palette, 500);
-$bigezo-secondary: mat.m2-define-palette($bigezo-secondary-palette, 500);
-
-// Create a legacy light theme (m2) from the palettes so components using the
-// compatibility theming API can consume them. This keeps your custom palette maps.
-$bigezo-theme: mat.m2-define-light-theme($bigezo-primary, $bigezo-secondary);
-
-@include mat.all-component-themes($bigezo-theme);
+.mat-mdc-snackbar-container.success-snackbar {
+  --mdc-snackbar-container-color: #3bc134;
+  --mdc-snackbar-supporting-text-color: white;
+  --mat-mdc-snack-bar-button-color: white;
+}
+/* NOTE: Custom Material theming removed to avoid build-time SASS errors.
+   The app will use CSS variables defined above and the default Material theme.
+   If you want a custom Material theme, re-add a validated theme block
+   following the Angular Material theming guide: https://material.angular.dev/guide/theming
+*/
 
 body {
   font-family: 'Poppins', sans-serif;

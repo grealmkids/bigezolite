@@ -85,9 +85,9 @@ export const findStudentsBySchool = async (schoolId: number, searchTerm?: string
     }
 
     if (classTerm) {
-        // class_name is stored as text; ensure we pass a string
-        sql += ` AND class_name = $${paramIndex}`;
-        params.push(String(classTerm));
+        // class_name is stored as text; ensure we cast both sides to text for comparison
+        sql += ` AND CAST(class_name AS TEXT) = CAST($${paramIndex} AS TEXT)`;
+        params.push(classTerm);
         paramIndex++;
     }
 

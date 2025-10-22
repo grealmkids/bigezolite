@@ -9,8 +9,9 @@ export class NoDashPipe implements PipeTransform {
 import { Component, OnInit } from '@angular/core';
 import { LoadingService } from '../../services/loading.service';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { Observable, Subject, combineLatest, BehaviorSubject, of } from 'rxjs';
-import { debounceTime, distinctUntilChanged, switchMap, startWith, take } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, switchMap, startWith, take, map } from 'rxjs/operators';
 import { Student, StudentService } from '../../services/student.service';
 import { CommonModule } from '@angular/common';
 import { StudentModalComponent } from '../../components/student-modal/student-modal.component';
@@ -23,17 +24,35 @@ import { LoadingSpinnerComponent } from '../../components/loading-spinner/loadin
 @Component({
   selector: 'app-student-management',
   standalone: true,
-  imports: [CommonModule, StudentModalComponent, FeesManagementModalComponent, SmsStudentModalComponent, LoadingSpinnerComponent, NoDashPipe],
+  imports: [
+    CommonModule,
+    StudentModalComponent,
+    FeesManagementModalComponent,
+    SmsStudentModalComponent,
+    LoadingSpinnerComponent,
+    MatPaginatorModule,
+    NoDashPipe
+  ],
   templateUrl: './student-management.component.html',
   styleUrls: ['./student-management.component.scss']
 })
 export class StudentManagementComponent implements OnInit {
-  students$: Observable<Student[]> | undefined;
+  students$: Observable<{ items: Student[]; total: number }> | undefined;
+  displayedStudents: Student[] = [];
   isLoading = false;
   private searchTerms = new Subject<string>();
   private classFilter = new BehaviorSubject<string>('');
   private statusFilter = new BehaviorSubject<string>('');
   private yearFilter = new BehaviorSubject<string>('');
+  private pageIndex = new BehaviorSubject<number>(0);
+  private pageSize = new BehaviorSubject<number>(10);
+
+  // Pagination settings
+  pageEvent: PageEvent = {
+    pageIndex: 0,
+    pageSize: 10,
+    length: 0
+  };
 
   isStudentModalOpen = false;
   isFeesModalOpen = false;
@@ -57,7 +76,8 @@ export class StudentManagementComponent implements OnInit {
   }
 
   onClassChange(term: string): void {
-    this.classFilter.next(term);
+    // Ensure string type and handle empty string
+    this.classFilter.next(term ? String(term) : '');
   }
 
   onStatusChange(term: string): void {
@@ -66,6 +86,12 @@ export class StudentManagementComponent implements OnInit {
 
   onYearChange(term: string): void {
     this.yearFilter.next(term);
+  }
+
+  onPageChange(event: PageEvent): void {
+    this.pageEvent = event;
+    this.pageIndex.next(event.pageIndex);
+    this.pageSize.next(event.pageSize);
   }
 
   ngOnInit(): void {
@@ -78,17 +104,40 @@ export class StudentManagementComponent implements OnInit {
       } else {
         this.classes = [];
       }
+      
+    // Initialize the students$ observable with pagination
+    this.students$ = combineLatest([
+      this.searchTerms.pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        startWith('')
+      ),
+      this.classFilter.pipe(startWith('')),
+      this.statusFilter.pipe(startWith('')),
+      this.yearFilter.pipe(startWith('')),
+      this.pageIndex.pipe(startWith(0)),
+      this.pageSize.pipe(startWith(10))
+    ]).pipe(
+      switchMap(([search, classFilter, status, year, page, limit]) =>
+        this.studentService.getStudents(search, classFilter, status, year, page, limit)
+      ),
+      map(response => {
+        // Update the page length
+        this.pageEvent.length = response.total;
+        return response;
+      })
+    );
     } catch (err) {
       this.classes = [];
     }
     this.loadingClasses = false;
 
-    // ...existing code for filters and students$...
+    // Load all students by default and apply filters
     const filters$ = combineLatest([
       this.searchTerms.pipe(startWith('')),
-      this.classFilter,
-      this.statusFilter,
-      this.yearFilter
+      this.classFilter.pipe(startWith('')),
+      this.statusFilter.pipe(startWith('')),
+      this.yearFilter.pipe(startWith(''))
     ]);
 
     this.students$ = filters$.pipe(

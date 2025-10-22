@@ -87,15 +87,21 @@ export const getStudents = async (req: AuthenticatedRequest, res: Response) => {
 
         const { search, class: classTerm, status, year } = req.query;
 
-        const students = await studentService.findStudentsBySchool(
-            schoolId, 
-            search as string | undefined, 
-            classTerm as string | undefined, 
-            status as string | undefined, 
-            year as string | undefined
+        // Read pagination params
+        const page = req.query.page ? Number(req.query.page) : 0;
+        const limit = req.query.limit ? Number(req.query.limit) : 0;
+
+        const studentsResult = await studentService.findStudentsBySchool(
+            schoolId,
+            search as string | undefined,
+            classTerm as string | undefined,
+            status as string | undefined,
+            year as string | undefined,
+            page,
+            limit
         );
-        console.log('[getStudents] returning students count:', Array.isArray(students) ? students.length : 'unknown', 'sample:', Array.isArray(students) && students.length ? students.slice(0,5) : students);
-        res.status(200).json(students);
+        console.log('[getStudents] returning students count:', Array.isArray(studentsResult.items) ? studentsResult.items.length : 'unknown', 'total:', studentsResult.total);
+        res.status(200).json(studentsResult);
 
     } catch (error) {
         console.error(error);

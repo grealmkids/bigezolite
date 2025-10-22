@@ -73,40 +73,57 @@ export const createStudent = async (student: Omit<Student, 'student_id' | 'reg_n
  * Lists all students for a given school.
  * Includes search and filtering capabilities.
  */
-export const findStudentsBySchool = async (schoolId: number, searchTerm?: string, classTerm?: string, statusTerm?: string, yearTerm?: string) => {
-    let sql = 'SELECT student_id, reg_number, student_name, class_name, student_status FROM students WHERE school_id = $1';
+export const findStudentsBySchool = async (
+    schoolId: number,
+    searchTerm?: string,
+    classTerm?: string,
+    statusTerm?: string,
+    yearTerm?: string,
+    page: number = 0,
+    limit: number = 0
+) => {
+    // Build WHERE clause and params
+    let where = 'WHERE school_id = $1';
     const params: any[] = [schoolId];
-    let paramIndex = 2;
+    let idx = 2;
 
     if (searchTerm) {
-        sql += ` AND (student_name ILIKE $${paramIndex} OR CAST(reg_number AS TEXT) ILIKE $${paramIndex})`;
+        where += ` AND (student_name ILIKE $${idx} OR CAST(reg_number AS TEXT) ILIKE $${idx})`;
         params.push(`%${searchTerm}%`);
-        paramIndex++;
+        idx++;
     }
 
     if (classTerm) {
-        // class_name is stored as text; ensure we cast both sides to text for comparison
-        sql += ` AND CAST(class_name AS TEXT) = CAST($${paramIndex} AS TEXT)`;
+        where += ` AND CAST(class_name AS TEXT) = CAST($${idx} AS TEXT)`;
         params.push(classTerm);
-        paramIndex++;
+        idx++;
     }
 
     if (statusTerm) {
-        sql += ` AND student_status = $${paramIndex}`;
+        where += ` AND student_status = $${idx}`;
         params.push(String(statusTerm));
-        paramIndex++;
+        idx++;
     }
 
     if (yearTerm) {
-        // year_enrolled is INT in DB; attempt to coerce numeric or cast in query
-        sql += ` AND year_enrolled = $${paramIndex}`;
+        where += ` AND year_enrolled = $${idx}`;
         const yearVal = Number(yearTerm);
         params.push(Number.isNaN(yearVal) ? yearTerm : yearVal);
-        paramIndex++;
+        idx++;
     }
 
-    sql += ' ORDER BY student_name ASC';
+    // Total count
+    const countSql = `SELECT COUNT(*) AS total FROM students ${where}`;
+    const countResult = await query(countSql, params);
+    const total = parseInt(countResult.rows[0]?.total || '0', 10);
+
+    // Select with ordering and optional pagination
+    let sql = `SELECT student_id, reg_number, student_name, class_name, student_status, fees_status FROM students ${where} ORDER BY student_name ASC`;
+    if (limit && limit > 0) {
+        sql += ` LIMIT $${idx} OFFSET $${idx + 1}`;
+        params.push(limit, page * limit);
+    }
 
     const result = await query(sql, params);
-    return result.rows;
+    return { items: result.rows, total };
 };

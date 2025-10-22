@@ -44,9 +44,6 @@
     </div>
 
     <ng-container *ngIf="!isLoading">
-      <!-- Debug: show raw received items for troubleshooting -->
-      <pre *ngIf="displayedStudents.length > 0" style="background:#f6f8fa;padding:8px;border-radius:6px;">{{ displayedStudents | json }}</pre>
-
       <div *ngIf="displayedStudents.length === 0" class="no-results-alert">
         No students found matching your search criteria
       </div>

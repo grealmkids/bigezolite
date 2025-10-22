@@ -8,12 +8,7 @@ export const getSmsCredits = async (schoolId: number): Promise<number> => {
     // Prefer provider-tracked balance if present in sms_accounts
     const accountBalance = await getSmsAccountBalance(schoolId);
     if (accountBalance && accountBalance > 0) return accountBalance;
-
-    // Fallback to legacy sms_credits column on schools table
-    const result = await pool.query('SELECT sms_credits FROM schools WHERE school_id = $1', [schoolId]);
-    if (result.rows.length > 0) {
-        return result.rows[0].sms_credits || 0;
-    }
+    // No legacy fallback: rely on sms_accounts table or provider balance
     return 0;
 };
 
@@ -57,12 +52,10 @@ export const processBulkSms = async (schoolId: number, recipientFilter: any, mes
         await sendSms(phoneNumber, message, creds.username, creds.password, creds.username);
     }
 
-    // Record transaction and update account (attempt SMS accounts table update)
+    // Record transaction and update provider-backed account
     await addSmsTransaction(schoolId, 'debit', requiredAmount, { type: 'bulk', recipients: recipientCount });
     const newProviderBalance = providerBalance - requiredAmount;
     await upsertSmsAccount(schoolId, newProviderBalance);
-    // For backwards compatibility, also decrement legacy column if present
-    await pool.query('UPDATE schools SET sms_credits = GREATEST(0, COALESCE(sms_credits,0) - $1) WHERE school_id = $2', [recipientCount, schoolId]);
 };
 
 export const processSingleSms = async (schoolId: number, studentId: number, message: string): Promise<void> => {
@@ -96,5 +89,4 @@ export const processSingleSms = async (schoolId: number, studentId: number, mess
     await addSmsTransaction(schoolId, 'debit', costPerSms, { type: 'single', studentId });
     const newProviderBalance = providerBalance - costPerSms;
     await upsertSmsAccount(schoolId, newProviderBalance);
-    await pool.query('UPDATE schools SET sms_credits = GREATEST(0, COALESCE(sms_credits,0) - 1) WHERE school_id = $1', [schoolId]);
 };

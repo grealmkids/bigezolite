@@ -39,16 +39,62 @@
   </div>
 
   <div class="student-list-container">
-    <div *ngIf="isLoading" class="table-spinner">
-      <app-loading-spinner></app-loading-spinner>
-    </div>
+    <div class="student-list-container">
+      <!-- Pagination & summary above the table -->
+      <div
+        class="table-header-controls"
+        style="
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 0.8rem;
+          margin-bottom: 0.8rem;
+        "
+      >
+        <div style="display: flex; align-items: center; gap: 0.8rem">
+          <div class="pagination-controls">
+            <button
+              class="btn"
+              [disabled]="pageEvent.pageIndex <= 0"
+              (click)="prevPage()"
+            >
+              Previous
+            </button>
+            <span>Page {{ pageEvent.pageIndex + 1 }} of {{ totalPages }}</span>
+            <button
+              class="btn"
+              [disabled]="pageEvent.pageIndex >= totalPages - 1"
+              (click)="nextPage()"
+            >
+              Next
+            </button>
+          </div>
+          <label style="margin-left: 0.8rem"
+            >Per page:
+            <select
+              [value]="pageEvent.pageSize"
+              (change)="changePageSize(+$any($event.target).value)"
+            >
+              <option [value]="5">5</option>
+              <option [value]="10">10</option>
+              <option [value]="25">25</option>
+              <option [value]="50">50</option>
+            </select>
+          </label>
+        </div>
 
-    <ng-container *ngIf="!isLoading">
-      <div *ngIf="displayedStudents.length === 0" class="no-results-alert">
-        No students found matching your search criteria
+        <div class="table-summary">
+          Showing {{ displayedStudents.length }} of
+          {{ pageEvent.length || 0 }} students
+        </div>
       </div>
 
-      <table *ngIf="displayedStudents.length > 0" class="student-table">
+      <ng-container *ngIf="!isLoading">
+        <div *ngIf="displayedStudents.length === 0" class="no-results-alert">
+          No students found matching your search criteria
+        </div>
+
+        <table *ngIf="displayedStudents.length > 0" class="student-table">
           <thead>
             <tr>
               <th>Reg Number</th>
@@ -60,6 +106,11 @@
             </tr>
           </thead>
           <tbody>
+            <tr *ngIf="isLoading">
+              <td colspan="6" class="table-spinner">
+                <app-loading-spinner></app-loading-spinner>
+              </td>
+            </tr>
             <tr *ngFor="let student of displayedStudents">
               <td>{{ student.reg_number | noDash }}</td>
               <td>{{ student.student_name }}</td>
@@ -127,12 +178,36 @@
         </table>
 
         <!-- Simple pagination controls (replaces MatPaginator) -->
-        <div class="pagination-controls" style="display:flex;align-items:center;gap:0.6rem;margin-top:0.8rem;">
-          <button class="btn" [disabled]="pageEvent.pageIndex <= 0" (click)="prevPage()">Previous</button>
+        <div
+          class="pagination-controls"
+          style="
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            margin-top: 0.8rem;
+          "
+        >
+          <button
+            class="btn"
+            [disabled]="pageEvent.pageIndex <= 0"
+            (click)="prevPage()"
+          >
+            Previous
+          </button>
           <div>Page {{ pageEvent.pageIndex + 1 }} of {{ totalPages }}</div>
-          <button class="btn" [disabled]="pageEvent.pageIndex >= (totalPages - 1)" (click)="nextPage()">Next</button>
-          <label style="margin-left:0.8rem;">Per page:
-            <select [value]="pageEvent.pageSize" (change)="changePageSize(+($any($event.target).value))">
+          <button
+            class="btn"
+            [disabled]="pageEvent.pageIndex >= totalPages - 1"
+            (click)="nextPage()"
+          >
+            Next
+          </button>
+          <label style="margin-left: 0.8rem"
+            >Per page:
+            <select
+              [value]="pageEvent.pageSize"
+              (change)="changePageSize(+$any($event.target).value)"
+            >
               <option [value]="5">5</option>
               <option [value]="10">10</option>
               <option [value]="25">25</option>
@@ -140,29 +215,30 @@
             </select>
           </label>
         </div>
-    </ng-container>
+      </ng-container>
+    </div>
+
+    <!-- Modals -->
+    <app-student-modal
+      *ngIf="isStudentModalOpen"
+      [student]="selectedStudent"
+      (close)="closeStudentModal()"
+      (studentUpserted)="onStudentUpserted()"
+    >
+    </app-student-modal>
+
+    <app-fees-management-modal
+      *ngIf="isFeesModalOpen"
+      [student]="selectedStudent"
+      (close)="closeFeesModal()"
+    >
+    </app-fees-management-modal>
+
+    <app-sms-student-modal
+      *ngIf="isSmsModalOpen"
+      [student]="selectedStudent"
+      (close)="closeSmsModal()"
+    >
+    </app-sms-student-modal>
   </div>
-
-  <!-- Modals -->
-  <app-student-modal
-    *ngIf="isStudentModalOpen"
-    [student]="selectedStudent"
-    (close)="closeStudentModal()"
-    (studentUpserted)="onStudentUpserted()"
-  >
-  </app-student-modal>
-
-  <app-fees-management-modal
-    *ngIf="isFeesModalOpen"
-    [student]="selectedStudent"
-    (close)="closeFeesModal()"
-  >
-  </app-fees-management-modal>
-
-  <app-sms-student-modal
-    *ngIf="isSmsModalOpen"
-    [student]="selectedStudent"
-    (close)="closeSmsModal()"
-  >
-  </app-sms-student-modal>
 </div>

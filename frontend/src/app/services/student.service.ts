@@ -53,10 +53,10 @@ export class StudentService {
     if (yearTerm) {
       params = params.append('year', yearTerm);
     }
-    const url = this.apiUrl;
+  const url = this.apiUrl;
     console.log('[StudentService] GET', url, 'params:', params.toString());
     // Backend may return either an array of students or an object { items, total }
-    return this.http.get<any>(url, { params }).pipe(
+  return this.http.get<any>(url, { params, headers: { 'X-Skip-Global-Loading': 'true' } as any }).pipe(
       tap((resp) => {
         console.log('[StudentService] response payload:', resp);
       }),

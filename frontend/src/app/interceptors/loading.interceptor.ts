@@ -5,8 +5,16 @@ import { LoadingService } from '../services/loading.service';
 
 export const loadingInterceptor: HttpInterceptorFn = (req, next) => {
   const loadingService = inject(LoadingService);
-  loadingService.show();
+  // Allow callers to opt-out of the global loading overlay by setting header
+  const skipGlobal = req.headers.get('X-Skip-Global-Loading') === 'true';
+  if (!skipGlobal) {
+    loadingService.show();
+  }
   return next(req).pipe(
-    finalize(() => loadingService.hide())
+    finalize(() => {
+      if (!skipGlobal) {
+        loadingService.hide();
+      }
+    })
   );
 };

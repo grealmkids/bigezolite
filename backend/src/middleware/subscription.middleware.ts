@@ -21,11 +21,11 @@ export const checkSubscription = async (req: AuthenticatedRequest, res: Response
         // Debug: log account status so callers can see why access was denied
         console.debug('[checkSubscription] schoolId:', schoolId, 'account_status:', accountStatus);
 
-        // Accept 'Active' case-insensitively to avoid mismatch issues from manual DB edits
-        if (!accountStatus || String(accountStatus).toLowerCase() !== 'active') {
-            const raw = accountStatus ? String(accountStatus) : 'unknown';
-            const statusText = raw.charAt(0).toUpperCase() + raw.slice(1).toLowerCase();
-            return res.status(403).json({ message: `Forbidden: Your account is ${statusText}. Please subscribe to use this feature.` });
+        // Policy update: 'Dormant' status should NOT block operations like sending SMS.
+        // Only explicitly 'Suspended' accounts remain blocked.
+        if (accountStatus && String(accountStatus).toLowerCase() === 'suspended') {
+            console.debug('[checkSubscription] blocked due to suspended status');
+            return res.status(403).json({ message: 'Forbidden: Your account is suspended. Please contact support.' });
         }
 
         next();

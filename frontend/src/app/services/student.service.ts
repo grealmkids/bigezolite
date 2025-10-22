@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
-import { catchError, tap } from 'rxjs/operators';
+import { catchError, tap, map } from 'rxjs/operators';
 
 export interface Student {
   student_id: number;
@@ -40,7 +40,7 @@ export class StudentService {
     let params = new HttpParams()
       .append('page', page.toString())
       .append('limit', pageSize.toString());
-      
+    
     if (searchTerm) {
       params = params.append('search', searchTerm);
     }
@@ -55,14 +55,24 @@ export class StudentService {
     }
     const url = this.apiUrl;
     console.log('[StudentService] GET', url, 'params:', params.toString());
-    return this.http.get<{ items: Student[]; total: number }>(url, { params }).pipe(
-      tap(() => {
-        // successful request
+    // Backend may return either an array of students or an object { items, total }
+    return this.http.get<any>(url, { params }).pipe(
+      tap((resp) => {
+        console.log('[StudentService] response payload:', resp);
+      }),
+      map((resp) => {
+        if (Array.isArray(resp)) {
+          return { items: resp as Student[], total: (resp as Student[]).length };
+        }
+        if (resp && Array.isArray(resp.items)) {
+          return { items: resp.items as Student[], total: resp.total ?? resp.items.length };
+        }
+        // fallback: empty
+        return { items: [], total: 0 };
       }),
       catchError(err => {
-        console.error('[StudentService] HTTP error while fetching students', err.status, err.message, err);
-        // surface 403 details for easier debugging
-        if (err.status === 403) {
+        console.error('[StudentService] HTTP error while fetching students', err?.status, err?.message, err);
+        if (err?.status === 403) {
           console.warn('[StudentService] 403 Forbidden received. Check auth token and backend permissions.');
         }
         return throwError(() => err);

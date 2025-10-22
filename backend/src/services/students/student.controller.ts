@@ -94,6 +94,7 @@ export const getStudents = async (req: AuthenticatedRequest, res: Response) => {
             status as string | undefined, 
             year as string | undefined
         );
+        console.log('[getStudents] returning students count:', Array.isArray(students) ? students.length : 'unknown', 'sample:', Array.isArray(students) && students.length ? students.slice(0,5) : students);
         res.status(200).json(students);
 
     } catch (error) {

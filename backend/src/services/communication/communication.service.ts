@@ -43,10 +43,14 @@ export const processBulkSms = async (schoolId: number, recipientFilter: any, mes
     }
     // Must use per-school credentials (no fallback to env/global creds)
     const providerBalance = await checkBalance(creds.username, creds.password);
+    console.debug('[processBulkSms] recipientCount:', recipientCount, 'costPerSms:', costPerSms, 'requiredAmount:', requiredAmount, 'providerBalance:', providerBalance);
 
     // Apply money logic: here providerBalance is assumed to be in same units as COST_PER_SMS
     if (providerBalance < requiredAmount) {
-        throw new Error('Insufficient SMS balance for bulk send');
+        const err: any = new Error('Insufficient SMS balance for bulk send');
+        err.statusCode = 402; // Payment required / insufficient funds
+        err.details = { providerBalance, requiredAmount };
+        throw err;
     }
 
     for (const phoneNumber of phoneNumbers) {
@@ -78,8 +82,13 @@ export const processSingleSms = async (schoolId: number, studentId: number, mess
 
     const providerBalance = await checkBalance(creds.username, creds.password);
 
+    console.debug('[processSingleSms] costPerSms:', costPerSms, 'providerBalance:', providerBalance);
+
     if (providerBalance < costPerSms) {
-        throw new Error('Insufficient SMS balance for single send');
+        const err: any = new Error('Insufficient SMS balance for single send');
+        err.statusCode = 402;
+        err.details = { providerBalance, requiredAmount: costPerSms };
+        throw err;
     }
 
     await sendSms(phoneNumber, message, creds.username, creds.password, creds.username);

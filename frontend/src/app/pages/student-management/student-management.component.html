@@ -44,12 +44,14 @@
     </div>
 
     <ng-container *ngIf="!isLoading">
-      <ng-container *ngIf="students$ | async as studentsData">
-        <div *ngIf="studentsData.items.length === 0" class="no-results-alert">
-          No students found matching your search criteria
-        </div>
+      <!-- Debug: show raw received items for troubleshooting -->
+      <pre *ngIf="displayedStudents.length > 0" style="background:#f6f8fa;padding:8px;border-radius:6px;">{{ displayedStudents | json }}</pre>
 
-        <table *ngIf="studentsData.items.length > 0" class="student-table">
+      <div *ngIf="displayedStudents.length === 0" class="no-results-alert">
+        No students found matching your search criteria
+      </div>
+
+      <table *ngIf="displayedStudents.length > 0" class="student-table">
           <thead>
             <tr>
               <th>Reg Number</th>
@@ -61,7 +63,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let student of studentsData.items">
+            <tr *ngFor="let student of displayedStudents">
               <td>{{ student.reg_number | noDash }}</td>
               <td>{{ student.student_name }}</td>
               <td>{{ student?.class_name || "" }}</td>
@@ -127,16 +129,20 @@
           </tbody>
         </table>
 
-        <mat-paginator
-          [length]="studentsData.total"
-          [pageSize]="pageEvent.pageSize"
-          [pageIndex]="pageEvent.pageIndex"
-          [pageSizeOptions]="[5, 10, 25, 50]"
-          (page)="onPageChange($event)"
-          aria-label="Select page"
-        >
-        </mat-paginator>
-      </ng-container>
+        <!-- Simple pagination controls (replaces MatPaginator) -->
+        <div class="pagination-controls" style="display:flex;align-items:center;gap:0.6rem;margin-top:0.8rem;">
+          <button class="btn" [disabled]="pageEvent.pageIndex <= 0" (click)="prevPage()">Previous</button>
+          <div>Page {{ pageEvent.pageIndex + 1 }} of {{ totalPages }}</div>
+          <button class="btn" [disabled]="pageEvent.pageIndex >= (totalPages - 1)" (click)="nextPage()">Next</button>
+          <label style="margin-left:0.8rem;">Per page:
+            <select [value]="pageEvent.pageSize" (change)="changePageSize(+($any($event.target).value))">
+              <option [value]="5">5</option>
+              <option [value]="10">10</option>
+              <option [value]="25">25</option>
+              <option [value]="50">50</option>
+            </select>
+          </label>
+        </div>
     </ng-container>
   </div>
 

@@ -45,9 +45,9 @@ export const sendBulkSms = async (req: AuthenticatedRequest, res: Response) => {
         return res.status(200).json({ message: 'Bulk SMS processed successfully' });
     } catch (error: any) {
         // Provide more informative failure to frontend when possible
-        const providerMessage = error?.message || (error?.response && error.response.data) || null;
+        const providerMessage = error?.details || error?.message || (error?.response && error.response.data) || null;
         const statusCode = error?.statusCode || 500;
-        return res.status(statusCode).json({ message: 'Error processing bulk SMS', details: providerMessage });
+        return res.status(statusCode).json({ message: error?.message || 'Error processing bulk SMS', details: providerMessage });
     }
 };
 
@@ -60,9 +60,9 @@ export const sendSingleSms = async (req: AuthenticatedRequest, res: Response) =>
         return res.status(200).json({ message: 'Single SMS processed successfully' });
     } catch (error: any) {
         // Provide more informative failure to frontend when possible
-        const providerMessage = error?.message || (error?.response && error.response.data) || null;
+        const providerMessage = error?.details || error?.message || (error?.response && error.response.data) || null;
         const statusCode = error?.statusCode || 500;
-        return res.status(statusCode).json({ message: 'Error processing single SMS', details: providerMessage });
+        return res.status(statusCode).json({ message: error?.message || 'Error processing single SMS', details: providerMessage });
     }
 };
 

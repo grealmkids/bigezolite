@@ -1,37 +1,3 @@
+1. edit the modal for "Edit School". make it work. currently the modal functionality loads the values correctly,but the modal is not visibly appealing like anormal modal. also the select feature is not working. am seeing the district dropdown not showing,aldo the Student Count Range dropdown is not working.
 
-[db] executing query: SELECT student_id, reg_number, student_name, class_name, student_status FROM students WHERE school_id = $1 ORDER BY stud... params(1)
-[db] query success: SELECT student_id, reg_number, student_name, class_name, student_status FROM students WHERE school_id = $1 ORDER BY stud... rows=14
-[db] executing query: SELECT school_id FROM schools WHERE user_id = $1 params(1)
-[db] query success: SELECT school_id FROM schools WHERE user_id = $1 rows=1
-[auth.middleware] token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjMsImlhdCI6MTc2MTIzNjExNSwiZXhwIjoxNzYxMjM5NzE1fQ.HUzuxVDgsliDkw9mgcQYOQXeOKDb4EAN517zjNHETMM    
-[auth.middleware] userId: 3 schoolId: 2
-[db] executing query: SELECT student_id, reg_number, student_name, class_name, student_status FROM students WHERE school_id = $1 ORDER BY stud... params(1)
-[db] query success: SELECT student_id, reg_number, student_name, class_name, student_status FROM students WHERE school_id = $1 ORDER BY stud... rows=14
-[db] executing query: SELECT school_id FROM schools WHERE user_id = $1 params(1)
-[db] query success: SELECT school_id FROM schools WHERE user_id = $1 rows=1
-[auth.middleware] token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjMsImlhdCI6MTc2MTIzNjExNSwiZXhwIjoxNzYxMjM5NzE1fQ.HUzuxVDgsliDkw9mgcQYOQXeOKDb4EAN517zjNHETMM    
-[auth.middleware] userId: 3 schoolId: 2
-[db] executing query: SELECT student_id, reg_number, student_name, class_name, student_status FROM students WHERE school_id = $1 AND class_nam... params(2)
-[db] query error: SELECT student_id, reg_number, student_name, class_name, student_status FROM students WHERE school_id = $1 AND class_nam... params(2) operator does not exist: character varying = integer
-error: operator does not exist: character varying = integer
-    at C:\Users\dell\Documents\BIGEZO 2025\FROM FLASH 2025\bigezolite\backend\node_modules\pg-pool\index.js:45:11
-    at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
-  length: 213,
-  severity: 'ERROR',
-  code: '42883',
-  detail: undefined,
-  hint: 'No operator matches the given name and argument types. You might need to add explicit type casts.',
-  position: '123',
-  internalPosition: undefined,
-  internalQuery: undefined,
-  where: undefined,
-  schema: undefined,
-  table: undefined,
-  column: undefined,
-  dataType: undefined,
-  constraint: undefined,
-  file: 'parse_oper.c',
-  line: '644',
-  routine: 'op_error'
-}
-error has persisted, and the pagination is not working still
+2. in the modal for "Fees for " and "Add New Term Record" , let the RSVP number be the school accountant_number. add this to the columns of the school for both the new school inputs, and the "Edit School" section.

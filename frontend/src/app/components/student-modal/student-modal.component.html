@@ -19,6 +19,16 @@
             />
           </div>
         </div>
+        <div class="form-row" *ngIf="isEditMode">
+          <div class="form-group">
+            <label for="student_status">Student Status</label>
+            <select id="student_status" formControlName="student_status">
+              <option *ngFor="let status of studentStatuses" [value]="status">
+                {{ status }}
+              </option>
+            </select>
+          </div>
+        </div>
         <div class="form-row">
           <div class="form-group">
             <label for="class_name">Class</label>

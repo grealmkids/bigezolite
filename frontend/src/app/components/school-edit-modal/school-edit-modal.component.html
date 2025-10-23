@@ -1,40 +1,61 @@
-<h2 mat-dialog-title>Edit School</h2>
-<div mat-dialog-content>
-  <form [formGroup]="form">
-    <mat-form-field appearance="fill" style="width: 100%">
-      <mat-label>School Name</mat-label>
-      <input matInput formControlName="school_name" />
-    </mat-form-field>
-
-    <mat-form-field appearance="fill" style="width: 100%">
-      <mat-label>Admin Phone</mat-label>
-      <input matInput formControlName="admin_phone" />
-    </mat-form-field>
-
-    <mat-form-field appearance="fill" style="width: 100%">
-      <mat-label>District</mat-label>
-      <input matInput formControlName="location_district" />
-    </mat-form-field>
-
-    <mat-form-field appearance="fill" style="width: 100%">
-      <mat-label>Student Count Range</mat-label>
-      <input matInput formControlName="student_count_range" />
-    </mat-form-field>
-
-    <mat-form-field appearance="fill" style="width: 100%">
-      <mat-label>School Type</mat-label>
-      <input matInput formControlName="school_type" />
-    </mat-form-field>
-  </form>
-</div>
-<div mat-dialog-actions align="end">
-  <button mat-button (click)="cancel()">Cancel</button>
+<div class="modal-header">
+  <h5 class="modal-title">Edit School</h5>
   <button
-    mat-flat-button
-    color="primary"
-    (click)="save()"
-    [disabled]="form.invalid"
-  >
-    Save
-  </button>
+    type="button"
+    class="btn-close"
+    aria-label="Close"
+    (click)="cancel()"
+  ></button>
 </div>
+<form [formGroup]="form" (ngSubmit)="save()">
+  <div class="modal-body">
+    <div class="mb-3">
+      <label class="form-label">School Name</label>
+      <input class="form-control" formControlName="school_name" />
+      <div
+        *ngIf="
+          form.controls.school_name.invalid && form.controls.school_name.touched
+        "
+        class="text-danger small"
+      >
+        School name is required and must be at most 120 characters.
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Admin Phone</label>
+      <input class="form-control" formControlName="admin_phone" />
+      <div
+        *ngIf="
+          form.controls.admin_phone.invalid && form.controls.admin_phone.touched
+        "
+        class="text-danger small"
+      >
+        Admin phone is required.
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">District</label>
+      <input class="form-control" formControlName="location_district" />
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Student Count Range</label>
+      <input class="form-control" formControlName="student_count_range" />
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">School Type</label>
+      <input class="form-control" formControlName="school_type" />
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="cancel()">
+      Cancel
+    </button>
+    <button type="submit" class="btn btn-primary" [disabled]="form.invalid">
+      Save
+    </button>
+  </div>
+</form>

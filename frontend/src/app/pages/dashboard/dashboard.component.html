@@ -13,7 +13,8 @@
           title="See schools / Refresh"
           (click)="refreshSchools()"
         >
-          <mat-icon>refresh</mat-icon>
+          <!-- icon replaced with simple text/icon-font for bootstrap migration -->
+          <i class="bi bi-arrow-clockwise"></i>
           See schools
         </button>
       </div>
@@ -33,7 +34,7 @@
             class="btn btn-secondary"
             (click)="$event.stopPropagation(); editSchool(s)"
           >
-            <mat-icon>edit</mat-icon>
+            <i class="bi bi-pencil"></i>
             Edit
           </button>
         </div>
@@ -58,3 +59,11 @@
     </div>
   </ng-template>
 </div>
+
+<!-- Parent-driven school edit modal -->
+<app-school-edit-modal
+  *ngIf="showEditModal"
+  [school]="selectedSchool"
+  (saved)="onSchoolSaved($event)"
+  (closed)="onEditClosed()"
+></app-school-edit-modal>

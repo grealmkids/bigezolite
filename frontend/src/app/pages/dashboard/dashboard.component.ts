@@ -1,28 +1,26 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { Observable, Subscription } from 'rxjs';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { School, SchoolService } from '../../services/school.service';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink, NavigationEnd } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { SchoolEditModalComponent } from '../../components/school-edit-modal/school-edit-modal.component';
-import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, MatDialogModule, MatIconModule, MatSnackBarModule],
+  imports: [CommonModule, RouterLink, SchoolEditModalComponent],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
 })
 export class DashboardComponent implements OnInit {
   school$: Observable<School | null> | undefined;
   schools: School[] = [];
+  selectedSchool: School | null = null;
+  showEditModal = false;
 
   private authService = inject(AuthService);
-  private dialog = inject(MatDialog);
-  private snack = inject(MatSnackBar);
+  // dialog/snack removed - using parent-driven modal and bootstrap/sweetalert for messages
   private subs: Subscription[] = [];
   constructor(private schoolService: SchoolService, public router: Router) { }
 
@@ -57,8 +55,8 @@ export class DashboardComponent implements OnInit {
   public seeSchools(): void {
     // If there are no schools, show helpful prompt and offer to navigate to create
     if (!this.schools || this.schools.length === 0) {
-      const ref = this.snack.open('No schools yet, create new school account', 'Create', { duration: 5000 });
-      ref.onAction().subscribe(() => this.router.navigate(['/create-school']));
+      const go = window.confirm('No schools yet. Create a new school account now?');
+      if (go) this.router.navigate(['/create-school']);
       return;
     }
 
@@ -88,12 +86,21 @@ export class DashboardComponent implements OnInit {
   }
 
   editSchool(s: School): void {
-    // open an edit modal
-    const ref = this.dialog.open(SchoolEditModalComponent, { data: { school: s }, width: '520px' });
-    ref.afterClosed().subscribe(updated => {
-      // always refresh list to reflect any changes made in the modal
-      this.refreshSchools();
-    });
+    // show parent-driven edit modal
+    this.selectedSchool = s;
+    this.showEditModal = true;
+  }
+
+  onSchoolSaved(updated: School) {
+    this.showEditModal = false;
+    this.selectedSchool = null;
+    // refresh list to reflect changes
+    this.refreshSchools();
+  }
+
+  onEditClosed() {
+    this.showEditModal = false;
+    this.selectedSchool = null;
   }
 
   getSchoolColor(id: string | number): string {

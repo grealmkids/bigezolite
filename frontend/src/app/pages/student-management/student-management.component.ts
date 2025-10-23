@@ -72,19 +72,28 @@ export class StudentManagementComponent implements OnInit {
   ) { }
 
   onSearch(term: string): void {
+    // Reset to first page whenever filters/search changes
+    this.pageEvent.pageIndex = 0;
+    this.pageIndex.next(0);
     this.searchTerms.next(term);
   }
 
   onClassChange(term: string): void {
     // Ensure string type and handle empty string
+    this.pageEvent.pageIndex = 0;
+    this.pageIndex.next(0);
     this.classFilter.next(term ? String(term) : '');
   }
 
   onStatusChange(term: string): void {
+    this.pageEvent.pageIndex = 0;
+    this.pageIndex.next(0);
     this.statusFilter.next(term);
   }
 
   onYearChange(term: string): void {
+    this.pageEvent.pageIndex = 0;
+    this.pageIndex.next(0);
     this.yearFilter.next(term);
   }
 

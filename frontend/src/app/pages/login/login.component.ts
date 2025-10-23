@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../../services/auth.service';
+import { SchoolService } from '../../services/school.service';
 
 @Component({
   selector: 'app-login',
@@ -26,6 +27,7 @@ export class LoginComponent {
     private fb: FormBuilder,
     private authService: AuthService,
     private router: Router
+    , private schoolService: SchoolService
   ) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.email]],
@@ -52,7 +54,16 @@ export class LoginComponent {
 
     this.authService.login(credentials).subscribe({
       next: () => {
-        this.router.navigate(['/dashboard']);
+        // After login, prefetch the schools for the user so dashboard buttons are ready.
+        // Force refresh the cached list to ensure latest data.
+        this.schoolService.listMySchools(true).subscribe({
+          next: () => this.router.navigate(['/dashboard']),
+          error: (err) => {
+            // If fetching schools fails, still navigate to dashboard but log the error.
+            console.error('Failed to prefetch schools after login:', err);
+            this.router.navigate(['/dashboard']);
+          }
+        });
       },
       error: (err) => {
         // Basic error handling

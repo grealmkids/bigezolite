@@ -85,7 +85,7 @@ export const getStudents = async (req: AuthenticatedRequest, res: Response) => {
             return res.status(403).json({ message: 'Forbidden: User is not associated with a school.' });
         }
 
-        const { search, class: classTerm, status, year } = req.query;
+        const { search, class: classTerm, status, year, sort, order } = req.query;
 
         // Read pagination params
         const page = req.query.page ? Number(req.query.page) : 0;
@@ -98,7 +98,9 @@ export const getStudents = async (req: AuthenticatedRequest, res: Response) => {
             status as string | undefined,
             year as string | undefined,
             page,
-            limit
+            limit,
+            sort as string | undefined,
+            order as string | undefined
         );
         console.log('[getStudents] returning students count:', Array.isArray(studentsResult.items) ? studentsResult.items.length : 'unknown', 'total:', studentsResult.total);
         res.status(200).json(studentsResult);

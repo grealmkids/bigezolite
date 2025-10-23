@@ -46,6 +46,8 @@ export class StudentManagementComponent implements OnInit {
   private yearFilter = new BehaviorSubject<string>('');
   private pageIndex = new BehaviorSubject<number>(0);
   private pageSize = new BehaviorSubject<number>(10);
+  private sortColumn = new BehaviorSubject<string>('student_name');
+  private sortDirection = new BehaviorSubject<'ASC' | 'DESC'>('ASC');
 
   // Pagination settings
   pageEvent: PageEvent = {
@@ -103,6 +105,19 @@ export class StudentManagementComponent implements OnInit {
     this.pageSize.next(event.pageSize);
   }
 
+  onSort(column: string): void {
+    if (this.sortColumn.value === column) {
+      // Toggle direction
+      this.sortDirection.next(this.sortDirection.value === 'ASC' ? 'DESC' : 'ASC');
+    } else {
+      // Set new column, default to ASC
+      this.sortColumn.next(column);
+      this.sortDirection.next('ASC');
+    }
+    // Reset to first page
+    this.pageIndex.next(0);
+  }
+
   // Helper methods for template-driven pagination controls
   get totalPages(): number {
     const length = this.pageEvent.length || 0;
@@ -135,83 +150,42 @@ export class StudentManagementComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // Populate classes dropdown based on localStorage schoolType only
     this.loadingClasses = true;
     try {
       const schoolType = this.schoolService.getSelectedSchoolType();
-      if (schoolType) {
-        this.classes = this.classCategorizationService.getClassesForSchoolType(schoolType);
-      } else {
-        this.classes = [];
-      }
-      
-    // Initialize the students$ observable with pagination
-    this.students$ = combineLatest([
-      this.searchTerms.pipe(
-        debounceTime(300),
-        distinctUntilChanged(),
-        startWith('')
-      ),
-      this.classFilter.pipe(startWith('')),
-      this.statusFilter.pipe(startWith('')),
-      this.yearFilter.pipe(startWith('')),
-      this.pageIndex.pipe(startWith(0)),
-      this.pageSize.pipe(startWith(10))
-    ]).pipe(
-      switchMap(([search, classFilter, status, year, page, limit]) =>
-        this.studentService.getStudents(search, classFilter, status, year, page, limit)
-      ),
-      map(response => {
-        // Update the page length
-        this.pageEvent.length = response.total;
-        return response;
-      })
-    );
+      this.classes = schoolType ? this.classCategorizationService.getClassesForSchoolType(schoolType) : [];
     } catch (err) {
       this.classes = [];
+    } finally {
+      this.loadingClasses = false;
     }
-    this.loadingClasses = false;
 
-    // Load all students by default and apply filters
-    const filters$ = combineLatest([
-      this.searchTerms.pipe(startWith('')),
-      this.classFilter.pipe(startWith('')),
-      this.statusFilter.pipe(startWith('')),
-      this.yearFilter.pipe(startWith(''))
-    ]);
-
-    // Combine filters and pagination
-    const pagedFilters$ = combineLatest([
-      this.searchTerms.pipe(startWith('')),
-      this.classFilter.pipe(startWith('')),
-      this.statusFilter.pipe(startWith('')),
-      this.yearFilter.pipe(startWith('')),
-      this.pageIndex.pipe(startWith(0)),
-      this.pageSize.pipe(startWith(10))
-    ]);
-
-    this.students$ = pagedFilters$.pipe(
-      debounceTime(200),
-      distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b)),
-      switchMap(([searchTerm, classTerm, statusTerm, yearTerm, page, limit]) => {
+    this.students$ = combineLatest([
+      this.searchTerms.pipe(debounceTime(300), distinctUntilChanged(), startWith('')),
+      this.classFilter.pipe(distinctUntilChanged(), startWith('')),
+      this.statusFilter.pipe(distinctUntilChanged(), startWith('')),
+      this.yearFilter.pipe(distinctUntilChanged(), startWith('')),
+      this.pageIndex.pipe(distinctUntilChanged(), startWith(0)),
+      this.pageSize.pipe(distinctUntilChanged(), startWith(10)),
+      this.sortColumn.pipe(distinctUntilChanged(), startWith('student_name')),
+      this.sortDirection.pipe(distinctUntilChanged(), startWith('ASC'))
+    ]).pipe(
+      switchMap(([searchTerm, classTerm, statusTerm, yearTerm, page, limit, sort, order]) => {
         this.isLoading = true;
-        return this.studentService.getStudents(searchTerm, classTerm, statusTerm, yearTerm, page, limit);
+        return this.studentService.getStudents(searchTerm, classTerm, statusTerm, yearTerm, page, limit, sort, order);
       })
     );
 
-    // Subscribe to update displayedStudents and pagination metadata
     this.students$.subscribe({
       next: (resp) => {
-        console.log('[StudentManagement] students response:', resp);
         this.displayedStudents = resp.items || [];
-        this.pageEvent.length = resp.total ?? (resp.items?.length || 0);
+        this.pageEvent.length = resp.total;
         this.isLoading = false;
       },
       error: (err) => {
         this.isLoading = false;
-        const msg = err?.error?.message || err?.message || 'Failed to load students';
-        console.error('[StudentManagement] error fetching students', err);
-        this.snack.open(msg, 'OK', { duration: 5000, panelClass: ['sms-balance-snackbar'] });
+        const msg = err?.error?.message || 'Failed to load students';
+        this.snack.open(msg, 'OK', { duration: 5000 });
       }
     });
   }

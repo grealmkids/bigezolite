@@ -36,10 +36,12 @@ export class StudentService {
 
   constructor(private http: HttpClient) { }
 
-  getStudents(searchTerm?: string, classTerm?: string, statusTerm?: string, yearTerm?: string, page: number = 0, pageSize: number = 10): Observable<{ items: Student[]; total: number }> {
+  getStudents(searchTerm?: string, classTerm?: string, statusTerm?: string, yearTerm?: string, page: number = 0, pageSize: number = 10, sort: string = 'student_name', order: string = 'ASC'): Observable<{ items: Student[]; total: number }> {
     let params = new HttpParams()
       .append('page', page.toString())
-      .append('limit', pageSize.toString());
+      .append('limit', pageSize.toString())
+      .append('sort', sort)
+      .append('order', order);
     
     if (searchTerm) {
       params = params.append('search', searchTerm);

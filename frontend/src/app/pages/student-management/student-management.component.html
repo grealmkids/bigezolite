@@ -97,11 +97,11 @@
         <table *ngIf="displayedStudents.length > 0" class="student-table">
           <thead>
             <tr>
-              <th>Reg Number</th>
-              <th>Student Name</th>
-              <th>Class</th>
-              <th>Status</th>
-              <th>Fees Status</th>
+              <th (click)="onSort('reg_number')">Reg Number</th>
+              <th (click)="onSort('student_name')">Student Name</th>
+              <th (click)="onSort('class_name')">Class</th>
+              <th (click)="onSort('student_status')">Status</th>
+              <th (click)="onSort('fees_status')">Fees Status</th>
               <th>Actions</th>
             </tr>
           </thead>

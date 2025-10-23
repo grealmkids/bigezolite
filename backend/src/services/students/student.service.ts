@@ -80,7 +80,9 @@ export const findStudentsBySchool = async (
     statusTerm?: string,
     yearTerm?: string,
     page: number = 0,
-    limit: number = 0
+    limit: number = 0,
+    sort: string = 'student_name',
+    order: string = 'ASC'
 ) => {
     // Build WHERE clause and params
     let where = 'WHERE school_id = $1';
@@ -94,7 +96,7 @@ export const findStudentsBySchool = async (
     }
 
     if (classTerm) {
-        where += ` AND CAST(class_name AS TEXT) = CAST($${idx} AS TEXT)`;
+        where += ` AND class_name = $${idx}`;
         params.push(classTerm);
         idx++;
     }
@@ -117,8 +119,19 @@ export const findStudentsBySchool = async (
     const countResult = await query(countSql, params);
     const total = parseInt(countResult.rows[0]?.total || '0', 10);
 
+    // Whitelist sortable columns to prevent SQL injection
+    const sortableColumns: { [key: string]: string } = {
+        'reg_number': 'reg_number',
+        'student_name': 'student_name',
+        'class_name': 'class_name',
+        'student_status': 'student_status',
+        'fees_status': 'fees_status'
+    };
+    const sortColumn = sortableColumns[sort] || 'student_name'; // Default to student_name
+    const sortOrder = order.toUpperCase() === 'DESC' ? 'DESC' : 'ASC'; // Default to ASC
+
     // Select with ordering and optional pagination
-    let sql = `SELECT student_id, reg_number, student_name, class_name, student_status, fees_status FROM students ${where} ORDER BY student_name ASC`;
+    let sql = `SELECT student_id, reg_number, student_name, class_name, student_status, fees_status FROM students ${where} ORDER BY ${sortColumn} ${sortOrder}`;
     if (limit && limit > 0) {
         sql += ` LIMIT $${idx} OFFSET $${idx + 1}`;
         params.push(limit, page * limit);

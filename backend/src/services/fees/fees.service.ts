@@ -27,10 +27,31 @@ const updateStudentFeesStatus = async (studentId: number) => {
  * Creates a new fee record for a given student.
  */
 export const createFeeRecord = async (studentId: number, feeData: any) => {
-    const balance_due = feeData.total_fees_due;
+    // balance_due is a GENERATED column (total_fees_due - amount_paid). Do not insert it explicitly.
+    // Parse due_date (accepts strings like MM/DD/YYYY from the frontend) into an ISO date string
+    let dueDateParam: string | null = null;
+    if (feeData.due_date) {
+        const raw = String(feeData.due_date).trim();
+        let dt = new Date(raw);
+        if (isNaN(dt.getTime())) {
+            // try MM/DD/YYYY parsing explicitly
+            const m = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+            if (m) {
+                const month = parseInt(m[1], 10);
+                const day = parseInt(m[2], 10);
+                const year = parseInt(m[3], 10);
+                dt = new Date(year, month - 1, day);
+            }
+        }
+        if (!isNaN(dt.getTime())) {
+            // Use YYYY-MM-DD which Postgres accepts for DATE columns
+            dueDateParam = dt.toISOString().slice(0, 10);
+        }
+    }
+
     const sql = `
-        INSERT INTO fees_records (student_id, term, year, total_fees_due, balance_due, due_date, rsvp_number)
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        INSERT INTO fees_records (student_id, term, year, total_fees_due, due_date, rsvp_number)
+        VALUES ($1, $2, $3, $4, $5, $6)
         RETURNING *
     `;
     const params = [
@@ -38,8 +59,7 @@ export const createFeeRecord = async (studentId: number, feeData: any) => {
         feeData.term,
         feeData.year,
         feeData.total_fees_due,
-        balance_due,
-        feeData.due_date,
+        dueDateParam,
         feeData.rsvp_number
     ];
     const result = await query(sql, params);
@@ -71,10 +91,9 @@ export const updateFeeRecord = async (feeRecordId: number, updateData: { amount_
     }
 
     const { student_id, total_fees_due } = recordResult.rows[0];
-    const balance_due = total_fees_due - updateData.amount_paid;
-
-    const sql = 'UPDATE fees_records SET amount_paid = $1, balance_due = $2, updated_at = NOW() WHERE fee_record_id = $3 RETURNING *';
-    const params = [updateData.amount_paid, balance_due, feeRecordId];
+    // balance_due is generated; only update amount_paid. Postgres will compute balance_due automatically.
+    const sql = 'UPDATE fees_records SET amount_paid = $1, updated_at = NOW() WHERE fee_record_id = $2 RETURNING *';
+    const params = [updateData.amount_paid, feeRecordId];
     const result = await query(sql, params);
 
     // After updating a record, update the student's overall fees status

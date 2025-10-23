@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } 
 import { CommonModule } from '@angular/common';
 import { Student } from '../../services/student.service';
 import { FeesService, FeeRecord, NewFeeRecord } from '../../services/fees.service';
+import { SchoolService } from '../../services/school.service';
 
 @Component({
   selector: 'app-fees-management-modal',
@@ -20,7 +21,11 @@ export class FeesManagementModalComponent implements OnInit {
   editingRecordId: number | null = null;
   editingAmountPaid: number | null = null;
 
-  constructor(private fb: FormBuilder, private feesService: FeesService) {
+  constructor(
+    private fb: FormBuilder,
+    private feesService: FeesService,
+    private schoolService: SchoolService
+  ) {
     this.feeForm = this.fb.group({
       term: [1, Validators.required],
       year: [new Date().getFullYear(), Validators.required],
@@ -34,6 +39,11 @@ export class FeesManagementModalComponent implements OnInit {
     if (this.student) {
       this.loadFeeRecords();
     }
+    this.schoolService.getMySchool().subscribe(school => {
+      if (school) {
+        this.feeForm.patchValue({ rsvp_number: school.accountant_number });
+      }
+    });
   }
 
   loadFeeRecords(): void {

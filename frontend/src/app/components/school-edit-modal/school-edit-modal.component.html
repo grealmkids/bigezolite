@@ -1,61 +1,57 @@
-<div class="modal-header">
-  <h5 class="modal-title">Edit School</h5>
-  <button
-    type="button"
-    class="btn-close"
-    aria-label="Close"
-    (click)="cancel()"
-  ></button>
+<div class="modal-overlay" (click)="cancel()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">Edit School</h2>
+      <button type="button" class="close-btn" aria-label="Close" (click)="cancel()">
+        &times;
+      </button>
+    </div>
+    <form [formGroup]="form" (ngSubmit)="save()">
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">School Name</label>
+          <input class="form-control" formControlName="school_name" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Admin Phone</label>
+          <input class="form-control" formControlName="admin_phone" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Accountant Phone</label>
+          <input class="form-control" formControlName="accountant_number" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">District</label>
+          <select class="form-control" formControlName="location_district">
+            <option *ngFor="let d of districts" [value]="d">{{ d }}</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Student Count Range</label>
+          <select class="form-control" formControlName="student_count_range">
+            <option *ngFor="let r of studentCountRanges" [value]="r">{{ r }}</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">School Type</label>
+          <select class="form-control" formControlName="school_type">
+            <option *ngFor="let t of schoolTypes" [value]="t">{{ t }}</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="cancel()">
+          Cancel
+        </button>
+        <button type="submit" class="btn btn-primary" [disabled]="form.invalid">
+          Save Changes
+        </button>
+      </div>
+    </form>
+  </div>
 </div>
-<form [formGroup]="form" (ngSubmit)="save()">
-  <div class="modal-body">
-    <div class="mb-3">
-      <label class="form-label">School Name</label>
-      <input class="form-control" formControlName="school_name" />
-      <div
-        *ngIf="
-          form.controls.school_name.invalid && form.controls.school_name.touched
-        "
-        class="text-danger small"
-      >
-        School name is required and must be at most 120 characters.
-      </div>
-    </div>
-
-    <div class="mb-3">
-      <label class="form-label">Admin Phone</label>
-      <input class="form-control" formControlName="admin_phone" />
-      <div
-        *ngIf="
-          form.controls.admin_phone.invalid && form.controls.admin_phone.touched
-        "
-        class="text-danger small"
-      >
-        Admin phone is required.
-      </div>
-    </div>
-
-    <div class="mb-3">
-      <label class="form-label">District</label>
-      <input class="form-control" formControlName="location_district" />
-    </div>
-
-    <div class="mb-3">
-      <label class="form-label">Student Count Range</label>
-      <input class="form-control" formControlName="student_count_range" />
-    </div>
-
-    <div class="mb-3">
-      <label class="form-label">School Type</label>
-      <input class="form-control" formControlName="school_type" />
-    </div>
-  </div>
-  <div class="modal-footer">
-    <button type="button" class="btn btn-secondary" (click)="cancel()">
-      Cancel
-    </button>
-    <button type="submit" class="btn btn-primary" [disabled]="form.invalid">
-      Save
-    </button>
-  </div>
-</form>

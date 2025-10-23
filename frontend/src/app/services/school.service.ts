@@ -12,6 +12,7 @@ export interface School {
   location_district: string;
   student_count_range: string;
   school_type: string;
+  accountant_number: string;
   account_status: 'Dormant' | 'Active' | 'Suspended';
 }
 

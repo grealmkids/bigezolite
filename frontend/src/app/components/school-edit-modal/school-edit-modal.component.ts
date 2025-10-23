@@ -17,6 +17,10 @@ export class SchoolEditModalComponent {
   @Output() saved = new EventEmitter<School>();
   @Output() closed = new EventEmitter<void>();
 
+  districts: string[] = ['Abim', 'Adjumani', 'Agago', 'Alebtong', 'Amolatar', 'Amudat', 'Amuria', 'Amuru', 'Apac', 'Arua', 'Budaka', 'Bududa', 'Bugiri', 'Bugweri', 'Bugutu', 'Buikwe', 'Bukedea', 'Bukomansimbi', 'Bukwa', 'Bulambuli', 'Buliisa', 'Bundibugyo', 'Bushenyi', 'Busia', 'Butaleja', 'Butambala', 'Buvuma', 'Buyende', 'Dokolo', 'Gomba', 'Gulu', 'Hoima', 'Ibanda', 'Iganga', 'Isingiro', 'Jinja', 'Kaabong', 'Kabale', 'Kabarole', 'Kaberamaido', 'Kalangala', 'Kaliro', 'Kalungu', 'Kampala', 'Kamuli', 'Kamwenge', 'Kanungu', 'Kapchorwa', 'Kasese', 'Katakwi', 'Kayunga', 'Kazo', 'Kibaale', 'Kiboga', 'Kibuku', 'Kisoro', 'Kitatta', 'Kitgum', 'Koboko', 'Kole', 'Kotido', 'Kumi', 'Kwania', 'Kween', 'Kyegegwa', 'Kyenjojo', 'Kyaka', 'Kyankwanzi', 'Kyotera', 'Lamwo', 'Lira', 'Luuka', 'Luwero', 'Lwengo', 'Lyantonde', 'Manafwa', 'Maracha', 'Mbarara', 'Mbale', 'Mitooma', 'Mityana', 'Moroto', 'Moyo', 'Mpigi', 'Mukono', 'Nabilatuk', 'Nakapiripirit', 'Nakaseke', 'Nakasongola', 'Namayingo', 'Namisindwa', 'Namutumba', 'Napak', 'Nebbi', 'Ngora', 'Ntoroko', 'Ntungamo', 'Nwoya', 'Omoro', 'Otuke', 'Pader', 'Pakwach', 'Pallisa', 'Rakai', 'Rubirizi', 'Rukiga', 'Rukungiri', 'Sembabule', 'Serere', 'Sheema', 'Sironko', 'Soroti', 'Tororo', 'Wakiso', 'Yumbe'];
+  studentCountRanges: string[] = ['1-50', '51-100', '101-200', '201-500', '501-1000', '1000+'];
+  schoolTypes: string[] = ['Nursery', 'Primary (Local)', 'Secondary (Local)', 'Nursery & Primary (Local)', 'International Primary', 'International Secondary'];
+
   form = this.fb.group({
     school_name: ['', [Validators.required, Validators.maxLength(120)]],
     admin_phone: ['', [Validators.required]],

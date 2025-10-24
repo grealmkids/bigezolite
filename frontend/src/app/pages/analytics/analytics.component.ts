@@ -21,8 +21,18 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 })
 export class AnalyticsComponent implements OnInit {
   analytics: AnalyticsData | null = null;
-  loading = true;
-  error: string | null = null;
+  loading = {
+    overview: true,
+    status: true,
+    gender: true,
+    sms: true
+  };
+  errors = {
+    overview: null as string | null,
+    status: null as string | null,
+    gender: null as string | null,
+    sms: null as string | null
+  };
 
   constructor(
     private analyticsService: AnalyticsService,
@@ -35,33 +45,51 @@ export class AnalyticsComponent implements OnInit {
   }
 
   loadAnalytics(): void {
-    this.loading = true;
-    this.error = null;
+    // Reset all loading states
+    this.loading = { overview: true, status: true, gender: true, sms: true };
+    this.errors = { overview: null, status: null, gender: null, sms: null };
     
     const schoolId = this.schoolService.getSelectedSchoolId();
     
     if (!schoolId) {
-      this.error = 'No school selected';
-      this.loading = false;
+      this.loading = { overview: false, status: false, gender: false, sms: false };
+      this.errors = {
+        overview: 'No school selected',
+        status: 'No school selected',
+        gender: 'No school selected',
+        sms: 'No school selected'
+      };
       this.snackBar.open('Please select a school first', 'Close', {
         duration: 3000,
-        panelClass: ['error-snackbar']
+        panelClass: ['error-snackbar'],
+        verticalPosition: 'top',
+        horizontalPosition: 'center'
       });
       return;
     }
 
+    // Load all analytics data at once
     this.analyticsService.getAnalytics(schoolId).subscribe({
       next: (data) => {
         this.analytics = data;
-        this.loading = false;
+        // Mark all sections as loaded
+        this.loading = { overview: false, status: false, gender: false, sms: false };
       },
       error: (err) => {
         console.error('Error loading analytics:', err);
-        this.error = 'Failed to load analytics data';
-        this.loading = false;
+        // Mark all sections as failed
+        this.loading = { overview: false, status: false, gender: false, sms: false };
+        this.errors = {
+          overview: 'Failed to load',
+          status: 'Failed to load',
+          gender: 'Failed to load',
+          sms: 'Failed to load'
+        };
         this.snackBar.open('Failed to load analytics', 'Close', {
           duration: 3000,
-          panelClass: ['error-snackbar']
+          panelClass: ['error-snackbar'],
+          verticalPosition: 'top',
+          horizontalPosition: 'center'
         });
       }
     });
@@ -69,5 +97,9 @@ export class AnalyticsComponent implements OnInit {
 
   refresh(): void {
     this.loadAnalytics();
+  }
+
+  get anyLoading(): boolean {
+    return Object.values(this.loading).some(v => v);
   }
 }

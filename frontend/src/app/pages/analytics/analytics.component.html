@@ -4,31 +4,30 @@
       <mat-icon class="header-icon">analytics</mat-icon>
       <h1 class="page-title">School Analytics Dashboard</h1>
     </div>
-    <button class="refresh-btn" (click)="refresh()" [disabled]="loading">
+    <button class="refresh-btn" (click)="refresh()" [disabled]="anyLoading">
       <mat-icon>refresh</mat-icon>
       Refresh
     </button>
   </div>
 
-  <div *ngIf="loading" class="loading-container">
-    <mat-spinner diameter="50"></mat-spinner>
-    <p>Loading analytics...</p>
-  </div>
-
-  <div *ngIf="error && !loading" class="error-container">
-    <mat-icon class="error-icon">error_outline</mat-icon>
-    <p>{{ error }}</p>
-    <button class="retry-btn" (click)="refresh()">Try Again</button>
-  </div>
-
-  <div *ngIf="analytics && !loading" class="analytics-content">
+  <div class="analytics-content">
     <!-- Primary Metrics Section -->
     <div class="section-header">
       <mat-icon>school</mat-icon>
       <h2>Student Overview</h2>
     </div>
     
-    <div class="metrics-grid primary-metrics">
+    <div *ngIf="loading.overview" class="section-loading">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>Loading student overview...</p>
+    </div>
+
+    <div *ngIf="errors.overview && !loading.overview" class="section-error">
+      <mat-icon>error_outline</mat-icon>
+      <p>{{ errors.overview }}</p>
+    </div>
+    
+    <div *ngIf="!loading.overview && !errors.overview && analytics" class="metrics-grid primary-metrics">
       <mat-card class="metric-card total">
         <div class="metric-icon-wrapper">
           <mat-icon>groups</mat-icon>
@@ -76,7 +75,17 @@
       <h2>Status Breakdown</h2>
     </div>
 
-    <div class="metrics-grid secondary-metrics">
+    <div *ngIf="loading.status" class="section-loading">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>Loading status breakdown...</p>
+    </div>
+
+    <div *ngIf="errors.status && !loading.status" class="section-error">
+      <mat-icon>error_outline</mat-icon>
+      <p>{{ errors.status }}</p>
+    </div>
+
+    <div *ngIf="!loading.status && !errors.status && analytics" class="metrics-grid secondary-metrics">
       <mat-card class="metric-card expelled">
         <div class="metric-icon-wrapper">
           <mat-icon>block</mat-icon>
@@ -114,7 +123,17 @@
       <h2>Active Students by Gender</h2>
     </div>
 
-    <div class="metrics-grid gender-metrics">
+    <div *ngIf="loading.gender" class="section-loading">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>Loading gender distribution...</p>
+    </div>
+
+    <div *ngIf="errors.gender && !loading.gender" class="section-error">
+      <mat-icon>error_outline</mat-icon>
+      <p>{{ errors.gender }}</p>
+    </div>
+
+    <div *ngIf="!loading.gender && !errors.gender && analytics" class="metrics-grid gender-metrics">
       <mat-card class="metric-card boys">
         <div class="metric-icon-wrapper">
           <mat-icon>boy</mat-icon>
@@ -148,7 +167,17 @@
       <h2>SMS Account Balance</h2>
     </div>
 
-    <div class="metrics-grid sms-metrics">
+    <div *ngIf="loading.sms" class="section-loading">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>Loading SMS account...</p>
+    </div>
+
+    <div *ngIf="errors.sms && !loading.sms" class="section-error">
+      <mat-icon>error_outline</mat-icon>
+      <p>{{ errors.sms }}</p>
+    </div>
+
+    <div *ngIf="!loading.sms && !errors.sms && analytics" class="metrics-grid sms-metrics">
       <mat-card class="metric-card sms-balance">
         <div class="metric-icon-wrapper">
           <mat-icon>account_balance_wallet</mat-icon>

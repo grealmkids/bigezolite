@@ -87,7 +87,19 @@ export class AuthService {
   }
 
   logout(): void {
-    localStorage.removeItem(this.tokenKey);
+    // Clear all localStorage
+    localStorage.clear();
+    
+    // Clear all sessionStorage
+    sessionStorage.clear();
+    
+    // Clear cookies (best effort - some cookies may be httpOnly)
+    document.cookie.split(";").forEach((c) => {
+      document.cookie = c
+        .replace(/^ +/, "")
+        .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+    });
+    
     this.authState.next(false);
   }
 }

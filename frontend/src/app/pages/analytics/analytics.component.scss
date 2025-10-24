@@ -122,6 +122,41 @@
 }
 
 .analytics-content {
+  .section-loading,
+  .section-error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 2rem;
+    text-align: center;
+    background: rgba(102, 126, 234, 0.05);
+    border-radius: 12px;
+    margin-bottom: 2rem;
+
+    p {
+      margin-top: 1rem;
+      font-size: 0.95rem;
+      color: #6b7280;
+      font-weight: 500;
+    }
+
+    mat-icon {
+      font-size: 2.5rem;
+      width: 2.5rem;
+      height: 2.5rem;
+      color: #ef4444;
+    }
+  }
+
+  .section-loading {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%);
+  }
+
+  .section-error {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(220, 38, 38, 0.08) 100%);
+  }
+
   .section-header {
     display: flex;
     align-items: center;

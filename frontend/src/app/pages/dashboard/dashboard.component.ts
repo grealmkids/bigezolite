@@ -26,20 +26,18 @@ export class DashboardComponent implements OnInit {
 
   ngOnInit(): void {
     this.school$ = this.schoolService.getMySchool();
-    // Ensure schools refresh immediately when route loads and when auth state changes
-    this.refreshSchools();
-    // small delay to catch cases where navigation happens right after login
-    setTimeout(() => this.refreshSchools(), 50);
+    // Force refresh schools list to ensure fresh data from API
+    this.refreshSchools(true);
 
     this.subs.push(this.authService.authState$?.subscribe(loggedIn => {
       // refresh when auth changes
-      if (loggedIn) this.refreshSchools();
+      if (loggedIn) this.refreshSchools(true);
     }) as Subscription);
 
     // refresh when user re-navigates to /dashboard within the SPA
     this.subs.push(this.router.events.subscribe(evt => {
       if (evt instanceof NavigationEnd && evt.urlAfterRedirects && evt.urlAfterRedirects.startsWith('/dashboard')) {
-        this.refreshSchools();
+        this.refreshSchools(true);
       }
     }) as Subscription);
   }
@@ -48,8 +46,8 @@ export class DashboardComponent implements OnInit {
     this.subs.forEach(s => s.unsubscribe());
   }
 
-  public refreshSchools(): void {
-    this.schoolService.listMySchools().subscribe(s => this.schools = s || []);
+  public refreshSchools(forceRefresh = false): void {
+    this.schoolService.listMySchools(forceRefresh).subscribe(s => this.schools = s || []);
   }
 
   public seeSchools(): void {

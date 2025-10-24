@@ -10,6 +10,7 @@ import { Component, OnInit } from '@angular/core';
 import { LoadingService } from '../../services/loading.service';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { MatDialog } from '@angular/material/dialog';
 import { Observable, Subject, combineLatest, BehaviorSubject, of } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap, startWith, take, map } from 'rxjs/operators';
 import { Student, StudentService } from '../../services/student.service';
@@ -21,6 +22,7 @@ import { SchoolService } from '../../services/school.service';
 import { ClassCategorizationService, SchoolType } from '../../services/class-categorization.service';
 import { LoadingSpinnerComponent } from '../../components/loading-spinner/loading-spinner.component';
 import { PdfExportService } from '../../services/pdf-export.service';
+import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-student-management',
@@ -53,6 +55,9 @@ export class StudentManagementComponent implements OnInit {
   // Track latest search term for exports (avoid changing Subject to BehaviorSubject)
   private lastSearchTerm: string = '';
 
+  // Manual refresh trigger (emits to force re-query with current filters)
+  private refreshTick = new Subject<void>();
+
   // Pagination settings
   pageEvent: PageEvent = {
     pageIndex: 0,
@@ -75,7 +80,8 @@ export class StudentManagementComponent implements OnInit {
   private classCategorizationService: ClassCategorizationService,
   private loadingService: LoadingService,
   private snack: MatSnackBar,
-  private pdfExportService: PdfExportService
+  private pdfExportService: PdfExportService,
+  private dialog: MatDialog
   ) { }
 
   onSearch(term: string): void {
@@ -174,7 +180,8 @@ export class StudentManagementComponent implements OnInit {
       this.pageIndex.pipe(distinctUntilChanged(), startWith(0)),
       this.pageSize.pipe(distinctUntilChanged(), startWith(10)),
       this.sortColumn.pipe(distinctUntilChanged(), startWith('student_name')),
-      this.sortDirection.pipe(distinctUntilChanged(), startWith('ASC'))
+      this.sortDirection.pipe(distinctUntilChanged(), startWith('ASC')),
+      this.refreshTick.pipe(startWith(void 0))
     ]).pipe(
       switchMap(([searchTerm, classTerm, statusTerm, yearTerm, page, limit, sort, order]) => {
         this.isLoading = true;
@@ -277,13 +284,51 @@ export class StudentManagementComponent implements OnInit {
     this.selectedStudent = null;
   }
 
+  // Manual Refresh
+  refreshStudents(): void {
+    // Force an emission on the refresh stream to re-run the query with current filters
+    this.refreshTick.next();
+  }
+
   // Delete Method
   deleteStudent(studentId: number): void {
-    if (confirm('Are you sure you want to mark this student as inactive?')) {
-      this.studentService.deleteStudent(studentId).subscribe(() => {
-        this.searchTerms.next(''); // Refresh the list
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Delete Student',
+        message: 'Are you sure you want to permanently delete this student and all associated fee records? This action cannot be undone.',
+        confirmText: 'Delete',
+        cancelText: 'Cancel',
+        danger: true
+      },
+      width: '420px'
+    });
+
+    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+      if (!confirmed) return;
+
+      const schoolId = this.schoolService.getSelectedSchoolId() || undefined;
+      console.log('[StudentManagement] Confirmed delete for studentId=', studentId, 'schoolId=', schoolId);
+      this.studentService.deleteStudent(studentId, schoolId).subscribe({
+        next: () => {
+          this.snack.open('Student deleted successfully', 'Close', {
+            duration: 3000,
+            panelClass: ['success-snackbar'],
+            verticalPosition: 'top',
+            horizontalPosition: 'center'
+          });
+          this.searchTerms.next(''); // Refresh the list
+        },
+        error: (err) => {
+          const msg = err?.error?.message || 'Failed to delete student';
+          this.snack.open(msg, 'Close', {
+            duration: 5000,
+            panelClass: ['error-snackbar'],
+            verticalPosition: 'top',
+            horizontalPosition: 'center'
+          });
+        }
       });
-    }
+    });
   }
 
   // PDF Export Method

@@ -171,3 +171,38 @@ export const updateStudent = async (req: AuthenticatedRequest, res: Response) =>
         res.status(500).json({ message: 'Internal server error' });
     }
 };
+
+// Delete a student by ID
+export const deleteStudent = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const userId = req.user?.userId;
+        if (!userId) {
+            return res.status(403).json({ message: 'Forbidden: User not authenticated.' });
+        }
+
+        const studentId = parseInt(req.params.studentId, 10);
+        const schoolIdFromQuery = req.query.schoolId ? Number(req.query.schoolId) : null;
+        const schoolId = schoolIdFromQuery || req.user?.schoolId;
+
+        console.log('[deleteStudent] schoolId:', schoolId, 'studentId:', studentId);
+        
+        if (!schoolId || !studentId) {
+            return res.status(400).json({ message: 'Missing school or student ID' });
+        }
+
+        // Verify user has access to this school
+        const accessCheck = await studentService.verifyUserSchoolAccess(userId, schoolId);
+        if (!accessCheck) {
+            return res.status(403).json({ message: 'Forbidden: You do not have access to this school.' });
+        }
+
+        const deleted = await studentService.deleteStudentById(schoolId, studentId);
+        if (!deleted) {
+            return res.status(404).json({ message: 'Student not found or delete failed' });
+        }
+        res.status(200).json({ message: 'Student deleted successfully' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};

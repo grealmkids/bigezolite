@@ -5,9 +5,11 @@ import { Student, StudentService, StudentData } from '../../services/student.ser
 import { SchoolService } from '../../services/school.service';
 import { ClassCategorizationService, SchoolType } from '../../services/class-categorization.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatDialog } from '@angular/material/dialog';
 import { take, of } from 'rxjs';
 import { switchMap, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { School } from '../../services/school.service';
+import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-student-modal',
@@ -20,6 +22,7 @@ export class StudentModalComponent implements OnInit, OnChanges {
   @Input() student: Student | null = null;
   @Output() close = new EventEmitter<void>();
   @Output() studentUpserted = new EventEmitter<void>();
+  @Output() studentDeleted = new EventEmitter<void>();
 
   studentForm: FormGroup;
   errorMessage: string | null = null;
@@ -37,7 +40,8 @@ export class StudentModalComponent implements OnInit, OnChanges {
     private studentService: StudentService,
     private schoolService: SchoolService,
     private classCategorizationService: ClassCategorizationService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private dialog: MatDialog
     ) {
     this.studentForm = this.fb.group({
       student_name: ['', Validators.required],
@@ -125,6 +129,51 @@ export class StudentModalComponent implements OnInit, OnChanges {
         this.errorMessage = `Failed to ${this.isEditMode ? 'update' : 'create'} student. Please try again.`;
         console.error(err);
       }
+    });
+  }
+
+  onDelete(): void {
+    if (!this.student) return;
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Delete Student',
+        message: `Are you sure you want to permanently delete ${this.student.student_name}? This will remove all associated fee records and cannot be undone.`,
+        confirmText: 'Delete',
+        cancelText: 'Cancel',
+        danger: true
+      },
+      width: '420px'
+    });
+
+    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+      if (!confirmed) return;
+
+      const schoolId = this.student!.school_id || this.schoolService.getSelectedSchoolId();
+
+      console.log('[StudentModal] Confirmed delete for studentId=', this.student!.student_id, 'schoolId=', schoolId);
+      this.studentService.deleteStudent(this.student!.student_id, schoolId || undefined).subscribe({
+        next: () => {
+          this.snackBar.open('Student deleted successfully!', 'Close', {
+            duration: 3000,
+            panelClass: ['success-snackbar'],
+            verticalPosition: 'top',
+            horizontalPosition: 'center'
+          });
+          this.studentDeleted.emit();
+          this.close.emit();
+        },
+        error: (err) => {
+          const msg = err?.error?.message || 'Failed to delete student. Please try again.';
+          this.snackBar.open(msg, 'Close', {
+            duration: 3000,
+            panelClass: ['error-snackbar'],
+            verticalPosition: 'top',
+            horizontalPosition: 'center'
+          });
+          console.error('Delete error:', err);
+        }
+      });
     });
   }
 }

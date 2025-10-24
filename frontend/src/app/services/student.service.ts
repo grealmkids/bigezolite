@@ -104,9 +104,20 @@ export class StudentService {
     return this.http.put<Student>(`${this.apiUrl}/${studentId}`, studentData, { params });
   }
 
-  deleteStudent(studentId: number): Observable<void> {
-    // Soft delete by updating status to 'Inactive'
-    return this.http.patch<void>(`${this.apiUrl}/${studentId}/status`, { status: 'Inactive' });
+  deleteStudent(studentId: number, schoolId?: number): Observable<void> {
+    let params = new HttpParams();
+    if (schoolId) {
+      params = params.append('schoolId', schoolId.toString());
+    }
+    const url = `${this.apiUrl}/${studentId}`;
+    console.log('[StudentService] DELETE', url, 'params:', params.toString());
+    return this.http.delete<void>(url, { params }).pipe(
+      tap(() => console.log('[StudentService] DELETE success for', url)),
+      catchError(err => {
+        console.error('[StudentService] DELETE error', err?.status, err?.message, err);
+        return throwError(() => err);
+      })
+    );
   }
 
   sendSms(studentId: number, message: string): Observable<void> {

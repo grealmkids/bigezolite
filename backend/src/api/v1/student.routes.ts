@@ -20,6 +20,9 @@ router.get('/:studentId', studentController.getStudentById);
 // PUT /api/v1/students/:studentId - Update a student's details
 router.put('/:studentId', studentController.updateStudent);
 
+// DELETE /api/v1/students/:studentId - Delete a student
+router.delete('/:studentId', studentController.deleteStudent);
+
 // --- Nested Fee Routes ---
 
 // POST /api/v1/students/:studentId/fees - Create a new fee record for a student

@@ -131,6 +131,14 @@
             Cancel
           </button>
           <button
+            *ngIf="isEditMode"
+            type="button"
+            class="delete-btn"
+            (click)="onDelete()"
+          >
+            Delete
+          </button>
+          <button
             type="submit"
             class="submit-btn"
             [disabled]="studentForm.invalid"

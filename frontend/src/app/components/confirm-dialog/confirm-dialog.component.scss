@@ -1,0 +1,57 @@
+$dialog-padding: 20px;
+$danger-color: #b71c1c;
+$danger-bg: #ffebee;
+$border-radius: 10px;
+
+.dialog-container {
+  min-width: 320px;
+  max-width: 520px;
+  background: #fff;
+  border-radius: $border-radius;
+  overflow: hidden;
+}
+
+.dialog-header {
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #1976d2, #42a5f5);
+  color: #fff;
+}
+
+.dialog-container.danger .dialog-header {
+  background: linear-gradient(135deg, $danger-color, #e53935);
+}
+
+.dialog-title {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.dialog-content {
+  padding: $dialog-padding;
+}
+
+.dialog-message {
+  margin: 0;
+  color: #444;
+  line-height: 1.5;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 12px $dialog-padding $dialog-padding;
+}
+
+.btn-cancel {
+  color: #666 !important;
+}
+
+.btn-confirm {
+  color: #fff !important;
+  background-color: #d32f2f !important; /* red */
+}
+
+.btn-confirm:hover {
+  background-color: #b71c1c !important; /* darker red on hover */
+}

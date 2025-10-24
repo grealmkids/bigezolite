@@ -109,32 +109,34 @@
         <table *ngIf="displayedStudents.length > 0" class="student-table">
           <thead>
             <tr>
-              <th (click)="onSort('reg_number')">Reg Number</th>
+              <th style="width: 50px;">#</th>
+              <th (click)="onSort('reg_number')" class="hide-mobile">Reg Number</th>
               <th (click)="onSort('student_name')">Student Name</th>
               <th (click)="onSort('class_name')">Class</th>
-              <th (click)="onSort('student_status')">Status</th>
-              <th (click)="onSort('fees_status')">Fees Status</th>
+              <th (click)="onSort('student_status')" class="hide-mobile">Status</th>
+              <th (click)="onSort('fees_status')" class="hide-mobile">Fees Status</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             <tr *ngIf="isLoading">
-              <td colspan="6" class="table-spinner">
+              <td colspan="7" class="table-spinner">
                 <app-loading-spinner></app-loading-spinner>
               </td>
             </tr>
-            <tr *ngFor="let student of displayedStudents">
-              <td>{{ student.reg_number | noDash }}</td>
+            <tr *ngFor="let student of displayedStudents; let i = index">
+              <td>{{ (pageEvent.pageIndex * pageEvent.pageSize) + i + 1 }}</td>
+              <td class="hide-mobile">{{ student.reg_number | noDash }}</td>
               <td>{{ student.student_name }}</td>
               <td>{{ student?.class_name || "" }}</td>
-              <td>
+              <td class="hide-mobile">
                 <span
                   class="status"
                   [ngClass]="(student?.student_status || '').toLowerCase()"
                   >{{ student?.student_status || "" }}</span
                 >
               </td>
-              <td>
+              <td class="hide-mobile">
                 <span
                   class="fees-status"
                   [ngClass]="(student?.fees_status || '').toLowerCase()"

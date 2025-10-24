@@ -198,6 +198,11 @@
   .page-container {
     padding: 0.5em;
   }
+  
+  // Hide extra columns on small screens
+  .hide-mobile {
+    display: none !important;
+  }
 }
 
 .status {

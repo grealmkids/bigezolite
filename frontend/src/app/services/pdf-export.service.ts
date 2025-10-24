@@ -56,7 +56,7 @@ export class PdfExportService {
     doc.text('Student Registry Report', pageWidth / 2, 21, { align: 'center' });
 
     // Header Info Bar - Two columns
-    doc.setFontSize(10);
+    doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
     const leftX = 14;
     const rightX = pageWidth - 14;
@@ -73,11 +73,17 @@ export class PdfExportService {
 
     // ========== METADATA SECTION ==========
     const metaY = 42;
+    
+    // Left side - Generated date
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(100, 100, 100);
-    
     doc.text(`Generated: ${header.generatedDate}`, leftX, metaY);
+    
+    // Right side - Total Students (more vivid and larger)
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 89, 179); // Blue color to match header
     doc.text(`Total Students: ${header.totalStudents}`, rightX, metaY, { align: 'right' });
     
     if (header.filterInfo) {
@@ -113,29 +119,30 @@ export class PdfExportService {
       body: tableData,
       theme: 'grid',
       styles: {
-        fontSize: 9,
+        fontSize: 11,
         cellPadding: 3,
-        lineColor: [220, 220, 220],
-        lineWidth: 0.5,
+        lineColor: [0, 0, 0],
+        lineWidth: 0.25,
         font: 'helvetica',
-        textColor: [40, 40, 40]
+        textColor: [40, 40, 40],
+        halign: 'left'
       },
       headStyles: {
         fillColor: [52, 73, 94], // Professional dark blue-gray
         textColor: [255, 255, 255],
-        fontSize: 10,
+        fontSize: 12,
         fontStyle: 'bold',
-        halign: 'center',
+        halign: 'left',
         cellPadding: 4
       },
       columnStyles: {
-        0: { halign: 'center', cellWidth: 10, fillColor: [248, 249, 250] }, // # - Light gray bg
-        1: { halign: 'center', cellWidth: 28, fontStyle: 'bold' }, // Reg Number
-        2: { halign: 'left', cellWidth: 50, fontStyle: 'normal' }, // Student Name
-        3: { halign: 'center', cellWidth: 25 }, // Class
-        4: { halign: 'center', cellWidth: 25 }, // Status
-        5: { halign: 'center', cellWidth: 28 }, // Fees Status
-        6: { halign: 'center', cellWidth: 30 } // Parent Phone
+        0: { halign: 'left', cellWidth: 10, fillColor: [248, 249, 250] }, // #
+        1: { halign: 'left', cellWidth: 35, fontStyle: 'bold' }, // Reg Number
+        2: { halign: 'left', cellWidth: 52, fontStyle: 'normal' }, // Student Name
+        3: { halign: 'left', cellWidth: 22 }, // Class
+        4: { halign: 'left', cellWidth: 26 }, // Status
+        5: { halign: 'left', cellWidth: 35 }, // Fees Status - wider to prevent wrapping
+        6: { halign: 'left', cellWidth: 40 } // Parent Phone
       },
       alternateRowStyles: {
         fillColor: [245, 247, 250] // Light alternating rows for readability
@@ -259,8 +266,18 @@ export class PdfExportService {
       doc.setDrawColor(220, 220, 220);
       doc.line(14, pageHeight - 10, pageWidth - 14, pageHeight - 10);
       
-      // Footer text
+      // Footer text - left
       doc.text(`${header.schoolName} - Student Registry`, 14, pageHeight - 5);
+      
+      // Footer text - center (branding)
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(100, 100, 100);
+      doc.text('Bigezolite app, a product of G-Realm Studio', pageWidth / 2, pageHeight - 5, { align: 'center' });
+      
+      // Footer text - right
+      doc.setFontSize(8);
+      doc.setTextColor(150, 150, 150);
       doc.text(`Page ${i} of ${pageCount}`, pageWidth - 14, pageHeight - 5, { align: 'right' });
     }
 

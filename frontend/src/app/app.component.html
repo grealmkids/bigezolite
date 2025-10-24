@@ -63,10 +63,7 @@
             <span mat-line>Bulk Fees Reminders</span>
           </a>
           <a mat-list-item (click)="checkBalance()" class="check-balance-item">
-            <span mat-list-icon class="icon-combo">
-              <mat-icon class="icon-money">account_balance_wallet</mat-icon>
-              <mat-icon class="icon-msg">sms</mat-icon>
-            </span>
+            <mat-icon mat-list-icon>account_balance</mat-icon>
             <span mat-line>Check Balance</span>
           </a>
           <a
@@ -74,7 +71,7 @@
             routerLink="/subscription"
             routerLinkActive="active-link"
           >
-            <mat-icon mat-list-icon>dollar</mat-icon>
+            <mat-icon mat-list-icon>card_membership</mat-icon>
             <span mat-line>Subscription</span>
           </a>
         </mat-nav-list>

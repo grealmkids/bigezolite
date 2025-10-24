@@ -19,6 +19,11 @@ export class BulkFeesRemindersComponent implements OnInit {
   selectedClass: string = 'All Students';
   selectedStatus: string = 'All Statuses';
   isSending: boolean = false;
+  isLoadingPreview: boolean = false;
+  showPreview: boolean = false;
+
+  // Preview data
+  previewData: any = null;
 
   // Filter options
   classes: string[] = ['All Students'];
@@ -45,6 +50,52 @@ export class BulkFeesRemindersComponent implements OnInit {
     } finally {
       this.loadingClasses = false;
     }
+  }
+
+  loadPreview(): void {
+    if (this.thresholdAmount < 0) {
+      this.snackBar.open('Please enter a valid threshold amount', 'Close', {
+        duration: 3000,
+        panelClass: ['error-snackbar'],
+        verticalPosition: 'top',
+        horizontalPosition: 'center'
+      });
+      return;
+    }
+
+    const payload: any = {
+      thresholdAmount: this.thresholdAmount,
+      classFilter: this.selectedClass === 'All Students' ? undefined : this.selectedClass,
+      statusFilter: this.selectedStatus === 'All Statuses' ? undefined : this.selectedStatus,
+      customDeadline: this.customDeadline || undefined
+    };
+
+    this.isLoadingPreview = true;
+    this.communicationService.previewBulkFeesReminders(
+      payload.thresholdAmount,
+      payload.classFilter,
+      payload.statusFilter,
+      payload.customDeadline
+    ).subscribe({
+      next: (response) => {
+        this.isLoadingPreview = false;
+        this.previewData = response;
+        this.showPreview = true;
+      },
+      error: (err) => {
+        this.isLoadingPreview = false;
+        this.snackBar.open(
+          err?.error?.message || 'Failed to load preview',
+          'Close',
+          {
+            duration: 4000,
+            panelClass: ['error-snackbar'],
+            verticalPosition: 'top',
+            horizontalPosition: 'center'
+          }
+        );
+      }
+    });
   }
 
   sendBulkReminders(): void {

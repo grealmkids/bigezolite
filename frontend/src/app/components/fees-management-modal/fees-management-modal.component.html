@@ -73,6 +73,7 @@
               <td class="actions">
                 <ng-container *ngIf="editingRecordId !== record.fee_record_id; else saveCancelButtons">
                     <button class="action-btn edit" (click)="startEditing(record)">Edit</button>
+                    <button class="action-btn reminder" (click)="openReminderPreview(record)">📧 Send Reminder</button>
                 </ng-container>
                 <ng-template #saveCancelButtons>
                     <button class="action-btn save" (click)="onUpdateFeeRecord(record.fee_record_id)">Save</button>
@@ -89,10 +90,16 @@
     </div>
 
     <div class="modal-footer">
-      <button type="button" class="reminder-btn" (click)="sendFeesReminder()">
-        📧 Send Fees Reminder
-      </button>
       <button type="button" class="cancel-btn" (click)="close.emit()">Close</button>
     </div>
   </div>
 </div>
+
+<!-- Fee Reminder Preview Modal -->
+<app-fee-reminder-preview-modal
+  *ngIf="showReminderPreview"
+  [student]="student"
+  [feeRecord]="selectedFeeRecord"
+  [allFeeRecords]="feeRecords"
+  (close)="closeReminderPreview()"
+></app-fee-reminder-preview-modal>

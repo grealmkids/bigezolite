@@ -42,6 +42,19 @@ export class CommunicationService {
     return this.http.post(`${this.apiUrl}/fees-reminder/${studentId}`, {});
   }
 
+  previewBulkFeesReminders(
+    thresholdAmount: number = 1000,
+    classFilter?: string,
+    statusFilter?: string,
+    customDeadline?: string
+  ): Observable<any> {
+    const body: any = { thresholdAmount };
+    if (classFilter) body.classFilter = classFilter;
+    if (statusFilter) body.statusFilter = statusFilter;
+    if (customDeadline) body.customDeadline = customDeadline;
+    return this.http.post(`${this.apiUrl}/bulk-fees-reminders/preview`, body);
+  }
+
   sendBulkFeesReminders(
     thresholdAmount: number = 1000,
     classFilter?: string,

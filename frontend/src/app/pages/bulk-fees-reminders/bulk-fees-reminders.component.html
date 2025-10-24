@@ -83,18 +83,75 @@
         </ul>
       </div>
 
-      <!-- Submit Button -->
+      <!-- Action Buttons -->
       <div class="form-actions">
+        <button
+          type="button"
+          class="preview-btn"
+          (click)="loadPreview()"
+          [disabled]="isLoadingPreview || isSending"
+        >
+          <span *ngIf="!isLoadingPreview">👁️ Preview</span>
+          <span *ngIf="isLoadingPreview">⏳ Loading...</span>
+        </button>
         <button
           type="submit"
           class="send-btn"
-          [disabled]="isSending"
+          [disabled]="isSending || !showPreview"
         >
           <span *ngIf="!isSending">📧 Send Fees Reminders</span>
           <span *ngIf="isSending">⏳ Sending...</span>
         </button>
       </div>
     </form>
+
+    <!-- Preview Section -->
+    <div class="preview-section" *ngIf="showPreview && previewData">
+      <h3>📊 Campaign Preview</h3>
+      
+      <div class="analytics-grid">
+        <div class="analytics-card">
+          <div class="analytics-label">Recipients</div>
+          <div class="analytics-value">{{ previewData.recipientCount }}</div>
+        </div>
+        <div class="analytics-card">
+          <div class="analytics-label">Total Balance</div>
+          <div class="analytics-value">UGX {{ previewData.totalBalance | number:'1.0-0' }}</div>
+        </div>
+        <div class="analytics-card">
+          <div class="analytics-label">Estimated Cost</div>
+          <div class="analytics-value">UGX {{ previewData.estimatedCost | number:'1.0-0' }}</div>
+        </div>
+        <div class="analytics-card">
+          <div class="analytics-label">Message Length</div>
+          <div class="analytics-value">{{ previewData.messageLength }} chars ({{ previewData.smsUnits }} SMS)</div>
+        </div>
+      </div>
+
+      <div class="sample-message-box">
+        <h4>📝 Sample Message</h4>
+        <div class="sample-message">{{ previewData.sampleMessage }}</div>
+      </div>
+
+      <div class="recipients-preview">
+        <h4>👥 Recipients ({{ previewData.recipientCount }} total)</h4>
+        <div class="recipients-table">
+          <div class="recipient-row header">
+            <div class="recipient-col">Student Name</div>
+            <div class="recipient-col">Phone</div>
+            <div class="recipient-col">Balance</div>
+          </div>
+          <div class="recipient-row" *ngFor="let recipient of previewData.recipients.slice(0, 10)">
+            <div class="recipient-col">{{ recipient.studentName }}</div>
+            <div class="recipient-col">{{ recipient.phoneNumber }}</div>
+            <div class="recipient-col">UGX {{ recipient.balance | number:'1.0-0' }}</div>
+          </div>
+          <div class="recipient-row note" *ngIf="previewData.recipients.length > 10">
+            <div class="recipient-col" colspan="3">...and {{ previewData.recipients.length - 10 }} more</div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Help Section -->

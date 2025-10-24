@@ -1,0 +1,46 @@
+<div class="modal-overlay" (click)="close.emit()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>📧 Send Fees Reminder to {{ student?.student_name }}'s Parent</h2>
+      <button class="close-btn" (click)="close.emit()">&times;</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="student-info">
+        <div class="info-row">
+          <strong>Student:</strong> {{ student?.student_name }}
+        </div>
+        <div class="info-row">
+          <strong>Parent's Phone:</strong> {{ student?.parent_phone_sms }}
+        </div>
+      </div>
+
+      <div class="message-section">
+        <label for="message">Message</label>
+        <textarea
+          id="message"
+          [(ngModel)]="message"
+          rows="6"
+          placeholder="Type your message here..."
+        ></textarea>
+        <div class="message-info">
+          <span class="char-count">{{ messageLength }} / 160 characters</span>
+          <span class="sms-units">(Consumes {{ smsUnits }} SMS credit{{ smsUnits !== 1 ? 's' : '' }})</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="cancel-btn" (click)="close.emit()">Cancel</button>
+      <button
+        type="button"
+        class="send-btn"
+        (click)="sendReminder()"
+        [disabled]="isSending || !message.trim()"
+      >
+        <span *ngIf="!isSending">📤 Send</span>
+        <span *ngIf="isSending">⏳ Sending...</span>
+      </button>
+    </div>
+  </div>
+</div>

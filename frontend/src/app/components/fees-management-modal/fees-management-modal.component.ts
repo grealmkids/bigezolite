@@ -6,11 +6,12 @@ import { FeesService, FeeRecord, NewFeeRecord } from '../../services/fees.servic
 import { SchoolService } from '../../services/school.service';
 import { CommunicationService } from '../../services/communication.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { FeeReminderPreviewModalComponent } from '../fee-reminder-preview-modal/fee-reminder-preview-modal.component';
 
 @Component({
   selector: 'app-fees-management-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, FeeReminderPreviewModalComponent],
   templateUrl: './fees-management-modal.component.html',
   styleUrls: ['./fees-management-modal.component.scss']
 })
@@ -22,6 +23,10 @@ export class FeesManagementModalComponent implements OnInit {
   feeForm: FormGroup;
   editingRecordId: number | null = null;
   editingAmountPaid: number | null = null;
+  
+  // Fee reminder preview modal
+  showReminderPreview: boolean = false;
+  selectedFeeRecord: FeeRecord | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -116,14 +121,9 @@ export class FeesManagementModalComponent implements OnInit {
     }
   }
 
-  sendFeesReminder(): void {
-    if (!this.student || !this.student.student_id) {
-      console.warn('[FeesModal] No student selected');
-      return;
-    }
-
+  openReminderPreview(record: FeeRecord): void {
     // Calculate total balance from all fee records
-    const totalBalance = this.feeRecords.reduce((sum, record) => sum + (record.balance_due || 0), 0);
+    const totalBalance = this.feeRecords.reduce((sum, rec) => sum + (rec.balance_due || 0), 0);
     
     if (totalBalance <= 0) {
       this.snackBar.open('This student has no outstanding balance', 'Close', {
@@ -135,30 +135,12 @@ export class FeesManagementModalComponent implements OnInit {
       return;
     }
 
-    console.log('[FeesModal] Sending fees reminder for student:', this.student.student_id);
-    this.communicationService.sendFeesReminder(this.student.student_id).subscribe({
-      next: () => {
-        console.log('[FeesModal] Fees reminder sent successfully');
-        this.snackBar.open('Fees reminder sent successfully!', 'Close', {
-          duration: 3000,
-          panelClass: ['success-snackbar'],
-          verticalPosition: 'top',
-          horizontalPosition: 'center'
-        });
-      },
-      error: (err) => {
-        console.error('[FeesModal] Error sending fees reminder:', err);
-        this.snackBar.open(
-          err?.error?.message || 'Failed to send fees reminder',
-          'Close',
-          {
-            duration: 4000,
-            panelClass: ['error-snackbar'],
-            verticalPosition: 'top',
-            horizontalPosition: 'center'
-          }
-        );
-      }
-    });
+    this.selectedFeeRecord = record;
+    this.showReminderPreview = true;
+  }
+
+  closeReminderPreview(): void {
+    this.showReminderPreview = false;
+    this.selectedFeeRecord = null;
   }
 }

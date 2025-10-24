@@ -167,8 +167,52 @@
 }
 
 .form-actions {
-  text-align: center;
+  display: flex;
+  gap: 15px;
+  justify-content: center;
   margin-top: 30px;
+  flex-wrap: wrap;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .preview-btn {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    border: none;
+    padding: 15px 40px;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);
+    flex: 1;
+    max-width: 200px;
+
+    &:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(59, 130, 246, 0.4);
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    @media (max-width: 768px) {
+      padding: 12px 30px;
+      font-size: 1rem;
+      max-width: 100%;
+    }
+  }
 
   .send-btn {
     background: linear-gradient(135deg, #10b981 0%, #059669 100%);
@@ -181,8 +225,8 @@
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 4px 6px rgba(16, 185, 129, 0.3);
-    width: 100%;
-    max-width: 400px;
+    flex: 1;
+    max-width: 200px;
 
     &:hover:not(:disabled) {
       transform: translateY(-2px);
@@ -275,6 +319,156 @@
   }
 }
 
+.preview-section {
+  margin-top: 30px;
+  padding: 25px;
+  background: #f0f9ff;
+  border-radius: 12px;
+  border: 2px solid #3b82f6;
+
+  h3 {
+    color: #1e40af;
+    font-size: 1.4rem;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+
+  h4 {
+    color: #1f2937;
+    font-size: 1.1rem;
+    margin: 20px 0 10px 0;
+  }
+
+  @media (max-width: 768px) {
+    padding: 20px;
+  }
+}
+
+.analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.analytics-card {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+
+  .analytics-label {
+    font-size: 0.85rem;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+
+  .analytics-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f2937;
+
+    @media (max-width: 768px) {
+      font-size: 1.2rem;
+    }
+  }
+}
+
+.sample-message-box {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+
+  .sample-message {
+    font-family: monospace;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: #374151;
+    white-space: pre-wrap;
+    background: #f9fafb;
+    padding: 15px;
+    border-radius: 6px;
+    border-left: 4px solid #3b82f6;
+
+    @media (max-width: 768px) {
+      font-size: 0.85rem;
+    }
+  }
+}
+
+.recipients-preview {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.recipients-table {
+  overflow-x: auto;
+
+  .recipient-row {
+    display: grid;
+    grid-template-columns: 2fr 1.5fr 1fr;
+    gap: 10px;
+    padding: 12px;
+    border-bottom: 1px solid #e5e7eb;
+
+    &.header {
+      background: #f3f4f6;
+      font-weight: 600;
+      color: #374151;
+      border-radius: 6px 6px 0 0;
+    }
+
+    &.note {
+      font-style: italic;
+      color: #6b7280;
+      text-align: center;
+      justify-content: center;
+    }
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    @media (max-width: 768px) {
+      grid-template-columns: 1.5fr 1fr 1fr;
+      padding: 10px;
+      font-size: 0.85rem;
+    }
+
+    @media (max-width: 480px) {
+      grid-template-columns: 1fr;
+      gap: 5px;
+
+      .recipient-col:nth-child(2),
+      .recipient-col:nth-child(3) {
+        font-size: 0.8rem;
+        color: #6b7280;
+      }
+    }
+  }
+
+  .recipient-col {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
 // Mobile optimization
 @media (max-width: 480px) {
   .bulk-fees-reminders-container {
@@ -286,6 +480,10 @@
   }
 
   .help-section {
+    padding: 15px;
+  }
+
+  .preview-section {
     padding: 15px;
   }
 }

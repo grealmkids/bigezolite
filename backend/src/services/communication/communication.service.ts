@@ -104,7 +104,7 @@ export const processFeesReminder = async (schoolId: number, studentId: number): 
     // Get student details and fees balance
     const studentQuery = `
         SELECT s.student_name, s.parent_phone_sms, s.school_id,
-               COALESCE(SUM(f.total_amount - f.amount_paid), 0) as balance,
+               COALESCE(SUM(f.balance_due), 0) as balance,
                COALESCE(SUM(f.amount_paid), 0) as amount_paid,
                MIN(f.due_date) as earliest_due_date
         FROM students s
@@ -157,18 +157,18 @@ export const processFeesReminder = async (schoolId: number, studentId: number): 
     await upsertSmsAccount(schoolId, newProviderBalance);
 };
 
-// Process bulk fees reminders with filters
-export const processBulkFeesReminders = async (
+// Preview bulk fees reminders data
+export const previewBulkFeesRemindersData = async (
     schoolId: number,
     thresholdAmount: number,
     classFilter?: string,
     statusFilter?: string,
     customDeadline?: string
-): Promise<void> => {
+): Promise<any> => {
     // Build query to get students with outstanding balances >= threshold
     let query = `
-        SELECT s.student_id, s.student_name, s.parent_phone_sms, s.class_name, s.status,
-               COALESCE(SUM(f.total_amount - f.amount_paid), 0) as balance,
+        SELECT s.student_id, s.student_name, s.parent_phone_sms, s.class_name, s.student_status,
+               COALESCE(SUM(f.balance_due), 0) as balance,
                COALESCE(SUM(f.amount_paid), 0) as amount_paid,
                MIN(f.due_date) as earliest_due_date
         FROM students s
@@ -187,13 +187,105 @@ export const processBulkFeesReminders = async (
 
     // Apply status filter
     if (statusFilter && statusFilter !== 'All Statuses') {
-        query += ` AND s.status = $${paramIndex}`;
+        query += ` AND s.student_status = $${paramIndex}`;
         params.push(statusFilter);
         paramIndex++;
     }
 
-    query += ` GROUP BY s.student_id, s.student_name, s.parent_phone_sms, s.class_name, s.status`;
-    query += ` HAVING COALESCE(SUM(f.total_amount - f.amount_paid), 0) >= $${paramIndex}`;
+    query += ` GROUP BY s.student_id, s.student_name, s.parent_phone_sms, s.class_name, s.student_status`;
+    query += ` HAVING COALESCE(SUM(f.balance_due), 0) >= $${paramIndex}`;
+    params.push(thresholdAmount);
+
+    const studentsResult = await pool.query(query, params);
+    const students = studentsResult.rows;
+
+    if (students.length === 0) {
+        return {
+            recipientCount: 0,
+            totalBalance: 0,
+            sampleMessage: '',
+            estimatedCost: 0,
+            recipients: []
+        };
+    }
+
+    // Format custom deadline as DD-MMM-YYYY if provided
+    const formattedCustomDeadline = customDeadline 
+        ? new Date(customDeadline).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-')
+        : null;
+
+    // Calculate analytics
+    const recipientCount = students.length;
+    const totalBalance = students.reduce((sum: number, s: any) => sum + parseFloat(s.balance), 0);
+    const costPerSms = Number(config.costPerSms || 50);
+    const estimatedCost = recipientCount * costPerSms;
+
+    // Generate sample message using first student
+    const firstStudent = students[0];
+    const sampleDeadline = formattedCustomDeadline || 
+        (firstStudent.earliest_due_date 
+            ? new Date(firstStudent.earliest_due_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-')
+            : '');
+    const sampleMessage = generateFeesReminderMessage(
+        firstStudent.student_name,
+        parseFloat(firstStudent.amount_paid),
+        parseFloat(firstStudent.balance),
+        sampleDeadline
+    );
+
+    return {
+        recipientCount,
+        totalBalance,
+        sampleMessage,
+        estimatedCost,
+        messageLength: sampleMessage.length,
+        smsUnits: Math.ceil(sampleMessage.length / 160),
+        recipients: students.map((s: any) => ({
+            studentName: s.student_name,
+            phoneNumber: s.parent_phone_sms,
+            balance: parseFloat(s.balance),
+            amountPaid: parseFloat(s.amount_paid)
+        }))
+    };
+};
+
+// Process bulk fees reminders with filters
+export const processBulkFeesReminders = async (
+    schoolId: number,
+    thresholdAmount: number,
+    classFilter?: string,
+    statusFilter?: string,
+    customDeadline?: string
+): Promise<void> => {
+    // Build query to get students with outstanding balances >= threshold
+    let query = `
+        SELECT s.student_id, s.student_name, s.parent_phone_sms, s.class_name, s.student_status,
+               COALESCE(SUM(f.balance_due), 0) as balance,
+               COALESCE(SUM(f.amount_paid), 0) as amount_paid,
+               MIN(f.due_date) as earliest_due_date
+        FROM students s
+        LEFT JOIN fees_records f ON s.student_id = f.student_id
+        WHERE s.school_id = $1
+    `;
+    const params: any[] = [schoolId];
+    let paramIndex = 2;
+
+    // Apply class filter
+    if (classFilter && classFilter !== 'All Students') {
+        query += ` AND s.class_name = $${paramIndex}`;
+        params.push(classFilter);
+        paramIndex++;
+    }
+
+    // Apply status filter
+    if (statusFilter && statusFilter !== 'All Statuses') {
+        query += ` AND s.student_status = $${paramIndex}`;
+        params.push(statusFilter);
+        paramIndex++;
+    }
+
+    query += ` GROUP BY s.student_id, s.student_name, s.parent_phone_sms, s.class_name, s.student_status`;
+    query += ` HAVING COALESCE(SUM(f.balance_due), 0) >= $${paramIndex}`;
     params.push(thresholdAmount);
 
     const studentsResult = await pool.query(query, params);

@@ -92,6 +92,12 @@
     margin-bottom: 1rem;
 }
 
+.controls-container .filters {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
 .controls-container .filters select,
 .controls-container .filters input {
     padding: 0.5rem 0.75rem;
@@ -101,15 +107,18 @@
 }
 
 .controls-container .filters select {
-    min-width: 160px;
+    min-width: 140px;
+    flex: 1;
 }
 
 .search-bar {
+    flex: 1;
+    min-width: 0;
+    
     input {
         width: 100%;
-        max-width: 400px;
         padding: 0.75rem;
-        border: 1px solid #ced4da;
+        border: 3px solid #000000;
         border-radius: 4px;
         font-size: 1rem;
     }
@@ -119,7 +128,7 @@
     background-color: white;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
+    overflow-x: auto;
 
     .table-spinner {
         padding: 2rem;
@@ -153,14 +162,12 @@
 .student-table {
     width: 100%;
     border-collapse: collapse;
-    overflow-x: auto;
-    display: block;
     min-width: 600px;
 
     th, td {
         padding: 1rem;
         text-align: left;
-        border-bottom: 1px solid #e9ecef;
+        border-bottom: 1px solid #000000;
         word-break: break-word;
     }
 
@@ -183,20 +190,89 @@
 }
 
 @media (max-width: 700px) {
+  .page-header h1 {
+    font-size: 1.5rem !important;
+  }
+  
   .student-table {
-    min-width: 0;
-    font-size: 0.95em;
+    min-width: 650px; // Force horizontal scroll
+    font-size: 0.9em;
     th, td {
-      padding: 0.5em;
+      padding: 0.6em;
+      white-space: nowrap;
     }
   }
+  
   .student-list-container {
     border-radius: 0;
     box-shadow: none;
     padding: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
+  
   .page-container {
     padding: 0.5em;
+  }
+  
+  .controls-container {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .search-bar {
+    width: 100%;
+  }
+  
+  .filters {
+    width: 100%;
+    
+    select {
+      flex: 1 1 auto;
+      min-width: 120px;
+    }
+  }
+  
+  // Stack pagination controls in 3 rows on mobile
+  .table-header-controls {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.5rem !important;
+    
+    > div {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    
+    .pagination-controls {
+      width: 100%;
+      justify-content: center;
+      order: 1;
+    }
+    
+    label {
+      width: 100%;
+      text-align: center;
+      margin: 0 !important;
+      order: 2;
+      
+      select {
+        margin-left: 0.5rem;
+      }
+    }
+    
+    .table-summary {
+      text-align: center;
+      order: 3;
+    }
+  }
+  
+  .pagination-controls {
+    flex-wrap: wrap;
+    justify-content: center !important;
+    gap: 0.5rem;
   }
   
   // Hide extra columns on small screens

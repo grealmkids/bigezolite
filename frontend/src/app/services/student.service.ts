@@ -5,6 +5,7 @@ import { catchError, tap, map } from 'rxjs/operators';
 
 export interface Student {
   student_id: number;
+  school_id?: number; // School this student belongs to
   reg_number: string;
   student_name: string;
   class_name: string;

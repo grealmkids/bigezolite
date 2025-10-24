@@ -94,10 +94,15 @@ export class StudentModalComponent implements OnInit, OnChanges {
 
     this.errorMessage = null;
     const formValue: StudentData = this.studentForm.value;
+    
+    // For editing: use the student's own school_id. For creating: use currently selected school.
+    const schoolId = this.isEditMode && this.student?.school_id 
+      ? this.student.school_id 
+      : this.schoolService.getSelectedSchoolId();
 
     const operation = this.isEditMode && this.student
-      ? this.studentService.updateStudent(this.student.student_id, formValue)
-      : this.studentService.createStudent(formValue);
+      ? this.studentService.updateStudent(this.student.student_id, formValue, schoolId || undefined)
+      : this.studentService.createStudent(formValue, schoolId || undefined);
 
     operation.subscribe({
       next: () => {

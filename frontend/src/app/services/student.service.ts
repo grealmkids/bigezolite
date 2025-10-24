@@ -29,15 +29,20 @@ export interface StudentData {
   providedIn: 'root'
 })
 export class StudentService {
-  getStudentById(studentId: number): Observable<Student> {
-    return this.http.get<Student>(`${this.apiUrl}/${studentId}`);
+  getStudentById(studentId: number, schoolId?: number): Observable<Student> {
+    let params = new HttpParams();
+    if (schoolId) {
+      params = params.append('schoolId', schoolId.toString());
+    }
+    return this.http.get<Student>(`${this.apiUrl}/${studentId}`, { params });
   }
   private apiUrl = 'http://localhost:3000/api/v1/students';
 
   constructor(private http: HttpClient) { }
 
-  getStudents(searchTerm?: string, classTerm?: string, statusTerm?: string, yearTerm?: string, page: number = 0, pageSize: number = 10, sort: string = 'student_name', order: string = 'ASC'): Observable<{ items: Student[]; total: number }> {
+  getStudents(schoolId: number, searchTerm?: string, classTerm?: string, statusTerm?: string, yearTerm?: string, page: number = 0, pageSize: number = 10, sort: string = 'student_name', order: string = 'ASC'): Observable<{ items: Student[]; total: number }> {
     let params = new HttpParams()
+      .append('schoolId', schoolId.toString())
       .append('page', page.toString())
       .append('limit', pageSize.toString())
       .append('sort', sort)
@@ -82,12 +87,20 @@ export class StudentService {
     );
   }
 
-  createStudent(studentData: StudentData): Observable<Student> {
-    return this.http.post<Student>(this.apiUrl, studentData);
+  createStudent(studentData: StudentData, schoolId?: number): Observable<Student> {
+    let params = new HttpParams();
+    if (schoolId) {
+      params = params.append('schoolId', schoolId.toString());
+    }
+    return this.http.post<Student>(this.apiUrl, studentData, { params });
   }
 
-  updateStudent(studentId: number, studentData: Partial<StudentData>): Observable<Student> {
-    return this.http.put<Student>(`${this.apiUrl}/${studentId}`, studentData);
+  updateStudent(studentId: number, studentData: Partial<StudentData>, schoolId?: number): Observable<Student> {
+    let params = new HttpParams();
+    if (schoolId) {
+      params = params.append('schoolId', schoolId.toString());
+    }
+    return this.http.put<Student>(`${this.apiUrl}/${studentId}`, studentData, { params });
   }
 
   deleteStudent(studentId: number): Observable<void> {

@@ -33,6 +33,16 @@ import { query } from '../../database/database';
 import { Student } from './student.controller'; // We'll define the interface in the controller for now
 
 /**
+ * Verifies that a user has access to a specific school.
+ * Returns true if the user owns the school, false otherwise.
+ */
+export const verifyUserSchoolAccess = async (userId: number, schoolId: number): Promise<boolean> => {
+    const sql = 'SELECT school_id FROM schools WHERE user_id = $1 AND school_id = $2';
+    const result = await query(sql, [userId, schoolId]);
+    return result.rows.length > 0;
+};
+
+/**
  * Creates a new student in the database.
  * The school_id is crucial for data isolation.
  */

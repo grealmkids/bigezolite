@@ -73,8 +73,9 @@ export const authenticateToken = async (req: AuthenticatedRequest, res: Response
     if (req.session && req.session.schoolId) {
         req.user.schoolId = req.session.schoolId;
     } else {
-        // Fallback to fetching the user's default school_id for data isolation.
-        const schoolQuery = 'SELECT school_id FROM schools WHERE user_id = $1';
+        // Fallback to fetching the user's most recent school_id for data isolation.
+        // When a user has multiple schools, we pick the most recently created one.
+        const schoolQuery = 'SELECT school_id FROM schools WHERE user_id = $1 ORDER BY created_at DESC LIMIT 1';
         const schoolResult = await query(schoolQuery, [payload.userId]);
 
         if (schoolResult.rows.length > 0) {

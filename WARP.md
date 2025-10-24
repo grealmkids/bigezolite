@@ -50,7 +50,10 @@ BigezoLite is a school management system with SMS and subscription management. I
 **Authentication Flow**:
 1. `auth.middleware.ts` validates JWT token (HS256, not Firebase RS256 tokens)
 2. Extracts `userId` from token
-3. Fetches associated `schoolId` from database
+3. Fetches associated `schoolId` from database:
+   - First checks `req.session.schoolId` if session exists (for school switching)
+   - Otherwise queries: `SELECT school_id FROM schools WHERE user_id = $1 ORDER BY created_at DESC LIMIT 1`
+   - For users with multiple schools, the **most recently created** school is selected
 4. Attaches both to `req.user` for downstream use
 5. All routes enforce data isolation using `schoolId`
 
@@ -114,7 +117,9 @@ BigezoLite is a school management system with SMS and subscription management. I
 - `student_status`: 'Active', 'Inactive', 'Expelled', 'Alumni', 'Suspended', 'Sick'
 - `fees_status`: 'Paid', 'Defaulter', 'Pending'
 
-**Data isolation**: All student/fee data is scoped by `school_id`. Auth middleware enforces this by attaching `schoolId` to requests.
+**Data isolation**: All student/fee data is scoped by `school_id`. The system enforces data isolation in two ways:
+1. Auth middleware attaches `schoolId` to `req.user` (from most recent school if multiple exist)
+2. All student endpoints now **require** explicit `schoolId` query parameter and verify user access to that school
 
 ## Configuration
 
@@ -148,6 +153,20 @@ Configuration in `frontend/src/environments/`:
 - `environment.prod.ts`: Production config (if exists)
 
 Likely contains API base URL and Firebase config.
+
+## API Conventions
+
+### School Selection and Data Isolation
+
+**Student Endpoints** now require explicit `schoolId` query parameter:
+- `GET /api/v1/students?schoolId=4` - List students for school 4
+- `GET /api/v1/students/:id?schoolId=4` - Get single student
+- `POST /api/v1/students?schoolId=4` - Create student in school 4
+- `PUT /api/v1/students/:id?schoolId=4` - Update student
+
+**Backend validates** that the authenticated user owns the specified school before allowing access. This prevents cross-school data leaks and makes debugging easier by making the school context explicit in URLs.
+
+**Frontend**: The `SchoolService.getSelectedSchoolId()` method retrieves the currently selected school from localStorage and passes it to all student service calls.
 
 ## Important Patterns
 

@@ -172,7 +172,13 @@ export class StudentManagementComponent implements OnInit {
     ]).pipe(
       switchMap(([searchTerm, classTerm, statusTerm, yearTerm, page, limit, sort, order]) => {
         this.isLoading = true;
-        return this.studentService.getStudents(searchTerm, classTerm, statusTerm, yearTerm, page, limit, sort, order);
+        const schoolId = this.schoolService.getSelectedSchoolId();
+        if (!schoolId) {
+          console.error('[StudentManagement] No schoolId selected');
+          this.isLoading = false;
+          return of({ items: [], total: 0 });
+        }
+        return this.studentService.getStudents(schoolId, searchTerm, classTerm, statusTerm, yearTerm, page, limit, sort, order);
       })
     );
 
@@ -193,7 +199,8 @@ export class StudentManagementComponent implements OnInit {
   // Student Modal Methods
   openStudentModal(student: Student | null = null): void {
     if (student && student.student_id) {
-      this.studentService.getStudentById(student.student_id)
+      const schoolId = this.schoolService.getSelectedSchoolId();
+      this.studentService.getStudentById(student.student_id, schoolId || undefined)
         .subscribe(fullStudent => {
           console.log('[Edit Modal] fetched student:', fullStudent);
           this.selectedStudent = fullStudent || student;
@@ -220,7 +227,8 @@ export class StudentManagementComponent implements OnInit {
   // Fees Management Modal Methods
   openFeesModal(student: Student): void {
     if (student && student.student_id) {
-      this.studentService.getStudentById(student.student_id)
+      const schoolId = this.schoolService.getSelectedSchoolId();
+      this.studentService.getStudentById(student.student_id, schoolId || undefined)
         .subscribe(fullStudent => {
           console.log('[Fees Modal] fetched student:', fullStudent);
           this.selectedStudent = fullStudent || student;
@@ -240,7 +248,8 @@ export class StudentManagementComponent implements OnInit {
   // SMS Modal Methods
   openSmsModal(student: Student): void {
     if (student && student.student_id) {
-      this.studentService.getStudentById(student.student_id)
+      const schoolId = this.schoolService.getSelectedSchoolId();
+      this.studentService.getStudentById(student.student_id, schoolId || undefined)
         .subscribe(fullStudent => {
           console.log('[SMS Modal] fetched student:', fullStudent);
           this.selectedStudent = fullStudent || student;

@@ -1,44 +1,3 @@
-// Update a student by ID
-export const updateStudent = async (req: AuthenticatedRequest, res: Response) => {
-    try {
-        const schoolId = req.user?.schoolId;
-        const studentId = parseInt(req.params.studentId, 10);
-        console.log('[updateStudent] schoolId:', schoolId, 'studentId:', studentId, 'updates:', req.body);
-        if (!schoolId || !studentId) {
-            return res.status(400).json({ message: 'Missing school or student ID' });
-        }
-        const updates = req.body;
-        const updatedStudent = await studentService.updateStudentById(schoolId, studentId, updates);
-        if (!updatedStudent) {
-            return res.status(404).json({ message: 'Student not found or update failed' });
-        }
-        res.status(200).json(updatedStudent);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-};
-// Get a single student by ID
-export const getStudentById = async (req: AuthenticatedRequest, res: Response) => {
-    try {
-        const schoolId = req.user?.schoolId;
-        const studentId = parseInt(req.params.studentId, 10);
-        console.log('[getStudentById] req.user:', req.user);
-        console.log('[getStudentById] schoolId:', schoolId, 'studentId:', studentId);
-        if (!schoolId || !studentId) {
-            return res.status(400).json({ message: 'Missing school or student ID' });
-        }
-        const student = await studentService.findStudentById(schoolId, studentId);
-        if (!student) {
-            return res.status(404).json({ message: 'Student not found' });
-        }
-        res.status(200).json(student);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-};
-
 import { Response } from 'express';
 import * as studentService from './student.service';
 import { AuthenticatedRequest } from '../../middleware/auth.middleware';
@@ -59,11 +18,62 @@ export interface Student {
     residence_district: string;
 }
 
+// Get a single student by ID
+export const getStudentById = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const userId = req.user?.userId;
+        if (!userId) {
+            return res.status(403).json({ message: 'Forbidden: User not authenticated.' });
+        }
+
+        const studentId = parseInt(req.params.studentId, 10);
+        const schoolIdFromQuery = req.query.schoolId ? Number(req.query.schoolId) : null;
+        const schoolId = schoolIdFromQuery || req.user?.schoolId;
+
+        console.log('[getStudentById] req.user:', req.user);
+        console.log('[getStudentById] schoolId:', schoolId, 'studentId:', studentId);
+        
+        if (!schoolId || !studentId) {
+            return res.status(400).json({ message: 'Missing school or student ID' });
+        }
+
+        // Verify user has access to this school
+        const accessCheck = await studentService.verifyUserSchoolAccess(userId, schoolId);
+        if (!accessCheck) {
+            return res.status(403).json({ message: 'Forbidden: You do not have access to this school.' });
+        }
+
+        const student = await studentService.findStudentById(schoolId, studentId);
+        if (!student) {
+            return res.status(404).json({ message: 'Student not found' });
+        }
+        res.status(200).json(student);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
 export const createStudent = async (req: AuthenticatedRequest, res: Response) => {
     try {
-        const schoolId = req.user?.schoolId;
+        const userId = req.user?.userId;
+        if (!userId) {
+            return res.status(403).json({ message: 'Forbidden: User not authenticated.' });
+        }
+
+        // Accept schoolId from query parameter or body
+        const schoolIdFromQuery = req.query.schoolId ? Number(req.query.schoolId) : null;
+        const schoolIdFromBody = req.body.schoolId ? Number(req.body.schoolId) : null;
+        const schoolId = schoolIdFromQuery || schoolIdFromBody || req.user?.schoolId;
+
         if (!schoolId) {
-            return res.status(403).json({ message: 'Forbidden: User is not associated with a school.' });
+            return res.status(400).json({ message: 'Missing schoolId. Please specify in query or body.' });
+        }
+
+        // Verify user has access to this school
+        const accessCheck = await studentService.verifyUserSchoolAccess(userId, schoolId);
+        if (!accessCheck) {
+            return res.status(403).json({ message: 'Forbidden: You do not have access to this school.' });
         }
 
         // TODO: Add validation for the student data payload
@@ -80,9 +90,23 @@ export const createStudent = async (req: AuthenticatedRequest, res: Response) =>
 
 export const getStudents = async (req: AuthenticatedRequest, res: Response) => {
     try {
-        const schoolId = req.user?.schoolId;
+        const userId = req.user?.userId;
+        if (!userId) {
+            return res.status(403).json({ message: 'Forbidden: User not authenticated.' });
+        }
+
+        // Accept schoolId from query parameter (explicit school selection)
+        const schoolIdFromQuery = req.query.schoolId ? Number(req.query.schoolId) : null;
+        const schoolId = schoolIdFromQuery || req.user?.schoolId;
+
         if (!schoolId) {
-            return res.status(403).json({ message: 'Forbidden: User is not associated with a school.' });
+            return res.status(400).json({ message: 'Missing schoolId parameter. Please specify ?schoolId=X' });
+        }
+
+        // Verify user has access to this school
+        const accessCheck = await studentService.verifyUserSchoolAccess(userId, schoolId);
+        if (!accessCheck) {
+            return res.status(403).json({ message: 'Forbidden: You do not have access to this school.' });
         }
 
         const { search, class: classTerm, status, year, sort, order } = req.query;
@@ -102,9 +126,45 @@ export const getStudents = async (req: AuthenticatedRequest, res: Response) => {
             sort as string | undefined,
             order as string | undefined
         );
-        console.log('[getStudents] returning students count:', Array.isArray(studentsResult.items) ? studentsResult.items.length : 'unknown', 'total:', studentsResult.total);
+        console.log('[getStudents] schoolId:', schoolId, 'returning students count:', Array.isArray(studentsResult.items) ? studentsResult.items.length : 'unknown', 'total:', studentsResult.total);
         res.status(200).json(studentsResult);
 
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+// Update a student by ID
+export const updateStudent = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const userId = req.user?.userId;
+        if (!userId) {
+            return res.status(403).json({ message: 'Forbidden: User not authenticated.' });
+        }
+
+        const studentId = parseInt(req.params.studentId, 10);
+        const schoolIdFromQuery = req.query.schoolId ? Number(req.query.schoolId) : null;
+        const schoolId = schoolIdFromQuery || req.user?.schoolId;
+
+        console.log('[updateStudent] schoolId:', schoolId, 'studentId:', studentId, 'updates:', req.body);
+        
+        if (!schoolId || !studentId) {
+            return res.status(400).json({ message: 'Missing school or student ID' });
+        }
+
+        // Verify user has access to this school
+        const accessCheck = await studentService.verifyUserSchoolAccess(userId, schoolId);
+        if (!accessCheck) {
+            return res.status(403).json({ message: 'Forbidden: You do not have access to this school.' });
+        }
+
+        const updates = req.body;
+        const updatedStudent = await studentService.updateStudentById(schoolId, studentId, updates);
+        if (!updatedStudent) {
+            return res.status(404).json({ message: 'Student not found or update failed' });
+        }
+        res.status(200).json(updatedStudent);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Internal server error' });

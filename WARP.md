@@ -4,10 +4,17 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
 
 ## Project Overview
 
-BigezoLite is a school management system with SMS and subscription management. It's a full-stack application with:
+BigezoLite is a comprehensive school management system with SMS communications and subscription management. It's a full-stack application with:
 - **Backend**: Node.js/Express/TypeScript API with PostgreSQL database
-- **Frontend**: Angular 19 single-page application
-- **Key features**: Student management, fee tracking, SMS communications with provider integration, subscription/account status management
+- **Frontend**: Angular 19 single-page application with Material UI
+- **Key features**: 
+  - Multi-school student management with data isolation
+  - Fee tracking and payment management per term/year
+  - SMS communications with provider integration (EgoSMS)
+  - **Fees reminder system** (individual and bulk with preview)
+  - Subscription/account status management
+  - Class categorization by school type
+  - Real-time SMS balance tracking
 
 ## Commands
 
@@ -167,6 +174,25 @@ Likely contains API base URL and Firebase config.
 **Backend validates** that the authenticated user owns the specified school before allowing access. This prevents cross-school data leaks and makes debugging easier by making the school context explicit in URLs.
 
 **Frontend**: The `SchoolService.getSelectedSchoolId()` method retrieves the currently selected school from localStorage and passes it to all student service calls.
+
+### Fees Reminder System
+
+**Individual Fees Reminders** (per fee record row):
+- `POST /api/v1/communications/fees-reminder/:studentId` - Send customized fees reminder to individual student
+- Message format: `"Dear parent of [NAME], you have so far paid UGX [PAID]. Kindly pay the remaining School fees balance of UGX [BALANCE] before [DD-MMM-YYYY]."`
+- Calculates total paid and total balance from **all** fee records for the student
+- Uses earliest due date from records, formatted as DD-MMM-YYYY (e.g., "17-Apr-2025")
+- Currency formatted with commas, no decimals (e.g., UGX 540,000)
+
+**Bulk Fees Reminders** (campaign-based):
+- `POST /api/v1/communications/bulk-fees-reminders/preview` - Get analytics before sending
+  - Returns: recipient count, total balance, sample message, estimated cost, message length, SMS units, recipients array
+- `POST /api/v1/communications/bulk-fees-reminders` - Send bulk fees reminders
+  - Filters: `thresholdAmount` (required), `classFilter` (optional), `statusFilter` (optional), `customDeadline` (optional)
+  - Only sends to students with `balance_due >= thresholdAmount`
+  - If `customDeadline` provided, uses same deadline for all recipients; otherwise uses individual `due_date` from each student's earliest fee record
+  - Verifies SMS balance before sending
+  - Records transaction and updates SMS account balance
 
 ## Important Patterns
 

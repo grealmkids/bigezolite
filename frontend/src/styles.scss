@@ -15,6 +15,7 @@
   /* legacy aliases used throughout components */
   --color-primary: #ff9933;
   --color-secondary: #0059b3;
+  --color-green:#0cc151;
 }
 
 /* When on auth pages (login/register) hide the global toolbar and set dark background */
@@ -31,16 +32,16 @@ body.auth-bg mat-toolbar {
 .mat-mdc-snackbar-container.success-snackbar,
 .success-snackbar.mat-mdc-snackbar-container,
 .mat-mdc-snack-bar-container.success-snackbar {
-  --mdc-snackbar-container-color: #10b981 !important;
+  --mdc-snackbar-container-color: #0cc151 !important;
   --mdc-snackbar-supporting-text-color: white !important;
   --mat-mdc-snack-bar-button-color: white !important;
-  background: #10b981 !important;
+  background: #0cc151 !important;
   color: white !important;
 }
 
 .success-snackbar .mdc-snackbar__surface,
 .success-snackbar .mat-mdc-snack-bar-label {
-  background: #10b981 !important;
+  background: #0cc151 !important;
   color: white !important;
 }
 
@@ -126,13 +127,16 @@ body { margin: 0; }
   color: #111827;
   margin-bottom: 0.375rem;
 }
-
+.topbar{background-color: var(--color-primary) !important;}
+input{background: #fff2d7 !important;
+border: 2px solid #000000 !important;}
+.search-bar input{width: auto !important; font-size: 18px !important; font-weight: 600 !important; padding: 10px 20px !important;}
 .school-form input {
   width: 100%;
   padding: 0.6rem 0.8rem;
   border: 1px solid #e6e7eb;
   border-radius: 8px;
-  background: #fbfbfb;
+  background: #fdedcb;
 }
 
 .school-form.two-col { display: flex; gap: 1rem; }

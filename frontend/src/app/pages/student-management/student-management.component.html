@@ -2,9 +2,20 @@
   <div class="page-header">
     <h1>Student Management</h1>
     <div class="header-actions">
-      <button class="download-pdf-btn" (click)="downloadPDF()" [disabled]="displayedStudents.length === 0 || isLoading">
+      <button
+        class="download-pdf-btn"
+        (click)="downloadPDF()"
+        [disabled]="displayedStudents.length === 0 || isLoading"
+      >
         <span class="icon">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
             <polyline points="7 10 12 15 17 10"></polyline>
             <line x1="12" y1="15" x2="12" y2="3"></line>
@@ -109,12 +120,18 @@
         <table *ngIf="displayedStudents.length > 0" class="student-table">
           <thead>
             <tr>
-              <th style="width: 50px;">#</th>
-              <th (click)="onSort('reg_number')" class="hide-mobile">Reg Number</th>
+              <th style="width: 50px">#</th>
+              <th (click)="onSort('reg_number')" class="hide-mobile">
+                Reg Number
+              </th>
               <th (click)="onSort('student_name')">Student Name</th>
               <th (click)="onSort('class_name')">Class</th>
-              <th (click)="onSort('student_status')" class="hide-mobile">Status</th>
-              <th (click)="onSort('fees_status')" class="hide-mobile">Fees Status</th>
+              <th (click)="onSort('student_status')" class="hide-mobile">
+                Status
+              </th>
+              <th (click)="onSort('fees_status')" class="hide-mobile">
+                Fees Status
+              </th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -125,7 +142,7 @@
               </td>
             </tr>
             <tr *ngFor="let student of displayedStudents; let i = index">
-              <td>{{ (pageEvent.pageIndex * pageEvent.pageSize) + i + 1 }}</td>
+              <td>{{ pageEvent.pageIndex * pageEvent.pageSize + i + 1 }}</td>
               <td class="hide-mobile">{{ student.reg_number | noDash }}</td>
               <td>{{ student.student_name }}</td>
               <td>{{ student?.class_name || "" }}</td>

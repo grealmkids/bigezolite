@@ -141,7 +141,7 @@ export const findStudentsBySchool = async (
     const sortOrder = order.toUpperCase() === 'DESC' ? 'DESC' : 'ASC'; // Default to ASC
 
     // Select with ordering and optional pagination
-    let sql = `SELECT student_id, reg_number, student_name, class_name, student_status, fees_status FROM students ${where} ORDER BY ${sortColumn} ${sortOrder}`;
+    let sql = `SELECT student_id, reg_number, student_name, class_name, student_status, fees_status, parent_phone_sms FROM students ${where} ORDER BY ${sortColumn} ${sortOrder}`;
     if (limit && limit > 0) {
         sql += ` LIMIT $${idx} OFFSET $${idx + 1}`;
         params.push(limit, page * limit);

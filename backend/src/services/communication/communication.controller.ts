@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../../middleware/auth.middleware';
-import { getSmsCredits, processBulkSms, processSingleSms } from './communication.service';
+import { getSmsCredits, processBulkSms, processSingleSms, processFeesReminder, processBulkFeesReminders } from './communication.service';
 import { getSmsCredentialsForSchool } from './smsCredentials.service';
 import { checkBalance } from '../../utils/sms.util';
 import { upsertSmsAccount, addSmsTransaction } from './smsAccount.service';
@@ -91,5 +91,37 @@ export const getSmsCredentials = async (req: AuthenticatedRequest, res: Response
         return res.json({ username: creds.username, password: creds.password, provider: (creds as any).provider || 'egosms' });
     } catch (error: any) {
         return res.status(500).json({ message: 'Error fetching credentials', details: error?.message || null });
+    }
+};
+
+// Send fees reminder to individual student
+export const sendFeesReminder = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const schoolId = req.user?.schoolId;
+        if (!schoolId) return res.status(401).json({ message: 'Unauthorized: missing school context' });
+        const studentId = parseInt(req.params.studentId);
+        if (!studentId) return res.status(400).json({ message: 'Student ID is required' });
+        await processFeesReminder(schoolId, studentId);
+        return res.status(200).json({ message: 'Fees reminder sent successfully' });
+    } catch (error: any) {
+        const providerMessage = error?.details || error?.message || (error?.response && error.response.data) || null;
+        const statusCode = error?.statusCode || 500;
+        return res.status(statusCode).json({ message: error?.message || 'Error sending fees reminder', details: providerMessage });
+    }
+};
+
+// Send bulk fees reminders with filters
+export const sendBulkFeesReminders = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const schoolId = req.user?.schoolId;
+        if (!schoolId) return res.status(401).json({ message: 'Unauthorized: missing school context' });
+        const { thresholdAmount, classFilter, statusFilter, customDeadline } = req.body;
+        if (!thresholdAmount || thresholdAmount < 0) return res.status(400).json({ message: 'Valid threshold amount is required' });
+        await processBulkFeesReminders(schoolId, thresholdAmount, classFilter, statusFilter, customDeadline);
+        return res.status(200).json({ message: 'Bulk fees reminders sent successfully' });
+    } catch (error: any) {
+        const providerMessage = error?.details || error?.message || (error?.response && error.response.data) || null;
+        const statusCode = error?.statusCode || 500;
+        return res.status(statusCode).json({ message: error?.message || 'Error sending bulk fees reminders', details: providerMessage });
     }
 };

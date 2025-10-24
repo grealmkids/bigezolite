@@ -4,6 +4,8 @@ import { CommonModule } from '@angular/common';
 import { Student } from '../../services/student.service';
 import { FeesService, FeeRecord, NewFeeRecord } from '../../services/fees.service';
 import { SchoolService } from '../../services/school.service';
+import { CommunicationService } from '../../services/communication.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-fees-management-modal',
@@ -24,7 +26,9 @@ export class FeesManagementModalComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private feesService: FeesService,
-    private schoolService: SchoolService
+    private schoolService: SchoolService,
+    private communicationService: CommunicationService,
+    private snackBar: MatSnackBar
   ) {
     this.feeForm = this.fb.group({
       term: [1, Validators.required],
@@ -110,5 +114,51 @@ export class FeesManagementModalComponent implements OnInit {
           }
         });
     }
+  }
+
+  sendFeesReminder(): void {
+    if (!this.student || !this.student.student_id) {
+      console.warn('[FeesModal] No student selected');
+      return;
+    }
+
+    // Calculate total balance from all fee records
+    const totalBalance = this.feeRecords.reduce((sum, record) => sum + (record.balance_due || 0), 0);
+    
+    if (totalBalance <= 0) {
+      this.snackBar.open('This student has no outstanding balance', 'Close', {
+        duration: 3000,
+        panelClass: ['error-snackbar'],
+        verticalPosition: 'top',
+        horizontalPosition: 'center'
+      });
+      return;
+    }
+
+    console.log('[FeesModal] Sending fees reminder for student:', this.student.student_id);
+    this.communicationService.sendFeesReminder(this.student.student_id).subscribe({
+      next: () => {
+        console.log('[FeesModal] Fees reminder sent successfully');
+        this.snackBar.open('Fees reminder sent successfully!', 'Close', {
+          duration: 3000,
+          panelClass: ['success-snackbar'],
+          verticalPosition: 'top',
+          horizontalPosition: 'center'
+        });
+      },
+      error: (err) => {
+        console.error('[FeesModal] Error sending fees reminder:', err);
+        this.snackBar.open(
+          err?.error?.message || 'Failed to send fees reminder',
+          'Close',
+          {
+            duration: 4000,
+            panelClass: ['error-snackbar'],
+            verticalPosition: 'top',
+            horizontalPosition: 'center'
+          }
+        );
+      }
+    });
   }
 }

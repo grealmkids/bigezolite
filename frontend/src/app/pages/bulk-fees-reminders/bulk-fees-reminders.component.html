@@ -1,0 +1,122 @@
+<div class="bulk-fees-reminders-container">
+  <div class="page-header">
+    <h1>📋 Bulk Fees Reminders</h1>
+    <p class="subtitle">Send payment reminders to students with outstanding balances</p>
+  </div>
+
+  <div class="content-card">
+    <form (ngSubmit)="sendBulkReminders()" class="reminder-form">
+      
+      <!-- Threshold Amount -->
+      <div class="form-group">
+        <label for="threshold">
+          💰 Minimum Balance Threshold (UGX)
+          <span class="help-text">Only send to students with balance ≥ this amount</span>
+        </label>
+        <input
+          type="number"
+          id="threshold"
+          [(ngModel)]="thresholdAmount"
+          name="threshold"
+          min="0"
+          step="1000"
+          required
+          class="form-control"
+          placeholder="1000"
+        />
+      </div>
+
+      <!-- Custom Deadline (Optional) -->
+      <div class="form-group">
+        <label for="deadline">
+          📅 Payment Deadline (Optional)
+          <span class="help-text">If set, this deadline will be used for all reminders. Otherwise, individual due dates from records will be used.</span>
+        </label>
+        <input
+          type="date"
+          id="deadline"
+          [(ngModel)]="customDeadline"
+          name="deadline"
+          class="form-control"
+        />
+      </div>
+
+      <!-- Class Filter -->
+      <div class="form-group">
+        <label for="class">
+          🎓 Filter by Class
+        </label>
+        <select
+          id="class"
+          [(ngModel)]="selectedClass"
+          name="class"
+          class="form-control"
+          [disabled]="loadingClasses"
+        >
+          <option *ngFor="let cls of classes" [value]="cls">{{ cls }}</option>
+        </select>
+      </div>
+
+      <!-- Status Filter -->
+      <div class="form-group">
+        <label for="status">
+          👤 Filter by Student Status
+        </label>
+        <select
+          id="status"
+          [(ngModel)]="selectedStatus"
+          name="status"
+          class="form-control"
+        >
+          <option *ngFor="let status of studentStatuses" [value]="status">{{ status }}</option>
+        </select>
+      </div>
+
+      <!-- Summary Info -->
+      <div class="info-box">
+        <h3>📤 Reminder Settings</h3>
+        <ul>
+          <li><strong>Threshold:</strong> UGX {{ thresholdAmount | number }}</li>
+          <li><strong>Class:</strong> {{ selectedClass }}</li>
+          <li><strong>Status:</strong> {{ selectedStatus }}</li>
+          <li><strong>Deadline:</strong> {{ customDeadline || 'Use individual due dates' }}</li>
+        </ul>
+      </div>
+
+      <!-- Submit Button -->
+      <div class="form-actions">
+        <button
+          type="submit"
+          class="send-btn"
+          [disabled]="isSending"
+        >
+          <span *ngIf="!isSending">📧 Send Fees Reminders</span>
+          <span *ngIf="isSending">⏳ Sending...</span>
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Help Section -->
+  <div class="help-section">
+    <h3>ℹ️ How It Works</h3>
+    <div class="help-grid">
+      <div class="help-item">
+        <h4>1. Set Threshold</h4>
+        <p>Only students with outstanding balance greater than or equal to the threshold will receive reminders.</p>
+      </div>
+      <div class="help-item">
+        <h4>2. Filter Recipients</h4>
+        <p>Narrow down recipients by class and student status (e.g., only Active students).</p>
+      </div>
+      <div class="help-item">
+        <h4>3. Optional Deadline</h4>
+        <p>Set a custom payment deadline for this campaign, or leave empty to use each student's individual due date.</p>
+      </div>
+      <div class="help-item">
+        <h4>4. Send Reminders</h4>
+        <p>SMS reminders will be sent to parents with student name, amount due, and payment details.</p>
+      </div>
+    </div>
+  </div>
+</div>

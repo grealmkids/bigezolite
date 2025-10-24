@@ -37,4 +37,21 @@ export class CommunicationService {
   getSmsCredentials(): Observable<{ username: string; password: string; provider?: string } | null> {
     return this.http.get<{ username: string; password: string; provider?: string }>(`${this.apiUrl}/credentials`);
   }
+
+  sendFeesReminder(studentId: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}/fees-reminder/${studentId}`, {});
+  }
+
+  sendBulkFeesReminders(
+    thresholdAmount: number = 1000,
+    classFilter?: string,
+    statusFilter?: string,
+    customDeadline?: string
+  ): Observable<any> {
+    const body: any = { thresholdAmount };
+    if (classFilter) body.classFilter = classFilter;
+    if (statusFilter) body.statusFilter = statusFilter;
+    if (customDeadline) body.customDeadline = customDeadline;
+    return this.http.post(`${this.apiUrl}/bulk-fees-reminders`, body);
+  }
 }

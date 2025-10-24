@@ -1,0 +1,291 @@
+.bulk-fees-reminders-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  animation: fadeIn 0.3s ease-in;
+
+  @media (max-width: 768px) {
+    padding: 15px;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-header {
+  text-align: center;
+  margin-bottom: 30px;
+
+  h1 {
+    font-size: 2rem;
+    color: #1f2937;
+    margin-bottom: 10px;
+    font-weight: 700;
+
+    @media (max-width: 768px) {
+      font-size: 1.5rem;
+    }
+  }
+
+  .subtitle {
+    color: #6b7280;
+    font-size: 1rem;
+
+    @media (max-width: 768px) {
+      font-size: 0.9rem;
+      padding: 0 10px;
+    }
+  }
+}
+
+.content-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 30px;
+  margin-bottom: 30px;
+
+  @media (max-width: 768px) {
+    padding: 20px;
+    border-radius: 8px;
+  }
+}
+
+.reminder-form {
+  .form-group {
+    margin-bottom: 25px;
+
+    label {
+      display: block;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 8px;
+      font-size: 0.95rem;
+
+      .help-text {
+        display: block;
+        font-weight: 400;
+        color: #6b7280;
+        font-size: 0.85rem;
+        margin-top: 4px;
+        font-style: italic;
+      }
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      background: white;
+
+      &:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+      }
+
+      &:disabled {
+        background-color: #f3f4f6;
+        cursor: not-allowed;
+      }
+
+      @media (max-width: 768px) {
+        padding: 10px 12px;
+        font-size: 0.95rem;
+      }
+    }
+
+    input[type="number"],
+    input[type="date"] {
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: textfield;
+    }
+
+    select {
+      cursor: pointer;
+    }
+  }
+}
+
+.info-box {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 25px;
+
+  h3 {
+    margin: 0 0 15px 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+
+    li {
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 0.95rem;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      strong {
+        font-weight: 600;
+        margin-right: 8px;
+      }
+    }
+  }
+
+  @media (max-width: 768px) {
+    padding: 15px;
+
+    h3 {
+      font-size: 1.1rem;
+    }
+
+    ul li {
+      font-size: 0.9rem;
+    }
+  }
+}
+
+.form-actions {
+  text-align: center;
+  margin-top: 30px;
+
+  .send-btn {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    border: none;
+    padding: 15px 40px;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(16, 185, 129, 0.3);
+    width: 100%;
+    max-width: 400px;
+
+    &:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(16, 185, 129, 0.4);
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    @media (max-width: 768px) {
+      padding: 12px 30px;
+      font-size: 1rem;
+      max-width: 100%;
+    }
+  }
+}
+
+.help-section {
+  background: #f9fafb;
+  border-radius: 12px;
+  padding: 30px;
+  margin-top: 30px;
+
+  h3 {
+    color: #1f2937;
+    font-size: 1.4rem;
+    margin-bottom: 20px;
+    text-align: center;
+
+    @media (max-width: 768px) {
+      font-size: 1.2rem;
+    }
+  }
+
+  .help-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+      gap: 15px;
+    }
+
+    .help-item {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      h4 {
+        color: #3b82f6;
+        font-size: 1.1rem;
+        margin: 0 0 10px 0;
+        font-weight: 600;
+
+        @media (max-width: 768px) {
+          font-size: 1rem;
+        }
+      }
+
+      p {
+        color: #6b7280;
+        font-size: 0.9rem;
+        line-height: 1.6;
+        margin: 0;
+
+        @media (max-width: 768px) {
+          font-size: 0.85rem;
+        }
+      }
+    }
+  }
+
+  @media (max-width: 768px) {
+    padding: 20px;
+  }
+}
+
+// Mobile optimization
+@media (max-width: 480px) {
+  .bulk-fees-reminders-container {
+    padding: 10px;
+  }
+
+  .content-card {
+    padding: 15px;
+  }
+
+  .help-section {
+    padding: 15px;
+  }
+}

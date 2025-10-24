@@ -7,6 +7,7 @@ import { StudentManagementComponent } from './pages/student-management/student-m
 import { SubscriptionComponent } from './pages/subscription/subscription.component';
 import { CommunicationsComponent } from './pages/communications/communications.component';
 import { ManageSchoolComponent } from './pages/manage-school/manage-school.component';
+import { BulkFeesRemindersComponent } from './pages/bulk-fees-reminders/bulk-fees-reminders.component';
 import { authGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
@@ -41,6 +42,11 @@ export const routes: Routes = [
     {
         path: 'manage-school',
         component: ManageSchoolComponent,
+        canActivate: [authGuard]
+    },
+    {
+        path: 'bulk-fees-reminders',
+        component: BulkFeesRemindersComponent,
         canActivate: [authGuard]
     },
     // Add a catch-all route to redirect to dashboard or login

@@ -1,6 +1,7 @@
 
 import express, { Request, Response } from 'express';
 import cors from 'cors';
+import session from 'express-session';
 import { createServer } from 'http';
 import { config } from './config';
 import { query } from './database/database';
@@ -15,6 +16,14 @@ const server = createServer(app);
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Session middleware
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'your_default_session_secret',
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: process.env.NODE_ENV === 'production' }
+}));
 
 // API Routes
 app.use('/api/v1', v1Router);

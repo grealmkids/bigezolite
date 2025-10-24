@@ -26,4 +26,7 @@ router.put('/:id', schoolController.updateSchool);
 // DELETE school by id
 router.delete('/:id', schoolController.deleteSchool);
 
+// POST /api/v1/schools/switch - Switch active school
+router.post('/switch', schoolController.switchSchool);
+
 export default router;

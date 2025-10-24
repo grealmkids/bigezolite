@@ -27,7 +27,41 @@ export const createSchool = async (req: AuthenticatedRequest, res: Response) => 
             ...req.body
         });
 
+        // Automatically switch to the new school
+        if (req.session) {
+            req.session.schoolId = school.school_id;
+        }
+
         res.status(201).json(school);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+export const switchSchool = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const userId = req.user?.userId;
+        if (!userId) {
+            return res.status(403).json({ message: 'Forbidden: User not authenticated.' });
+        }
+
+        const { schoolId } = req.body;
+        if (!schoolId) {
+            return res.status(400).json({ message: 'Missing schoolId in request body.' });
+        }
+
+        const school = await schoolService.findSchoolById(schoolId);
+        if (!school || school.user_id !== userId) {
+            return res.status(403).json({ message: 'Forbidden: User is not associated with this school.' });
+        }
+
+        // Update the schoolId in the session
+        if (req.session) {
+            req.session.schoolId = schoolId;
+        }
+
+        res.status(200).json({ message: 'Switched school successfully.', schoolId });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Internal server error' });

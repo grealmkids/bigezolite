@@ -137,6 +137,7 @@ export class SchoolService {
           this.selectedSchoolType.next(school.school_type);
           try { localStorage.setItem(this.STORAGE_SCHOOL_TYPE, school.school_type); } catch (e) { /* ignore */ }
         }
+        this.switchSchool(school.school_id).subscribe();
       } else {
         localStorage.removeItem(this.STORAGE_KEY);
         try { localStorage.removeItem(this.STORAGE_SCHOOL_TYPE); } catch (e) { /* ignore */ }
@@ -145,6 +146,10 @@ export class SchoolService {
     } catch (e) {
       // ignore storage errors
     }
+  }
+
+  switchSchool(schoolId: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}/schools/switch`, { schoolId });
   }
 
 

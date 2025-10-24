@@ -69,13 +69,17 @@ export const authenticateToken = async (req: AuthenticatedRequest, res: Response
     // Attach the user ID from the token to the request
     req.user = { userId: payload.userId };
 
-    // Also, let's fetch the user's school_id to enforce data isolation on subsequent queries.
-    // This is critical for security as per the PRD.
-    const schoolQuery = 'SELECT school_id FROM schools WHERE user_id = $1';
-    const schoolResult = await query(schoolQuery, [payload.userId]);
+    // Prioritize schoolId from session if available (for school switching)
+    if (req.session && req.session.schoolId) {
+        req.user.schoolId = req.session.schoolId;
+    } else {
+        // Fallback to fetching the user's default school_id for data isolation.
+        const schoolQuery = 'SELECT school_id FROM schools WHERE user_id = $1';
+        const schoolResult = await query(schoolQuery, [payload.userId]);
 
-    if (schoolResult.rows.length > 0) {
-      req.user.schoolId = schoolResult.rows[0].school_id;
+        if (schoolResult.rows.length > 0) {
+            req.user.schoolId = schoolResult.rows[0].school_id;
+        }
     }
 
     console.log('[auth.middleware] token:', token);

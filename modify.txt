@@ -1,3 +1,125 @@
-I have created a new school in http://localhost:4200/create-school
-but the http://localhost:4200/students still shows students of another school with id=2 yet the new school is http://localhost:4200/manage-school?id=3. Also Manage your school data
-SMS Provider Credentials still shows credentials of the school of id=2. i logged out and logged in,hard refreshed,but same issue
+the localstorage shows {school_id: 4, user_id: 3, school_name: "Soki primary school", admin_phone: "0704678948",…}
+account_status
+: 
+"Dormant"
+admin_phone
+: 
+"0704678948"
+created_at
+: 
+"2025-10-24T08:15:38.438Z"
+location_district
+: 
+"Jinja"
+school_id
+: 
+4
+school_name
+: 
+"Soki primary school"
+school_type
+: 
+"Primary School (Local)"
+student_count_range
+: 
+"501-1000"
+user_id
+: 
+3
+
+but the /students table still shows students of school id 2, not the new school i have created of id 4.why? is the table not querying students afresh? it should.when the /students url is loaded, not to use cache or stored values
+
+maybe we change the url http://localhost:4200/students to explicitly  show the school id, and then query the students' data for that particular school id. i believe that will help. let us be explicit.
+
+
+currently the urljust seems to be fetching all student rows regardless the chosen school. this is wrong
+
+[StudentService] GET http://localhost:3000/api/v1/students params: page=0&limit=10&sort=student_name&order=ASC
+student.service.ts:63 [StudentService] response payload: 
+
+{
+    "items": [
+        {
+            "student_id": 17,
+            "reg_number": "BGL2025002",
+            "student_name": "Aisha Mohammed",
+            "class_name": "S.5",
+            "student_status": "Alumni",
+            "fees_status": "Defaulter"
+        },
+        {
+            "student_id": 3,
+            "reg_number": "29139022",
+            "student_name": "Alfred Ochola",
+            "class_name": "S.1",
+            "student_status": "Active",
+            "fees_status": "Pending"
+        },
+        {
+            "student_id": 20,
+            "reg_number": "BGL2025005",
+            "student_name": "Amara Diallo",
+            "class_name": "S.5",
+            "student_status": "Active",
+            "fees_status": "Defaulter"
+        },
+        {
+            "student_id": 24,
+            "reg_number": "BGL2025009",
+            "student_name": "Amina Osei",
+            "class_name": "S.5",
+            "student_status": "Active",
+            "fees_status": "Defaulter"
+        },
+        {
+            "student_id": 18,
+            "reg_number": "BGL2025003",
+            "student_name": "Chioma Okafor",
+            "class_name": "S.6",
+            "student_status": "Active",
+            "fees_status": "Pending"
+        },
+        {
+            "student_id": 2,
+            "reg_number": "29139021",
+            "student_name": "Claire Nanyanzi",
+            "class_name": "S.1",
+            "student_status": "Active",
+            "fees_status": "Pending"
+        },
+        {
+            "student_id": 27,
+            "reg_number": "BGL2025012",
+            "student_name": "Fatou Sow",
+            "class_name": "S.6",
+            "student_status": "Active",
+            "fees_status": "Paid"
+        },
+        {
+            "student_id": 21,
+            "reg_number": "BGL2025006",
+            "student_name": "Kofi Appia",
+            "class_name": "S.3",
+            "student_status": "Active",
+            "fees_status": "Pending"
+        },
+        {
+            "student_id": 16,
+            "reg_number": "BGL2025001",
+            "student_name": "Kwame Mensah",
+            "class_name": "S.6",
+            "student_status": "Active",
+            "fees_status": "Pending"
+        },
+        {
+            "student_id": 26,
+            "reg_number": "BGL2025011",
+            "student_name": "Mandla Nkosi",
+            "class_name": "S.4",
+            "student_status": "Active",
+            "fees_status": "Pending"
+        }
+    ],
+    "total": 14
+}
+fix it but dont mess up anything else

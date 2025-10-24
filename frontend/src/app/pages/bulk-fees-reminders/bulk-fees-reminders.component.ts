@@ -98,6 +98,11 @@ export class BulkFeesRemindersComponent implements OnInit {
     });
   }
 
+  cancelPreview(): void {
+    this.showPreview = false;
+    this.previewData = null;
+  }
+
   sendBulkReminders(): void {
     if (this.thresholdAmount < 0) {
       this.snackBar.open('Please enter a valid threshold amount', 'Close', {
@@ -126,7 +131,7 @@ export class BulkFeesRemindersComponent implements OnInit {
     ).subscribe({
       next: (response) => {
         this.isSending = false;
-        const count = response?.sentCount || 0;
+        const count = this.previewData?.recipientCount || response?.sentCount || 0;
         this.snackBar.open(
           `Successfully sent ${count} fees reminder${count !== 1 ? 's' : ''}!`,
           'Close',
@@ -137,6 +142,8 @@ export class BulkFeesRemindersComponent implements OnInit {
             horizontalPosition: 'center'
           }
         );
+        // Reset preview and go back to settings
+        this.cancelPreview();
       },
       error: (err) => {
         this.isSending = false;

@@ -53,7 +53,9 @@ export class FeeReminderPreviewModalComponent implements OnInit {
   }
 
   formatCurrency(amount: number): string {
-    return `UGX ${amount.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+    // Ensure amount is a number and format with commas, no decimals
+    const numAmount = Number(amount) || 0;
+    return `UGX ${Math.round(numAmount).toLocaleString('en-US')}`;
   }
 
   formatDate(date: Date): string {

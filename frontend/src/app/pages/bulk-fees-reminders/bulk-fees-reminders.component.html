@@ -5,7 +5,8 @@
   </div>
 
   <div class="content-card">
-    <form (ngSubmit)="sendBulkReminders()" class="reminder-form">
+    <!-- Settings Form - Hidden when preview is shown -->
+    <form (ngSubmit)="sendBulkReminders()" class="reminder-form" *ngIf="!showPreview">
       
       <!-- Threshold Amount -->
       <div class="form-group">
@@ -83,29 +84,21 @@
         </ul>
       </div>
 
-      <!-- Action Buttons -->
+      <!-- Preview Button -->
       <div class="form-actions">
         <button
           type="button"
           class="preview-btn"
           (click)="loadPreview()"
-          [disabled]="isLoadingPreview || isSending"
+          [disabled]="isLoadingPreview"
         >
-          <span *ngIf="!isLoadingPreview">👁️ Preview</span>
+          <span *ngIf="!isLoadingPreview">👁️ Preview Campaign</span>
           <span *ngIf="isLoadingPreview">⏳ Loading...</span>
-        </button>
-        <button
-          type="submit"
-          class="send-btn"
-          [disabled]="isSending || !showPreview"
-        >
-          <span *ngIf="!isSending">📧 Send Fees Reminders</span>
-          <span *ngIf="isSending">⏳ Sending...</span>
         </button>
       </div>
     </form>
 
-    <!-- Preview Section -->
+    <!-- Preview Section - Replaces form when shown -->
     <div class="preview-section" *ngIf="showPreview && previewData">
       <h3>📊 Campaign Preview</h3>
       
@@ -150,6 +143,27 @@
             <div class="recipient-col" colspan="3">...and {{ previewData.recipients.length - 10 }} more</div>
           </div>
         </div>
+      </div>
+
+      <!-- Preview Action Buttons -->
+      <div class="preview-actions">
+        <button
+          type="button"
+          class="cancel-btn"
+          (click)="cancelPreview()"
+          [disabled]="isSending"
+        >
+          ← Back to Settings
+        </button>
+        <button
+          type="button"
+          class="send-btn"
+          (click)="sendBulkReminders()"
+          [disabled]="isSending"
+        >
+          <span *ngIf="!isSending">📧 Send Fees Reminders</span>
+          <span *ngIf="isSending">⏳ Sending...</span>
+        </button>
       </div>
     </div>
   </div>

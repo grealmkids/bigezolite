@@ -189,48 +189,12 @@
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);
-    flex: 1;
-    max-width: 200px;
+    width: 100%;
+    max-width: 300px;
 
     &:hover:not(:disabled) {
       transform: translateY(-2px);
       box-shadow: 0 6px 12px rgba(59, 130, 246, 0.4);
-    }
-
-    &:active:not(:disabled) {
-      transform: translateY(0);
-    }
-
-    &:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    @media (max-width: 768px) {
-      padding: 12px 30px;
-      font-size: 1rem;
-      max-width: 100%;
-    }
-  }
-
-  .send-btn {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    color: white;
-    border: none;
-    padding: 15px 40px;
-    border-radius: 8px;
-    font-size: 1.1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 6px rgba(16, 185, 129, 0.3);
-    flex: 1;
-    max-width: 200px;
-
-    &:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 12px rgba(16, 185, 129, 0.4);
     }
 
     &:active:not(:disabled) {
@@ -466,6 +430,69 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+}
+
+.preview-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  margin-top: 25px;
+  padding-top: 20px;
+  border-top: 2px solid #e5e7eb;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+  }
+
+  button {
+    padding: 14px 32px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    @media (max-width: 768px) {
+      padding: 12px 24px;
+      font-size: 1rem;
+    }
+  }
+
+  .cancel-btn {
+    background: #4b5563;
+    color: white;
+    box-shadow: 0 2px 4px rgba(75, 85, 99, 0.3);
+    flex: 1;
+
+    &:hover:not(:disabled) {
+      background: #374151;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(75, 85, 99, 0.4);
+    }
+  }
+
+  .send-btn {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    box-shadow: 0 4px 6px rgba(16, 185, 129, 0.3);
+    flex: 2;
+
+    &:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(16, 185, 129, 0.4);
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(0);
+    }
   }
 }
 

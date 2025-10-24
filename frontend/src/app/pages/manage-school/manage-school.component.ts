@@ -111,7 +111,12 @@ export class ManageSchoolComponent implements OnInit {
     if (!this.school) return;
     const updates = this.schoolForm.value;
     this.schoolService.updateMySchool(this.school.school_id, updates).subscribe(() => {
-      this.snack.open('School updated', undefined, { duration: 2500 });
+      this.snack.open('School updated successfully!', 'Close', { 
+        duration: 3000,
+        panelClass: ['success-snackbar'],
+        verticalPosition: 'top',
+        horizontalPosition: 'center'
+      });
     });
   }
 
@@ -119,21 +124,41 @@ export class ManageSchoolComponent implements OnInit {
     if (!this.school) return;
     if (!confirm('Are you sure you want to delete this school? This action cannot be undone.')) return;
     this.schoolService.deleteMySchool(this.school.school_id).subscribe(() => {
-      this.snack.open('School deleted', undefined, { duration: 2500 });
+      this.snack.open('School deleted successfully!', 'Close', { 
+        duration: 3000,
+        panelClass: ['success-snackbar'],
+        verticalPosition: 'top',
+        horizontalPosition: 'center'
+      });
       this.router.navigate(['/dashboard']);
     });
   }
 
   saveCredentials(): void {
     if (!this.smsUsername || !this.smsPassword) {
-      this.snack.open('Please provide username and password', undefined, { duration: 3000 });
+      this.snack.open('Please provide username and password', 'Close', { 
+        duration: 3000,
+        panelClass: ['error-snackbar'],
+        verticalPosition: 'top',
+        horizontalPosition: 'center'
+      });
       return;
     }
     // call communication service
     // lazy import to avoid circular deps
     this.communicationService.setSmsCredentials(this.smsUsername, this.smsPassword, this.smsProvider).subscribe({
-      next: () => this.snack.open('Credentials saved', undefined, { duration: 2500 }),
-      error: (err: any) => this.snack.open(err?.error?.message || 'Failed to save credentials', 'Dismiss', { duration: 4000 })
+      next: () => this.snack.open('Credentials saved successfully!', 'Close', { 
+        duration: 3000,
+        panelClass: ['success-snackbar'],
+        verticalPosition: 'top',
+        horizontalPosition: 'center'
+      }),
+      error: (err: any) => this.snack.open(err?.error?.message || 'Failed to save credentials', 'Close', { 
+        duration: 4000,
+        panelClass: ['error-snackbar'],
+        verticalPosition: 'top',
+        horizontalPosition: 'center'
+      })
     });
   }
 
@@ -146,10 +171,10 @@ export class ManageSchoolComponent implements OnInit {
       const formatted = (typeof bal === 'number') ? bal.toLocaleString() : String(bal);
       // open a persistent snackbar at the top with a green brand style; user must click Close
       this.snack.open(`SMS Balance: ${formatted}`, 'Close', {
+        duration: 5000,
         verticalPosition: 'top',
         horizontalPosition: 'center',
-        panelClass: ['sms-balance-snackbar']
-        // no duration -> stays open until dismissed by action
+        panelClass: ['success-snackbar']
       });
     });
   }

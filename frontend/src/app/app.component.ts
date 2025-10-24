@@ -112,7 +112,12 @@ export class AppComponent implements OnInit {
         });
       });
     } catch (e) {
-      this.snack.open('Failed to check balance', 'Dismiss', { duration: 3000 });
+      this.snack.open('Failed to check balance', 'Close', { 
+        duration: 3000,
+        panelClass: ['error-snackbar'],
+        verticalPosition: 'top',
+        horizontalPosition: 'center'
+      });
     }
   }
 }

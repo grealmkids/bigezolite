@@ -191,7 +191,12 @@ export class StudentManagementComponent implements OnInit {
       error: (err) => {
         this.isLoading = false;
         const msg = err?.error?.message || 'Failed to load students';
-        this.snack.open(msg, 'OK', { duration: 5000 });
+        this.snack.open(msg, 'Close', { 
+          duration: 5000,
+          panelClass: ['error-snackbar'],
+          verticalPosition: 'top',
+          horizontalPosition: 'center'
+        });
       }
     });
   }

@@ -20,6 +20,7 @@ import { SmsStudentModalComponent } from '../../components/sms-student-modal/sms
 import { SchoolService } from '../../services/school.service';
 import { ClassCategorizationService, SchoolType } from '../../services/class-categorization.service';
 import { LoadingSpinnerComponent } from '../../components/loading-spinner/loading-spinner.component';
+import { PdfExportService } from '../../services/pdf-export.service';
 
 @Component({
   selector: 'app-student-management',
@@ -49,6 +50,9 @@ export class StudentManagementComponent implements OnInit {
   private sortColumn = new BehaviorSubject<string>('student_name');
   private sortDirection = new BehaviorSubject<'ASC' | 'DESC'>('ASC');
 
+  // Track latest search term for exports (avoid changing Subject to BehaviorSubject)
+  private lastSearchTerm: string = '';
+
   // Pagination settings
   pageEvent: PageEvent = {
     pageIndex: 0,
@@ -70,13 +74,15 @@ export class StudentManagementComponent implements OnInit {
   private schoolService: SchoolService,
   private classCategorizationService: ClassCategorizationService,
   private loadingService: LoadingService,
-  private snack: MatSnackBar
+  private snack: MatSnackBar,
+  private pdfExportService: PdfExportService
   ) { }
 
   onSearch(term: string): void {
     // Reset to first page whenever filters/search changes
     this.pageEvent.pageIndex = 0;
     this.pageIndex.next(0);
+    this.lastSearchTerm = term || '';
     this.searchTerms.next(term);
   }
 
@@ -278,5 +284,123 @@ export class StudentManagementComponent implements OnInit {
         this.searchTerms.next(''); // Refresh the list
       });
     }
+  }
+
+  // PDF Export Method
+  downloadPDF(): void {
+    if (this.displayedStudents.length === 0) {
+      this.snack.open('No students to export', 'Close', {
+        duration: 3000,
+        panelClass: ['error-snackbar'],
+        verticalPosition: 'top',
+        horizontalPosition: 'center'
+      });
+      return;
+    }
+
+    // Get all filtered students (not just current page)
+    const schoolId = this.schoolService.getSelectedSchoolId();
+    if (!schoolId) {
+      this.snack.open('No school selected', 'Close', {
+        duration: 3000,
+        panelClass: ['error-snackbar'],
+        verticalPosition: 'top',
+        horizontalPosition: 'center'
+      });
+      return;
+    }
+
+    const searchTerm = this.lastSearchTerm;
+    const classTerm = this.classFilter.value || '';
+    const statusTerm = this.statusFilter.value || '';
+    const yearTerm = this.yearFilter.value || '';
+
+    // Fetch ALL students matching the current filters (no pagination)
+    this.studentService.getStudents(
+      schoolId,
+      searchTerm,
+      classTerm,
+      statusTerm,
+      yearTerm,
+      0,
+      10000, // Large limit to get all students
+      this.sortColumn.value,
+      this.sortDirection.value
+    ).subscribe({
+      next: (resp) => {
+        const allStudents = resp.items || [];
+        
+        if (allStudents.length === 0) {
+          this.snack.open('No students found to export', 'Close', {
+            duration: 3000,
+            panelClass: ['error-snackbar'],
+            verticalPosition: 'top',
+            horizontalPosition: 'center'
+          });
+          return;
+        }
+
+        // Get school info for PDF header (using synchronous approach)
+        let schoolName = 'School Registry';
+        const selectedSchoolId = this.schoolService.getSelectedSchoolId();
+        
+        // Try to get from localStorage
+        try {
+          const schoolData = localStorage.getItem('bigezo_selected_school');
+          if (schoolData) {
+            const school = JSON.parse(schoolData);
+            schoolName = school?.school_name || 'School Registry';
+          }
+        } catch (e) {
+          // Ignore parse errors
+        }
+        
+        // Build filter info string
+        const filters: string[] = [];
+        if (searchTerm) filters.push(`Search: "${searchTerm}"`);
+        if (classTerm) filters.push(`Class: ${classTerm}`);
+        if (statusTerm) filters.push(`Status: ${statusTerm}`);
+        if (yearTerm) filters.push(`Year: ${yearTerm}`);
+        const filterInfo = filters.length > 0 ? filters.join(', ') : undefined;
+
+        // Determine term (you can customize this logic)
+        const currentMonth = new Date().getMonth() + 1;
+        let term = 'Term 1';
+        if (currentMonth >= 5 && currentMonth <= 8) term = 'Term 2';
+        else if (currentMonth >= 9 && currentMonth <= 12) term = 'Term 3';
+
+        // Generate PDF
+        this.pdfExportService.generateStudentListPDF(allStudents, {
+          schoolName: schoolName,
+          term: term,
+          year: yearTerm || new Date().getFullYear().toString(),
+          generatedDate: new Date().toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          }),
+          totalStudents: allStudents.length,
+          filterInfo: filterInfo
+        });
+
+        this.snack.open(`PDF downloaded successfully (${allStudents.length} students)`, 'Close', {
+          duration: 3000,
+          panelClass: ['success-snackbar'],
+          verticalPosition: 'top',
+          horizontalPosition: 'center'
+        });
+      },
+      error: (err) => {
+        console.error('Error fetching students for PDF:', err);
+        this.snack.open('Failed to generate PDF', 'Close', {
+          duration: 5000,
+          panelClass: ['error-snackbar'],
+          verticalPosition: 'top',
+          horizontalPosition: 'center'
+        });
+      }
+    });
   }
 }

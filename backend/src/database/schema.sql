@@ -30,7 +30,7 @@ CREATE TYPE fees_status AS ENUM ('Paid', 'Defaulter', 'Pending');
 CREATE TABLE students (
     student_id SERIAL PRIMARY KEY,
     school_id INT NOT NULL REFERENCES schools(school_id) ON DELETE CASCADE,
-    reg_number VARCHAR(255) UNIQUE NOT NULL,
+    reg_number VARCHAR(255) NOT NULL,
     student_name VARCHAR(255) NOT NULL,
     class_name VARCHAR(100) NOT NULL,
     year_enrolled INT NOT NULL,
@@ -41,7 +41,9 @@ CREATE TABLE students (
     parent_name_mother VARCHAR(255),
     parent_name_father VARCHAR(255),
     residence_district VARCHAR(255) NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT NOW()
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    -- Composite unique constraint: reg_number is unique per school, not globally
+    CONSTRAINT students_reg_number_school_unique UNIQUE (reg_number, school_id)
 );
 
 -- Fees Records Table: Stores fee payment information for each student
@@ -62,7 +64,7 @@ CREATE TABLE fees_records (
 -- Create indexes for foreign keys and frequently queried columns
 CREATE INDEX ON schools (user_id);
 CREATE INDEX ON students (school_id);
-CREATE INDEX ON students (reg_number);
+-- Note: Index on (reg_number, school_id) is automatically created by UNIQUE constraint
 CREATE INDEX ON students (student_name);
 CREATE INDEX ON fees_records (student_id);
 

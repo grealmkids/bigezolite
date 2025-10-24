@@ -12,3 +12,4 @@
     *   Pesapal (`PESAPAL_CONSUMER_KEY`, `PESAPAL_CONSUMER_SECRET`)
 *   Generate a strong, random secret for `JWT_SECRET`.
 *   Configure the `ADMIN_ACCOUNT` with a real administrator email address.
+*

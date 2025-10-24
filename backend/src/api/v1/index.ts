@@ -7,6 +7,7 @@ import feesRoutes from './fees.routes';
 import communicationRoutes from './communication.routes';
 import subscriptionRoutes from './subscription.routes';
 import authRoutes from './auth.routes';
+import analyticsRoutes from './analytics.routes';
 
 const router = Router();
 
@@ -17,5 +18,6 @@ router.use('/fees', feesRoutes);
 router.use('/communications', communicationRoutes);
 router.use('/subscription', subscriptionRoutes);
 router.use('/auth', authRoutes);
+router.use('/analytics', analyticsRoutes);
 
 export default router;

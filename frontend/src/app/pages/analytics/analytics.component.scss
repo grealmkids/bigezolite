@@ -1,0 +1,457 @@
+.analytics-container {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid #e5e7eb;
+
+  .header-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    .header-icon {
+      font-size: 2.5rem;
+      width: 2.5rem;
+      height: 2.5rem;
+      color: #667eea;
+    }
+
+    .page-title {
+      font-size: 2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin: 0;
+    }
+  }
+
+  .refresh-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(102, 126, 234, 0.3);
+
+    mat-icon {
+      font-size: 1.2rem;
+      width: 1.2rem;
+      height: 1.2rem;
+    }
+
+    &:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+}
+
+.loading-container,
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+
+  p {
+    margin-top: 1rem;
+    font-size: 1.1rem;
+    color: #6b7280;
+  }
+
+  .error-icon {
+    font-size: 4rem;
+    width: 4rem;
+    height: 4rem;
+    color: #ef4444;
+  }
+
+  .retry-btn {
+    margin-top: 1rem;
+    padding: 0.75rem 1.5rem;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+    }
+  }
+}
+
+.analytics-content {
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 2.5rem 0 1.5rem;
+
+    mat-icon {
+      font-size: 1.75rem;
+      width: 1.75rem;
+      height: 1.75rem;
+      color: #667eea;
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #1f2937;
+      margin: 0;
+    }
+  }
+
+  .metrics-grid {
+    display: grid;
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+
+    &.primary-metrics {
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    }
+
+    &.secondary-metrics {
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+
+    &.gender-metrics {
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    }
+
+    &.sms-metrics {
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    }
+  }
+
+  .metric-card {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1.75rem;
+    border-radius: 16px;
+    transition: all 0.3s ease;
+    cursor: default;
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+    }
+
+    &:hover {
+      transform: translateY(-4px);
+      
+      &::before {
+        opacity: 0.05;
+      }
+    }
+
+    .metric-icon-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 60px;
+      height: 60px;
+      border-radius: 12px;
+      flex-shrink: 0;
+
+      mat-icon {
+        font-size: 2rem;
+        width: 2rem;
+        height: 2rem;
+      }
+    }
+
+    .metric-content {
+      flex: 1;
+
+      .metric-label {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #6b7280;
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .metric-value {
+        font-size: 2.25rem;
+        font-weight: 700;
+        line-height: 1;
+      }
+
+      .metric-percentage {
+        font-size: 0.875rem;
+        font-weight: 600;
+        margin-top: 0.5rem;
+        opacity: 0.8;
+      }
+
+      .metric-subtext {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin-top: 0.25rem;
+      }
+    }
+
+    // Total Students - Purple
+    &.total {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+
+      .metric-icon-wrapper {
+        background: rgba(255, 255, 255, 0.2);
+        mat-icon { color: white; }
+      }
+      .metric-content {
+        .metric-label, .metric-value { color: white; }
+      }
+      &::before { background: white; }
+    }
+
+    // Active Students - Green
+    &.active {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+
+      .metric-icon-wrapper {
+        background: rgba(255, 255, 255, 0.2);
+        mat-icon { color: white; }
+      }
+      .metric-content {
+        .metric-label, .metric-value { color: white; }
+      }
+      &::before { background: white; }
+    }
+
+    // Alumni - Blue
+    &.alumni {
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+
+      .metric-icon-wrapper {
+        background: rgba(255, 255, 255, 0.2);
+        mat-icon { color: white; }
+      }
+      .metric-content {
+        .metric-label, .metric-value { color: white; }
+      }
+      &::before { background: white; }
+    }
+
+    // Inactive - Slate
+    &.inactive {
+      background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+      box-shadow: 0 4px 12px rgba(100, 116, 139, 0.3);
+
+      .metric-icon-wrapper {
+        background: rgba(255, 255, 255, 0.2);
+        mat-icon { color: white; }
+      }
+      .metric-content {
+        .metric-label, .metric-value { color: white; }
+      }
+      &::before { background: white; }
+    }
+
+    // Expelled - Red
+    &.expelled {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+
+      .metric-icon-wrapper {
+        background: rgba(255, 255, 255, 0.2);
+        mat-icon { color: white; }
+      }
+      .metric-content {
+        .metric-label, .metric-value { color: white; }
+      }
+      &::before { background: white; }
+    }
+
+    // Suspended - Orange
+    &.suspended {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+
+      .metric-icon-wrapper {
+        background: rgba(255, 255, 255, 0.2);
+        mat-icon { color: white; }
+      }
+      .metric-content {
+        .metric-label, .metric-value { color: white; }
+      }
+      &::before { background: white; }
+    }
+
+    // Sick - Pink
+    &.sick {
+      background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+      box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
+
+      .metric-icon-wrapper {
+        background: rgba(255, 255, 255, 0.2);
+        mat-icon { color: white; }
+      }
+      .metric-content {
+        .metric-label, .metric-value { color: white; }
+      }
+      &::before { background: white; }
+    }
+
+    // Boys - Cyan
+    &.boys {
+      background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+      box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+
+      .metric-icon-wrapper {
+        background: rgba(255, 255, 255, 0.2);
+        mat-icon { color: white; }
+      }
+      .metric-content {
+        .metric-label, .metric-value, .metric-percentage { color: white; }
+      }
+      &::before { background: white; }
+    }
+
+    // Girls - Rose
+    &.girls {
+      background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+      box-shadow: 0 4px 12px rgba(244, 63, 94, 0.3);
+
+      .metric-icon-wrapper {
+        background: rgba(255, 255, 255, 0.2);
+        mat-icon { color: white; }
+      }
+      .metric-content {
+        .metric-label, .metric-value, .metric-percentage { color: white; }
+      }
+      &::before { background: white; }
+    }
+
+    // SMS Balance - Emerald
+    &.sms-balance {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+
+      .metric-icon-wrapper {
+        background: rgba(255, 255, 255, 0.2);
+        mat-icon { color: white; }
+      }
+      .metric-content {
+        .metric-label, .metric-value { color: white; }
+      }
+      &::before { background: white; }
+    }
+
+    // SMS Count - Indigo
+    &.sms-count {
+      background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+
+      .metric-icon-wrapper {
+        background: rgba(255, 255, 255, 0.2);
+        mat-icon { color: white; }
+      }
+      .metric-content {
+        .metric-label, .metric-value, .metric-subtext { color: white; }
+      }
+      &::before { background: white; }
+    }
+  }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .analytics-container {
+    padding: 1rem;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+
+    .refresh-btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  .analytics-content {
+    .metrics-grid {
+      grid-template-columns: 1fr !important;
+    }
+
+    .metric-card {
+      padding: 1.25rem;
+
+      .metric-icon-wrapper {
+        width: 50px;
+        height: 50px;
+
+        mat-icon {
+          font-size: 1.75rem;
+          width: 1.75rem;
+          height: 1.75rem;
+        }
+      }
+
+      .metric-content {
+        .metric-value {
+          font-size: 1.75rem;
+        }
+      }
+    }
+  }
+}

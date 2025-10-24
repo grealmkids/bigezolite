@@ -27,6 +27,7 @@ export class StudentModalComponent implements OnInit, OnChanges {
   loadingClasses = false;
   isEditMode = false;
   studentStatuses: string[] = ['Active', 'Inactive', 'Expelled', 'Alumni', 'Suspended', 'Sick'];
+  genders: string[] = ['Boy', 'Girl'];
   districts: string[] = [
     'Abim','Adjumani','Agago','Alebtong','Amolatar','Amudat','Amuria','Amuru','Apac','Arua','Budaka','Bududa','Bugiri','Bugweri','Bugutu','Buikwe','Bukedea','Bukomansimbi','Bukwa','Bulambuli','Buliisa','Bundibugyo','Bushenyi','Busia','Butaleja','Butambala','Buvuma','Buyende','Dokolo','Gomba','Gulu','Hoima','Ibanda','Iganga','Isingiro','Jinja','Kaabong','Kabale','Kabarole','Kaberamaido','Kalangala','Kaliro','Kalungu','Kampala','Kamuli','Kamwenge','Kanungu','Kapchorwa','Kasese','Katakwi','Kayunga','Kazo','Kibaale','Kiboga','Kibuku','Kisoro','Kitatta','Kitgum','Koboko','Kole','Kotido','Kumi','Kwania','Kween','Kyegegwa','Kyenjojo','Kyaka','Kyankwanzi','Kyotera','Lamwo','Lira','Luuka','Luwero','Lwengo','Lyantonde','Manafwa','Maracha','Mbarara','Mbale','Mitooma','Mityana','Moroto','Moyo','Mpigi','Mukono','Nabilatuk','Nakapiripirit','Nakaseke','Nakasongola','Namayingo','Namisindwa','Namutumba','Napak','Nebbi','Ngora','Ntoroko','Ntungamo','Nwoya','Omoro','Otuke','Pader','Pakwach','Pallisa','Rakai','Rubirizi','Rukiga','Rukungiri','Sembabule','Serere','Sheema','Sironko','Soroti','Tororo','Wakiso','Yumbe'
   ];
@@ -43,6 +44,7 @@ export class StudentModalComponent implements OnInit, OnChanges {
       class_name: ['', Validators.required],
       year_enrolled: [new Date().getFullYear(), Validators.required],
       student_status: ['Active', Validators.required],
+      gender: ['', Validators.required],
       parent_primary_name: ['', Validators.required],
       parent_phone_sms: ['', Validators.required],
       parent_name_mother: [''],
@@ -76,6 +78,7 @@ export class StudentModalComponent implements OnInit, OnChanges {
           class_name: this.student?.class_name || '',
           year_enrolled: (this.student as any)?.year_enrolled || new Date().getFullYear(),
           student_status: this.student?.student_status || 'Active',
+          gender: (this.student as any)?.gender || '',
           parent_primary_name: (this.student as any)?.parent_primary_name || '',
           parent_phone_sms: this.student?.parent_phone_sms || '',
           parent_name_mother: (this.student as any)?.parent_name_mother || '',
@@ -85,7 +88,7 @@ export class StudentModalComponent implements OnInit, OnChanges {
       }, 0);
     } else {
       this.isEditMode = false;
-      this.studentForm.reset({ year_enrolled: new Date().getFullYear(), student_status: 'Active' });
+      this.studentForm.reset({ year_enrolled: new Date().getFullYear(), student_status: 'Active', gender: '' });
     }
   }
 

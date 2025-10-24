@@ -2,7 +2,7 @@
 export const updateStudentById = async (schoolId: number, studentId: number, updates: Partial<Student>) => {
     // Build dynamic SQL for only provided fields
     const allowedFields: (keyof Student)[] = [
-        'student_name', 'class_name', 'year_enrolled', 'student_status',
+        'student_name', 'class_name', 'year_enrolled', 'student_status', 'gender',
         'parent_primary_name', 'parent_phone_sms', 'parent_name_mother', 'parent_name_father', 'residence_district'
     ];
     const setClauses: string[] = [];
@@ -56,8 +56,8 @@ export const createStudent = async (student: Omit<Student, 'student_id' | 'reg_n
     const reg_number = `${schoolId}${phoneLastSix}${counter}`;
 
     const sql = `
-        INSERT INTO students (school_id, reg_number, student_name, class_name, year_enrolled, student_status, parent_primary_name, parent_phone_sms, parent_name_mother, parent_name_father, residence_district)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+        INSERT INTO students (school_id, reg_number, student_name, class_name, year_enrolled, student_status, gender, parent_primary_name, parent_phone_sms, parent_name_mother, parent_name_father, residence_district)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
         RETURNING *
     `;
 
@@ -68,6 +68,7 @@ export const createStudent = async (student: Omit<Student, 'student_id' | 'reg_n
         student.class_name,
         student.year_enrolled,
         student.student_status || 'Active', // Default to active
+        student.gender || 'Not Specified',
         student.parent_primary_name,
         student.parent_phone_sms,
         student.parent_name_mother,

@@ -1,0 +1,174 @@
+<div class="analytics-container">
+  <div class="page-header">
+    <div class="header-content">
+      <mat-icon class="header-icon">analytics</mat-icon>
+      <h1 class="page-title">School Analytics Dashboard</h1>
+    </div>
+    <button class="refresh-btn" (click)="refresh()" [disabled]="loading">
+      <mat-icon>refresh</mat-icon>
+      Refresh
+    </button>
+  </div>
+
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Loading analytics...</p>
+  </div>
+
+  <div *ngIf="error && !loading" class="error-container">
+    <mat-icon class="error-icon">error_outline</mat-icon>
+    <p>{{ error }}</p>
+    <button class="retry-btn" (click)="refresh()">Try Again</button>
+  </div>
+
+  <div *ngIf="analytics && !loading" class="analytics-content">
+    <!-- Primary Metrics Section -->
+    <div class="section-header">
+      <mat-icon>school</mat-icon>
+      <h2>Student Overview</h2>
+    </div>
+    
+    <div class="metrics-grid primary-metrics">
+      <mat-card class="metric-card total">
+        <div class="metric-icon-wrapper">
+          <mat-icon>groups</mat-icon>
+        </div>
+        <div class="metric-content">
+          <div class="metric-label">Total Students</div>
+          <div class="metric-value">{{ analytics.totalStudents }}</div>
+        </div>
+      </mat-card>
+
+      <mat-card class="metric-card active">
+        <div class="metric-icon-wrapper">
+          <mat-icon>check_circle</mat-icon>
+        </div>
+        <div class="metric-content">
+          <div class="metric-label">Active Students</div>
+          <div class="metric-value">{{ analytics.activeStudents }}</div>
+        </div>
+      </mat-card>
+
+      <mat-card class="metric-card alumni">
+        <div class="metric-icon-wrapper">
+          <mat-icon>school</mat-icon>
+        </div>
+        <div class="metric-content">
+          <div class="metric-label">Alumni</div>
+          <div class="metric-value">{{ analytics.alumniStudents }}</div>
+        </div>
+      </mat-card>
+
+      <mat-card class="metric-card inactive">
+        <div class="metric-icon-wrapper">
+          <mat-icon>pause_circle</mat-icon>
+        </div>
+        <div class="metric-content">
+          <div class="metric-label">Inactive</div>
+          <div class="metric-value">{{ analytics.inactiveStudents }}</div>
+        </div>
+      </mat-card>
+    </div>
+
+    <!-- Status Breakdown Section -->
+    <div class="section-header">
+      <mat-icon>pie_chart</mat-icon>
+      <h2>Status Breakdown</h2>
+    </div>
+
+    <div class="metrics-grid secondary-metrics">
+      <mat-card class="metric-card expelled">
+        <div class="metric-icon-wrapper">
+          <mat-icon>block</mat-icon>
+        </div>
+        <div class="metric-content">
+          <div class="metric-label">Expelled</div>
+          <div class="metric-value">{{ analytics.expelledStudents }}</div>
+        </div>
+      </mat-card>
+
+      <mat-card class="metric-card suspended">
+        <div class="metric-icon-wrapper">
+          <mat-icon>warning</mat-icon>
+        </div>
+        <div class="metric-content">
+          <div class="metric-label">Suspended</div>
+          <div class="metric-value">{{ analytics.suspendedStudents }}</div>
+        </div>
+      </mat-card>
+
+      <mat-card class="metric-card sick">
+        <div class="metric-icon-wrapper">
+          <mat-icon>local_hospital</mat-icon>
+        </div>
+        <div class="metric-content">
+          <div class="metric-label">Sick</div>
+          <div class="metric-value">{{ analytics.sickStudents }}</div>
+        </div>
+      </mat-card>
+    </div>
+
+    <!-- Gender Distribution Section -->
+    <div class="section-header">
+      <mat-icon>wc</mat-icon>
+      <h2>Active Students by Gender</h2>
+    </div>
+
+    <div class="metrics-grid gender-metrics">
+      <mat-card class="metric-card boys">
+        <div class="metric-icon-wrapper">
+          <mat-icon>boy</mat-icon>
+        </div>
+        <div class="metric-content">
+          <div class="metric-label">Active Boys</div>
+          <div class="metric-value">{{ analytics.activeBoys }}</div>
+          <div class="metric-percentage" *ngIf="analytics.activeStudents > 0">
+            {{ (analytics.activeBoys / analytics.activeStudents * 100).toFixed(1) }}%
+          </div>
+        </div>
+      </mat-card>
+
+      <mat-card class="metric-card girls">
+        <div class="metric-icon-wrapper">
+          <mat-icon>girl</mat-icon>
+        </div>
+        <div class="metric-content">
+          <div class="metric-label">Active Girls</div>
+          <div class="metric-value">{{ analytics.activeGirls }}</div>
+          <div class="metric-percentage" *ngIf="analytics.activeStudents > 0">
+            {{ (analytics.activeGirls / analytics.activeStudents * 100).toFixed(1) }}%
+          </div>
+        </div>
+      </mat-card>
+    </div>
+
+    <!-- SMS Account Section -->
+    <div class="section-header">
+      <mat-icon>sms</mat-icon>
+      <h2>SMS Account Balance</h2>
+    </div>
+
+    <div class="metrics-grid sms-metrics">
+      <mat-card class="metric-card sms-balance">
+        <div class="metric-icon-wrapper">
+          <mat-icon>account_balance_wallet</mat-icon>
+        </div>
+        <div class="metric-content">
+          <div class="metric-label">Account Balance</div>
+          <div class="metric-value">{{ analytics.smsBalance | currency:'UGX ':'symbol':'1.0-0' }}</div>
+        </div>
+      </mat-card>
+
+      <mat-card class="metric-card sms-count">
+        <div class="metric-icon-wrapper">
+          <mat-icon>message</mat-icon>
+        </div>
+        <div class="metric-content">
+          <div class="metric-label">SMS Credits Available</div>
+          <div class="metric-value">{{ analytics.smsCount }}</div>
+          <div class="metric-subtext">messages</div>
+        </div>
+      </mat-card>
+    </div>
+  </div>
+</div>

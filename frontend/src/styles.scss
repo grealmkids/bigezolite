@@ -17,6 +17,10 @@
   --color-secondary: #0059b3;
   --color-green:#0cc151;
 }
+.welcometext{font-family: "Inspiration", cursive;
+  font-weight: 400;
+  font-size: 80px;
+  font-style: normal;}
 mat-nav-list mat-icon{margin-right: 10px !important;}
 /* When on auth pages (login/register) hide the global toolbar and set dark background */
 body.auth-bg {

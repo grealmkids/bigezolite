@@ -3,7 +3,7 @@
 <ng-container *ngIf="isLoggedIn; else authPages">
   <ng-container *ngIf="showSidenav; else simpleShell">
     <mat-sidenav-container class="sidenav-container">
-      <mat-sidenav #sidenav mode="side" opened class="sidenav">
+      <mat-sidenav #sidenav [mode]="sidenavMode" [opened]="sidenavOpened" class="sidenav">
         <h2 class="logo">BIGEZO</h2>
         <div
           class="current-school-block"
@@ -33,6 +33,7 @@
             mat-list-item
             routerLink="/dashboard"
             routerLinkActive="active-link"
+            (click)="onNavItemClicked()"
           >
             <mat-icon mat-list-icon>dashboard</mat-icon>
             <span mat-line>Dashboard</span>
@@ -42,6 +43,7 @@
             mat-list-item
             routerLink="/students"
             routerLinkActive="active-link"
+            (click)="onNavItemClicked()"
           >
             <mat-icon mat-list-icon>people</mat-icon>
             <span mat-line>Students</span>
@@ -50,6 +52,7 @@
             mat-list-item
             routerLink="/communications"
             routerLinkActive="active-link"
+            (click)="onNavItemClicked()"
           >
             <mat-icon mat-list-icon>email</mat-icon>
             <span mat-line>Bulk SMS</span>
@@ -58,6 +61,7 @@
             mat-list-item
             routerLink="/bulk-fees-reminders"
             routerLinkActive="active-link"
+            (click)="onNavItemClicked()"
           >
             <mat-icon mat-list-icon>notifications_active</mat-icon>
             <span mat-line>Bulk Fees Reminders</span>
@@ -66,11 +70,12 @@
             mat-list-item
             routerLink="/analytics"
             routerLinkActive="active-link"
+            (click)="onNavItemClicked()"
           >
             <mat-icon mat-list-icon>analytics</mat-icon>
             <span mat-line>Analytics</span>
           </a>
-          <a mat-list-item (click)="checkBalance()" class="check-balance-item">
+          <a mat-list-item (click)="checkBalance(); onNavItemClicked()" class="check-balance-item">
             <mat-icon mat-list-icon>account_balance</mat-icon>
             <span mat-line>Check Balance</span>
           </a>
@@ -78,6 +83,7 @@
             mat-list-item
             routerLink="/subscription"
             routerLinkActive="active-link"
+            (click)="onNavItemClicked()"
           >
             <mat-icon mat-list-icon>card_membership</mat-icon>
             <span mat-line>Subscription</span>

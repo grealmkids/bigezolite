@@ -17,6 +17,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { CommunicationService } from './services/communication.service';
 import { Subscription } from 'rxjs';
 import { take } from 'rxjs/operators';
+import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 
 @Component({
   selector: 'app-root',
@@ -44,9 +45,15 @@ export class AppComponent implements OnInit {
   public schoolService = inject(SchoolService);
   private communicationService = inject(CommunicationService);
   private snack = inject(MatSnackBar);
+  private breakpointObserver = inject(BreakpointObserver);
   hasSchool = false;
   showSidenav = true;
   private subs: Subscription[] = [];
+
+  // Responsive sidenav state
+  isSmallScreen = false;
+  sidenavMode: 'over' | 'side' = 'side';
+  sidenavOpened = true;
 
   @ViewChild('sidenav') sidenav!: MatSidenav;
 
@@ -82,6 +89,20 @@ export class AppComponent implements OnInit {
       const url = this.router.url.split('?')[0];
       this.showSidenav = !(url === '/dashboard');
     });
+
+    // Observe screen size to toggle sidenav behavior
+    this.breakpointObserver.observe([Breakpoints.Handset]).subscribe(result => {
+      this.isSmallScreen = result.matches;
+      if (this.isSmallScreen) {
+        this.sidenavMode = 'over';
+        this.sidenavOpened = false; // collapsed by default on small screens
+        try { if (this.sidenav) this.sidenav.close(); } catch {}
+      } else {
+        this.sidenavMode = 'side';
+        this.sidenavOpened = true;
+        try { if (this.sidenav) this.sidenav.open(); } catch {}
+      }
+    });
   }
 
   get isLoggedIn(): boolean {
@@ -98,6 +119,13 @@ export class AppComponent implements OnInit {
   }
 
   // Called from template to quickly check SMS balance (delegates to CommunicationService)
+  onNavItemClicked(): void {
+    // Collapse sidenav on small screens after navigation selection
+    if (this.isSmallScreen && this.sidenav && this.sidenav.opened) {
+      this.sidenav.close();
+    }
+  }
+
   checkBalance(): void {
     try {
       this.communicationService.fetchSmsCreditBalance();

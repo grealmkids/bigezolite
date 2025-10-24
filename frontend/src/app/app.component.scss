@@ -94,6 +94,14 @@
   background-color: rgba(255, 193, 7, 0.2) !important;
   font-weight: 700 !important;
   border-left: 4px solid #ffc107 !important;
+  border-bottom: 2px solid #ffffff; /* visual indicator as requested */
+}
+
+@media (max-width: 768px) {
+  ::ng-deep .active-link {
+    border-left: none !important;
+    border-bottom: 2px solid #ffffff !important;
+  }
 }
 
 .mat-toolbar {

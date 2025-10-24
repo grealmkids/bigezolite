@@ -14,15 +14,16 @@ import { take } from 'rxjs/operators';
   imports: [CommonModule, ReactiveFormsModule, FormsModule, MatSnackBarModule],
   template: `
     <div class="manage-school card">
-      <h2 class="welcome-admin" style="color: #0f172a;">Welcome Admin</h2>
-      <p class="manage-message" style="color: #2563eb; font-weight:700;">Manage your school data</p>
+      <h2 class="welcometext" >Welcome</h2>
+     
       <div class="credentials-section">
         <div class="credentials-card">
           <div class="card-header">
-            <h3>SMS Provider Credentials</h3>
-            <p class="section-sub">Only administrators can update provider credentials used to send school SMS.</p>
+           
+           
           </div>
           <ng-container *ngIf="isAdmin; else notAdmin">
+             <h3>SMS Provider Credentials</h3>
             <form (ngSubmit)="saveCredentials()" class="credentials-form">
             <div class="row floating">
               <input id="smsUsername" type="text" placeholder=" " [(ngModel)]="smsUsername" name="smsUsername" />
@@ -46,7 +47,7 @@ import { take } from 'rxjs/operators';
             </form>
           </ng-container>
         <ng-template #notAdmin>
-          <p class="muted">You do not have permission to manage SMS credentials.</p>
+          
         </ng-template>
       </div>
     </div>

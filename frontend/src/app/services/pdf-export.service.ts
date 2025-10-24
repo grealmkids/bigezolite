@@ -37,7 +37,7 @@ export class PdfExportService {
     // ========== HEADER SECTION (Professional Adobe-style) ==========
     
     // Background gradient effect (simulated with filled rectangles)
-    doc.setFillColor(41, 98, 255); // Modern blue
+    doc.setFillColor(0, 89, 179); // #0059b3
     doc.rect(0, 0, pageWidth, 35, 'F');
     
     // Accent stripe
@@ -89,15 +89,22 @@ export class PdfExportService {
     // ========== TABLE SECTION (Adobe-quality styling) ==========
     
     // Prepare table data
-    const tableData = students.map((student, index) => [
-      index + 1,
-      student.reg_number?.replace(/-/g, '') || '',
-      student.student_name || '',
-      student.class_name || '',
-      student.student_status || '',
-      student.fees_status || '',
-      student.parent_phone_sms || ''
-    ]);
+    const tableData = students.map((student, index) => {
+      // Debug: log if parent_phone_sms is missing
+      if (!student.parent_phone_sms) {
+        console.warn('Missing parent_phone_sms for student:', student.student_name, student);
+      }
+      
+      return [
+        index + 1,
+        student.reg_number?.replace(/-/g, '') || '',
+        student.student_name || '',
+        student.class_name || '',
+        student.student_status || '',
+        student.fees_status || '',
+        student.parent_phone_sms || 'N/A'
+      ];
+    });
 
     // Table styling with vivid colors and professional design
     autoTable(doc, {
@@ -198,7 +205,8 @@ export class PdfExportService {
           data.cell.styles.fontStyle = 'bold';
         }
       },
-      margin: { left: 14, right: 14 }
+      margin: { left: 14, right: 14 },
+      tableWidth: 'auto'
     });
 
     // ========== FOOTER SECTION ==========
@@ -230,6 +238,13 @@ export class PdfExportService {
       doc.setTextColor(120, 120, 120);
       doc.text('This is an official computer-generated document.', 
         pageWidth / 2, summaryY + 11, { align: 'center' });
+      
+      // Branding line
+      doc.setFontSize(6.5);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(100, 100, 100);
+      doc.text('Bigezolite, a product of G-Realm Studio', 
+        pageWidth / 2, summaryY + 14, { align: 'center' });
     }
 
     // Page footer on every page

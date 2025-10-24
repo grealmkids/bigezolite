@@ -192,7 +192,30 @@
 @media (max-width: 700px) {
   .page-header h1 {
     font-size: 1.5rem !important;
+    margin-bottom: 0.5rem;
   }
+
+  /* Show icon-only actions row on mobile, hide desktop refresh/download buttons */
+  .header-actions-mobile {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+  }
+  .header-actions .download-pdf-btn,
+  .header-actions .refresh-btn {
+    display: none !important;
+  }
+  .icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 8px;
+    border: 1px solid rgba(0,0,0,0.15);
+    background: #fff;
+  }
+  .icon-btn[disabled] { opacity: 0.6; }
   
   .student-table {
     min-width: 650px; // Force horizontal scroll

@@ -119,16 +119,25 @@ export const getSchoolById = async (req: AuthenticatedRequest, res: Response) =>
 export const updateSchool = async (req: AuthenticatedRequest, res: Response) => {
     try {
         const id = parseInt(req.params.id, 10);
+        console.log('[updateSchool] id:', id, 'userId:', req.user?.userId, 'updates:', req.body);
+        
         const school = await schoolService.findSchoolById(id);
-        if (!school) return res.status(404).json({ message: 'School not found' });
+        if (!school) {
+            console.log('[updateSchool] School not found:', id);
+            return res.status(404).json({ message: 'School not found' });
+        }
 
-        if (school.user_id !== req.user?.userId) return res.status(403).json({ message: 'Forbidden' });
+        if (school.user_id !== req.user?.userId) {
+            console.log('[updateSchool] Forbidden: school.user_id', school.user_id, 'vs req.user.userId', req.user?.userId);
+            return res.status(403).json({ message: 'Forbidden' });
+        }
 
         const updates = req.body as Partial<schoolService.School>;
         const updated = await schoolService.updateSchoolById(id, updates);
+        console.log('[updateSchool] Success:', updated);
         res.status(200).json(updated);
     } catch (error) {
-        console.error(error);
+        console.error('[updateSchool] Error:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
 };

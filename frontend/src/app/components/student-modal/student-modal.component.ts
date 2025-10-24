@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { Student, StudentService, StudentData } from '../../services/student.service';
 import { SchoolService } from '../../services/school.service';
 import { ClassCategorizationService, SchoolType } from '../../services/class-categorization.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { take, of } from 'rxjs';
 import { switchMap, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { School } from '../../services/school.service';
@@ -34,7 +35,8 @@ export class StudentModalComponent implements OnInit, OnChanges {
     private fb: FormBuilder, 
     private studentService: StudentService,
     private schoolService: SchoolService,
-    private classCategorizationService: ClassCategorizationService
+    private classCategorizationService: ClassCategorizationService,
+    private snackBar: MatSnackBar
     ) {
     this.studentForm = this.fb.group({
       student_name: ['', Validators.required],
@@ -106,6 +108,13 @@ export class StudentModalComponent implements OnInit, OnChanges {
 
     operation.subscribe({
       next: () => {
+        const successMessage = this.isEditMode ? 'Student updated successfully!' : 'Student created successfully!';
+        this.snackBar.open(successMessage, 'Close', {
+          duration: 3000,
+          panelClass: ['success-snackbar'],
+          verticalPosition: 'top',
+          horizontalPosition: 'center'
+        });
         this.studentUpserted.emit();
         this.close.emit();
       },

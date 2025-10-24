@@ -105,9 +105,10 @@ export class AppComponent implements OnInit {
       this.communicationService.smsCreditBalance$.pipe(take(1)).subscribe(bal => {
         const formatted = (typeof bal === 'number') ? bal.toLocaleString() : String(bal);
         this.snack.open(`SMS Balance: ${formatted}`, 'Close', {
+          duration: 5000,
           verticalPosition: 'top',
           horizontalPosition: 'center',
-          panelClass: ['sms-balance-snackbar']
+          panelClass: ['success-snackbar']
         });
       });
     } catch (e) {

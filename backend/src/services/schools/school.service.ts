@@ -10,19 +10,21 @@ export interface School {
     location_district: string;
     student_count_range: string;
     school_type: string; // Added during schema review
+    accountant_number?: string; // RSVP/Mobile Money number for fees
     account_status?: 'Dormant' | 'Active' | 'Suspended';
 }
 
 export const createSchool = async (school: School) => {
     const sql = `
-        INSERT INTO schools (user_id, school_name, admin_phone, location_district, student_count_range, school_type)
-        VALUES ($1, $2, $3, $4, $5, $6)
+        INSERT INTO schools (user_id, school_name, admin_phone, accountant_number, location_district, student_count_range, school_type)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING *
     `;
     const params = [
         school.user_id,
         school.school_name,
         school.admin_phone,
+        school.accountant_number,
         school.location_district,
         school.student_count_range,
         school.school_type

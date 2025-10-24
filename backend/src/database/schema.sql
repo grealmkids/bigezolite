@@ -16,6 +16,7 @@ CREATE TABLE schools (
     user_id INT REFERENCES users(user_id),
     school_name VARCHAR(255) NOT NULL,
     admin_phone VARCHAR(255) NOT NULL,
+    accountant_number VARCHAR(255), -- RSVP/Mobile Money number for fee payments
     location_district VARCHAR(255) NOT NULL,
     student_count_range VARCHAR(50),
     school_type VARCHAR(100), -- e.g., 'Nursery', 'Primary', 'Secondary', 'International'

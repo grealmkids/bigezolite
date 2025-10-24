@@ -33,6 +33,7 @@ export class CreateSchoolComponent {
     this.schoolForm = this.fb.group({
       school_name: ['', Validators.required],
       admin_phone: ['', Validators.required],
+      accountant_number: ['', Validators.required],
       location_district: ['', Validators.required],
       school_type: ['', Validators.required],
       student_count_range: ['', Validators.required]

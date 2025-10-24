@@ -39,29 +39,49 @@ export class FeesManagementModalComponent implements OnInit {
     if (this.student) {
       this.loadFeeRecords();
     }
-    this.schoolService.getMySchool().subscribe(school => {
-      if (school) {
-        this.feeForm.patchValue({ rsvp_number: school.accountant_number });
-      }
-    });
+    // Pre-fill RSVP number from school's accountant_number if available
+    const schoolId = this.schoolService.getSelectedSchoolId();
+    if (schoolId) {
+      this.schoolService.selectedSchool$.subscribe(school => {
+        if (school && school.accountant_number) {
+          this.feeForm.patchValue({ rsvp_number: school.accountant_number });
+        }
+      });
+    }
   }
 
   loadFeeRecords(): void {
     if (this.student) {
-      this.feesService.getFeeRecords(this.student.student_id).subscribe(records => {
-        this.feeRecords = records;
+      this.feesService.getFeeRecords(this.student.student_id).subscribe({
+        next: (records) => {
+          this.feeRecords = records;
+          console.log('[FeesModal] Loaded fee records:', records);
+        },
+        error: (err) => {
+          console.error('[FeesModal] Error loading fee records:', err);
+          this.feeRecords = [];
+        }
       });
     }
   }
 
   onAddFeeRecord(): void {
     if (this.feeForm.invalid || !this.student) {
+      console.warn('[FeesModal] Form invalid or no student', { invalid: this.feeForm.invalid, student: this.student });
       return;
     }
     const newRecord: NewFeeRecord = this.feeForm.value;
-    this.feesService.createFeeRecord(this.student.student_id, newRecord).subscribe(() => {
-      this.loadFeeRecords(); // Refresh the list
-      this.feeForm.reset({ term: 1, year: new Date().getFullYear() }); // Reset form
+    console.log('[FeesModal] Creating fee record:', newRecord, 'for student:', this.student.student_id);
+    this.feesService.createFeeRecord(this.student.student_id, newRecord).subscribe({
+      next: (result) => {
+        console.log('[FeesModal] Fee record created successfully:', result);
+        this.loadFeeRecords(); // Refresh the list
+        this.feeForm.reset({ term: 1, year: new Date().getFullYear() }); // Reset form
+      },
+      error: (err) => {
+        console.error('[FeesModal] Error creating fee record:', err);
+        alert(`Failed to create fee record: ${err?.error?.message || err?.message || 'Unknown error'}`);
+      }
     });
   }
 
@@ -77,9 +97,17 @@ export class FeesManagementModalComponent implements OnInit {
 
   onUpdateFeeRecord(recordId: number): void {
     if (this.editingAmountPaid !== null) {
-        this.feesService.updateFeeRecord(recordId, this.editingAmountPaid).subscribe(() => {
+        console.log('[FeesModal] Updating fee record:', recordId, 'amount:', this.editingAmountPaid);
+        this.feesService.updateFeeRecord(recordId, this.editingAmountPaid).subscribe({
+          next: (result) => {
+            console.log('[FeesModal] Fee record updated successfully:', result);
             this.loadFeeRecords(); // Refresh the list
             this.cancelEditing(); // Exit edit mode and reset
+          },
+          error: (err) => {
+            console.error('[FeesModal] Error updating fee record:', err);
+            alert(`Failed to update fee record: ${err?.error?.message || err?.message || 'Unknown error'}`);
+          }
         });
     }
   }

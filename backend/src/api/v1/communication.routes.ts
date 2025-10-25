@@ -1,12 +1,13 @@
 
 import { Router } from 'express';
-import { sendBulkSms, sendSingleSms, getSmsCreditBalance, setSmsCredentials, getSmsCredentials, sendFeesReminder, sendBulkFeesReminders, previewBulkFeesReminders } from '../../services/communication/communication.controller';
+import { sendBulkSms, sendSingleSms, getSmsCreditBalance, setSmsCredentials, getSmsCredentials, sendFeesReminder, sendBulkFeesReminders, previewBulkFeesReminders, previewBulkSms } from '../../services/communication/communication.controller';
 import { authMiddleware } from '../../middleware/auth.middleware';
 import { checkSubscription } from '../../middleware/subscription.middleware';
 
 const router = Router();
 
 router.get('/credits', authMiddleware, checkSubscription, getSmsCreditBalance);
+router.post('/bulk-sms/preview', authMiddleware, checkSubscription, previewBulkSms);
 router.post('/bulk-sms', authMiddleware, checkSubscription, sendBulkSms);
 router.post('/single-sms', authMiddleware, checkSubscription, sendSingleSms);
 router.post('/fees-reminder/:studentId', authMiddleware, checkSubscription, sendFeesReminder);

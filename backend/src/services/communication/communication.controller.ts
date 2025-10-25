@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../../middleware/auth.middleware';
-import { getSmsCredits, processBulkSms, processSingleSms, processFeesReminder, processBulkFeesReminders, previewBulkFeesRemindersData } from './communication.service';
+import { getSmsCredits, processBulkSms, processSingleSms, processFeesReminder, processBulkFeesReminders, previewBulkFeesRemindersData, previewBulkSmsData } from './communication.service';
 import { getSmsCredentialsForSchool } from './smsCredentials.service';
 import { checkBalance } from '../../utils/sms.util';
 import { upsertSmsAccount, addSmsTransaction } from './smsAccount.service';
@@ -33,6 +33,20 @@ export const getSmsCreditBalance = async (req: AuthenticatedRequest, res: Respon
         // Try to include provider/network details if available
         const providerMessage = error?.message || (error?.response && error.response.data) || null;
         return res.status(500).json({ message: 'Error fetching SMS credit balance', details: providerMessage });
+    }
+};
+
+export const previewBulkSms = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const schoolIdFromQuery = req.query.schoolId ? Number(req.query.schoolId) : null;
+        const schoolId = schoolIdFromQuery || req.user?.schoolId;
+        if (!schoolId) return res.status(401).json({ message: 'Unauthorized: missing school context' });
+        const { recipientFilter } = req.body;
+        const preview = await previewBulkSmsData(schoolId, recipientFilter);
+        return res.status(200).json(preview);
+    } catch (error: any) {
+        const statusCode = error?.statusCode || 500;
+        return res.status(statusCode).json({ message: error?.message || 'Error generating bulk SMS preview', details: error?.details });
     }
 };
 
@@ -117,7 +131,8 @@ export const sendFeesReminder = async (req: AuthenticatedRequest, res: Response)
 // Preview bulk fees reminders before sending
 export const previewBulkFeesReminders = async (req: AuthenticatedRequest, res: Response) => {
     try {
-        const schoolId = req.user?.schoolId;
+        const schoolIdFromQuery = req.query.schoolId ? Number(req.query.schoolId) : null;
+        const schoolId = schoolIdFromQuery || req.user?.schoolId;
         if (!schoolId) return res.status(401).json({ message: 'Unauthorized: missing school context' });
         const { thresholdAmount, classFilter, statusFilter, customDeadline, year, term, feesStatus, messageType, messageTemplate } = req.body;
         if (thresholdAmount == null || thresholdAmount < 0) return res.status(400).json({ message: 'Valid threshold amount is required' });
@@ -132,7 +147,8 @@ export const previewBulkFeesReminders = async (req: AuthenticatedRequest, res: R
 // Send bulk fees reminders with filters
 export const sendBulkFeesReminders = async (req: AuthenticatedRequest, res: Response) => {
     try {
-        const schoolId = req.user?.schoolId;
+        const schoolIdFromQuery = req.query.schoolId ? Number(req.query.schoolId) : null;
+        const schoolId = schoolIdFromQuery || req.user?.schoolId;
         if (!schoolId) return res.status(401).json({ message: 'Unauthorized: missing school context' });
         const { thresholdAmount, classFilter, statusFilter, customDeadline, year, term, feesStatus, messageType, messageTemplate } = req.body;
         if (thresholdAmount == null || thresholdAmount < 0) return res.status(400).json({ message: 'Valid threshold amount is required' });

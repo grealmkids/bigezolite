@@ -30,11 +30,60 @@
     </div>
 
     <div class="send-action">
-      <button class="btn btn-primary" (click)="sendBulkSms()" [disabled]="!message || isSending">
-        <span *ngIf="!isSending">Send Bulk SMS</span>
-        <span *ngIf="isSending">Sending...</span>
-      </button>
+      <button class="btn btn-secondary" (click)="calculate()" [disabled]="!message || isSending">Calculate</button>
       <p class="credits-info">Your current SMS credit balance is: <strong>{{ communicationService.smsCreditBalance$ | async }}</strong></p>
+    </div>
+
+    <!-- Modal Overlay -->
+    <div class="modal-overlay" *ngIf="isPreview && preview" (click)="closePreview()">
+      <div class="preview-modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Campaign Preview</h3>
+          <button class="close-btn" (click)="closePreview()" type="button">&times;</button>
+        </div>
+        
+        <div class="modal-body">
+          <div class="preview-stats">
+            <div class="stat-item">
+              <span class="stat-label">Recipients</span>
+              <span class="stat-value">{{ preview.recipientCount }}</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Estimated Cost</span>
+              <span class="stat-value">UGX {{ preview.estimatedCost | number:'1.0-0' }}</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Current Balance</span>
+              <span class="stat-value" [class.insufficient]="preview.currentBalance < preview.estimatedCost">UGX {{ preview.currentBalance | number:'1.0-0' }}</span>
+            </div>
+          </div>
+          
+          <div class="balance-check" *ngIf="preview.currentBalance < preview.estimatedCost">
+            <div class="warning-message">
+              <strong>⚠️ Insufficient Balance</strong>
+              <p>You need UGX {{ (preview.estimatedCost - preview.currentBalance) | number:'1.0-0' }} more to send this campaign.</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="closePreview()" type="button">Cancel</button>
+          <button class="btn btn-success" 
+                  *ngIf="preview.currentBalance >= preview.estimatedCost" 
+                  (click)="sendBulkSms()" 
+                  [disabled]="isSending"
+                  type="button">
+            <span *ngIf="!isSending">Send Campaign</span>
+            <span *ngIf="isSending">Sending...</span>
+          </button>
+          <button class="btn btn-danger" 
+                  *ngIf="preview.currentBalance < preview.estimatedCost" 
+                  (click)="router.navigate(['/subscription'])"
+                  type="button">
+            Top Up Balance
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </div>

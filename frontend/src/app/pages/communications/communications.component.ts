@@ -6,6 +6,7 @@ import { ClassCategorizationService, SchoolType } from '../../services/class-cat
 import { debounceTime, distinctUntilChanged, take } from 'rxjs/operators';
 import { CommunicationService } from '../../services/communication.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-communications',
@@ -21,12 +22,15 @@ export class CommunicationsComponent implements OnInit {
   recipientFilter = 'All Students';
   classes: string[] = [];
   isSending = false;
+  isPreview = false;
+  preview: { recipientCount: number; estimatedCost: number; currentBalance: number } | null = null;
 
   constructor(
     private schoolService: SchoolService,
     private classCategorizationService: ClassCategorizationService,
     public communicationService: CommunicationService,
-    private snack: MatSnackBar
+    private snack: MatSnackBar,
+    public router: Router
   ) { }
 
    ngOnInit(): void {
@@ -49,6 +53,28 @@ export class CommunicationsComponent implements OnInit {
     this.smsCreditsConsumed = Math.ceil(message.length / 160);
   }
 
+  calculate(): void {
+    this.isPreview = false; this.preview = null;
+    console.log('[BulkSMS][calc][payload]', { recipientFilter: this.recipientFilter });
+    this.communicationService.previewBulkSms(this.recipientFilter).subscribe({
+      next: (resp: any) => {
+        console.log('[BulkSMS][calc][response]', resp);
+        this.preview = { recipientCount: resp?.recipientCount || 0, estimatedCost: resp?.estimatedCost || 0, currentBalance: resp?.currentBalance || 0 };
+        this.isPreview = true;
+        this.communicationService.fetchSmsCreditBalance();
+      },
+      error: (err) => {
+        console.error('[BulkSMS][calc][error]', err);
+        this.snack.open(err?.error?.message || 'Failed to calculate bulk SMS', 'Close', { duration: 4000, panelClass: ['error-snackbar'], verticalPosition: 'top', horizontalPosition: 'center' });
+      }
+    });
+  }
+
+  closePreview(): void {
+    this.isPreview = false;
+    this.preview = null;
+  }
+
   sendBulkSms(): void {
     if (!this.message) return;
     this.isSending = true;
@@ -62,6 +88,8 @@ export class CommunicationsComponent implements OnInit {
         this.snack.open(`Sent ${sent} SMS${failed ? `, ${failed} failed` : ''}.`, 'Close', { duration: 4000, panelClass: ['success-snackbar'], verticalPosition: 'top', horizontalPosition: 'center' });
         this.message = '';
         this.recipientFilter = 'All Students';
+        this.isPreview = false;
+        this.preview = null;
         this.communicationService.fetchSmsCreditBalance();
       },
       error: (err) => {

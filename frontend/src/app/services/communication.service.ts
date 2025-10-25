@@ -23,6 +23,15 @@ export class CommunicationService {
     });
   }
 
+  previewBulkSms(recipientFilter: string): Observable<any> {
+    const schoolId = this.schoolService.getSelectedSchoolId();
+    const q = schoolId ? `?schoolId=${schoolId}` : '';
+    const url = `${this.apiUrl}/bulk-sms/preview${q}`;
+    const body = { recipientFilter };
+    console.log('[HTTP][POST]', url, body);
+    return this.http.post(url, body);
+  }
+
   sendBulkSms(recipientFilter: string, message: string): Observable<any> {
     const schoolId = this.schoolService.getSelectedSchoolId();
     const q = schoolId ? `?schoolId=${schoolId}` : '';
@@ -71,7 +80,9 @@ export class CommunicationService {
     if (term) body.term = term;
     if (feesStatus) body.feesStatus = feesStatus;
     if (messageTemplate != null) body.messageTemplate = messageTemplate;
-    const url = `${this.apiUrl}/bulk-fees-reminders/preview`;
+    const schoolId = this.schoolService.getSelectedSchoolId();
+    const q = schoolId ? `?schoolId=${schoolId}` : '';
+    const url = `${this.apiUrl}/bulk-fees-reminders/preview${q}`;
     console.log('[HTTP][POST]', url, body);
     return this.http.post(url, body);
   }
@@ -95,7 +106,9 @@ export class CommunicationService {
     if (term) body.term = term;
     if (feesStatus) body.feesStatus = feesStatus;
     if (messageTemplate != null) body.messageTemplate = messageTemplate;
-    const url = `${this.apiUrl}/bulk-fees-reminders`;
+    const schoolId = this.schoolService.getSelectedSchoolId();
+    const q = schoolId ? `?schoolId=${schoolId}` : '';
+    const url = `${this.apiUrl}/bulk-fees-reminders${q}`;
     console.log('[HTTP][POST]', url, body);
     return this.http.post(url, body);
   }

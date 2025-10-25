@@ -1,5 +1,3 @@
-.welcometext{font-family: "Inspiration", cursive;
-  font-weight: 400;
-  font-size: 40px;
-  font-style: normal;}
+The second major edit we can make on this modal is to add a button on top "Send SMS report" which drafts a different kind of sms in the preview to send the parent a summarized report of their fees payment history? I am also thinking of allowing the admin to modify the previewed sms so that the edited version from the text-input is the one that is sent to the parent. This is because schools dont only collect school fees, but also other fees like sports fees, etc. so can we have a new side
+
 DO NOT MESS UP OTHER FEATURES PLEASE

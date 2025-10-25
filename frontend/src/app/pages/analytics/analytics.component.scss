@@ -200,10 +200,11 @@
     }
   }
 
-  .metric-card {
-    display: flex;
+.metric-card {
+    display: grid;
+    grid-template-columns: 72px 1fr; /* left: icon, right: label/value */
     align-items: center;
-    gap: 1.5rem;
+    gap: 1rem;
     padding: 1.75rem;
     border-radius: 16px;
     transition: all 0.3s ease;
@@ -231,14 +232,14 @@
       }
     }
 
-    .metric-icon-wrapper {
+.metric-icon-wrapper {
       display: flex;
       align-items: center;
       justify-content: center;
       width: 60px;
       height: 60px;
       border-radius: 12px;
-      flex-shrink: 0;
+      grid-column: 1;
 
       mat-icon {
         font-size: 2rem;
@@ -247,8 +248,8 @@
       }
     }
 
-    .metric-content {
-      flex: 1;
+.metric-content {
+      grid-column: 2;
 
       .metric-label {
         font-size: 0.875rem;

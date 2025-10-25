@@ -104,20 +104,40 @@
       
       <div class="analytics-grid">
         <div class="analytics-card">
-          <div class="analytics-label">Recipients</div>
-          <div class="analytics-value">{{ previewData.recipientCount }}</div>
+          <div class="card-left">
+            <div class="card-icon">👥</div>
+          </div>
+          <div class="card-right">
+            <div class="analytics-label">Recipients</div>
+            <div class="analytics-value">{{ previewData.recipientCount }}</div>
+          </div>
         </div>
         <div class="analytics-card">
-          <div class="analytics-label">Total Balance</div>
-          <div class="analytics-value">UGX {{ previewData.totalBalance | number:'1.0-0' }}</div>
+          <div class="card-left">
+            <div class="card-icon">💵</div>
+          </div>
+          <div class="card-right">
+            <div class="analytics-label">Total Balance</div>
+            <div class="analytics-value">UGX {{ previewData.totalBalance | number:'1.0-0' }}</div>
+          </div>
         </div>
         <div class="analytics-card">
-          <div class="analytics-label">Estimated Cost</div>
-          <div class="analytics-value">UGX {{ previewData.estimatedCost | number:'1.0-0' }}</div>
+          <div class="card-left">
+            <div class="card-icon">💸</div>
+          </div>
+          <div class="card-right">
+            <div class="analytics-label">Estimated Cost</div>
+            <div class="analytics-value">UGX {{ previewData.estimatedCost | number:'1.0-0' }}</div>
+          </div>
         </div>
         <div class="analytics-card">
-          <div class="analytics-label">Message Length</div>
-          <div class="analytics-value">{{ previewData.messageLength }} chars ({{ previewData.smsUnits }} SMS)</div>
+          <div class="card-left">
+            <div class="card-icon">✉️</div>
+          </div>
+          <div class="card-right">
+            <div class="analytics-label">Message Length</div>
+            <div class="analytics-value">{{ previewData.messageLength }} chars ({{ previewData.smsUnits }} SMS)</div>
+          </div>
         </div>
       </div>
 

@@ -226,3 +226,25 @@
     }
   }
 }
+
+/* Mode toggle buttons */
+.mode-toggle {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.toggle-btn {
+  padding: 0.4rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: #fff;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.toggle-btn.active {
+  background: #0f172a;
+  color: #ffb36b;
+  border-color: #0f172a;
+}

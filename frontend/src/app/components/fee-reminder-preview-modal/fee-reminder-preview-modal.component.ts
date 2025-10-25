@@ -5,6 +5,7 @@ import { Student } from '../../services/student.service';
 import { FeeRecord } from '../../services/fees.service';
 import { CommunicationService } from '../../services/communication.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { SchoolService, School } from '../../services/school.service';
 
 @Component({
   selector: 'app-fee-reminder-preview-modal',
@@ -21,35 +22,62 @@ export class FeeReminderPreviewModalComponent implements OnInit {
 
   message: string = '';
   isSending: boolean = false;
+  mode: 'single' | 'report' = 'single';
+  schoolName: string = '';
+  rsvpNumber: string = '';
 
   constructor(
     private communicationService: CommunicationService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private schoolService: SchoolService
   ) {}
 
   ngOnInit(): void {
+    try {
+      const sel = this.schoolService['selectedSchool']?.value as School | null;
+      if (sel) {
+        this.schoolName = sel.school_name || '';
+        this.rsvpNumber = sel.accountant_number || '';
+      } else {
+        const raw = localStorage.getItem('bigezo_selected_school');
+        if (raw) {
+          const s = JSON.parse(raw);
+          this.schoolName = s?.school_name || '';
+          this.rsvpNumber = s?.accountant_number || '';
+        }
+      }
+    } catch {}
     this.generateMessage();
   }
 
   generateMessage(): void {
-    if (!this.student || !this.feeRecord || this.allFeeRecords.length === 0) {
-      this.message = '';
+    if (!this.student) { this.message = ''; return; }
+
+    if (this.mode === 'report') {
+      // Summarized report across records (limit to 3 recent terms)
+      const records = [...(this.allFeeRecords || [])].sort((a,b)=> (b.year - a.year) || (b.term - a.term));
+      const top = records.slice(0, 3);
+      const totalPaid = records.reduce((sum, r) => sum + (r.amount_paid || 0), 0);
+      const totalDue = records.reduce((sum, r) => sum + (r.total_fees_due || 0), 0);
+      const totalBal = totalDue - totalPaid;
+      const lines = top.map(r => `T${r.term} ${r.year}: Bal ${this.formatCurrency(r.balance_due || 0)}`);
+      const school = this.schoolName ? ` from ${this.schoolName}` : '';
+      const rsvp = this.rsvpNumber ? ` RSVP: ${this.rsvpNumber}` : '';
+      this.message = `Fees report for ${this.student.student_name}${school}. ${lines.join('; ')}. Total Paid ${this.formatCurrency(totalPaid)}, Balance ${this.formatCurrency(totalBal)}.${rsvp}`;
       return;
     }
 
-    // Calculate total amount paid and total balance from all records
-    const totalPaid = this.allFeeRecords.reduce((sum, record) => sum + (record.amount_paid || 0), 0);
-    const totalBalance = this.allFeeRecords.reduce((sum, record) => sum + (record.balance_due || 0), 0);
-
-    // Format amounts without decimals
-    const formattedPaid = this.formatCurrency(totalPaid);
-    const formattedBalance = this.formatCurrency(totalBalance);
-
-    // Format due date as DD-MMM-YYYY
+    // Single-record message (based on selected feeRecord)
+    if (!this.feeRecord) { this.message = ''; return; }
+    const paid = this.feeRecord.amount_paid || 0;
+    const bal = this.feeRecord.balance_due || 0;
+    const total = this.feeRecord.total_fees_due || 0;
+    const termYear = `Term ${this.feeRecord.term}, ${this.feeRecord.year}`;
     const dueDate = this.feeRecord.due_date ? this.formatDate(new Date(this.feeRecord.due_date)) : '';
+    const school = this.schoolName ? ` at ${this.schoolName}` : '';
+    const rsvp = this.rsvpNumber ? ` RSVP: ${this.rsvpNumber}` : '';
     const deadlineText = dueDate ? ` before ${dueDate}` : '';
-
-    this.message = `Dear parent of ${this.student.student_name}, you have so far paid ${formattedPaid}. Kindly pay the remaining School fees balance of ${formattedBalance}${deadlineText}.`;
+    this.message = `Dear parent of ${this.student.student_name}${school}, ${termYear}: Paid ${this.formatCurrency(paid)} of ${this.formatCurrency(total)}. Balance ${this.formatCurrency(bal)}${deadlineText}.${rsvp}`;
   }
 
   formatCurrency(amount: number): string {
@@ -79,7 +107,8 @@ export class FeeReminderPreviewModalComponent implements OnInit {
     }
 
     this.isSending = true;
-    this.communicationService.sendFeesReminder(this.student.student_id).subscribe({
+    // Send the composed message for this student
+    this.communicationService.sendSingleSms(this.student.student_id, this.message).subscribe({
       next: () => {
         this.isSending = false;
         this.snackBar.open('Fees reminder sent successfully!', 'Close', {

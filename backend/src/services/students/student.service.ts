@@ -98,6 +98,7 @@ export const findStudentsBySchool = async (
     statusTerm?: string,
     feesStatusTerm?: string,
     yearTerm?: string,
+    termTerm?: string,
     page: number = 0,
     limit: number = 0,
     sort: string = 'student_name',
@@ -136,14 +137,17 @@ export const findStudentsBySchool = async (
     // Build derived fees aggregates subquery once
     const feesJoin = `LEFT JOIN (
         SELECT student_id,
+               COUNT(*)::INT AS rec_count,
                COALESCE(SUM(total_fees_due),0) AS total_due,
                COALESCE(SUM(amount_paid),0) AS total_paid
         FROM fees_records
         GROUP BY student_id
     ) fr ON fr.student_id = students.student_id`;
 
-    // Derived fees status expression
-    const derivedStatus = `CASE WHEN COALESCE(fr.total_due,0) - COALESCE(fr.total_paid,0) <= 0 THEN 'Paid'
+    // Derived fees status expression (Empty if no records)
+    const derivedStatus = `CASE WHEN NOT EXISTS (SELECT 1 FROM fees_records fx WHERE fx.student_id = students.student_id)
+                                THEN 'Empty'
+                                WHEN COALESCE(fr.total_due,0) - COALESCE(fr.total_paid,0) <= 0 THEN 'Paid'
                                 WHEN COALESCE(fr.total_paid,0) > 0 THEN 'Pending'
                                 ELSE 'Defaulter' END`;
 
@@ -153,7 +157,8 @@ export const findStudentsBySchool = async (
         const balanceExpr = `(COALESCE(fr.total_due,0) - COALESCE(fr.total_paid,0))`;
         const paidExpr = `COALESCE(fr.total_paid,0)`;
         if (termLc === 'paid') {
-            where += ` AND ${balanceExpr} <= 0`;
+            // paid means balance <= 0 AND there must be at least one record
+            where += ` AND ${balanceExpr} <= 0 AND EXISTS (SELECT 1 FROM fees_records fx WHERE fx.student_id = students.student_id)`;
         } else if (termLc === 'pending' || termLc === 'partially paid') {
             // Partially paid: balance > 0 and some payment made
             where += ` AND ${balanceExpr} > 0 AND ${paidExpr} > 0`;
@@ -163,8 +168,18 @@ export const findStudentsBySchool = async (
         }
     }
 
+    // Optional join to student_terms if filtering by year+term
+    let stJoin = '';
+    const termNum = termTerm ? Number(termTerm) : null;
+    const yearNum = yearTerm ? Number(yearTerm) : null;
+    if (termNum && yearNum) {
+        stJoin = ` JOIN student_terms st ON st.student_id = students.student_id AND st.year = $${idx} AND st.term = $${idx + 1} AND st.presence = TRUE`;
+        params.push(yearNum, termNum);
+        idx += 2;
+    }
+
     // Total count (with join)
-    const countSql = `SELECT COUNT(*) AS total FROM students ${feesJoin} ${where}`;
+    const countSql = `SELECT COUNT(*) AS total FROM students ${feesJoin} ${stJoin} ${where}`;
     const countResult = await query(countSql, params);
     const total = parseInt(countResult.rows[0]?.total || '0', 10);
 
@@ -182,7 +197,7 @@ export const findStudentsBySchool = async (
     // Select with ordering and optional pagination (select derived fees_status)
     let sql = `SELECT students.student_id, students.reg_number, students.student_name, students.class_name, students.student_status,
                       ${derivedStatus} AS fees_status, students.parent_phone_sms
-               FROM students ${feesJoin} ${where}
+               FROM students ${feesJoin} ${stJoin} ${where}
                ORDER BY ${sortColumn} ${sortOrder}`;
     if (limit && limit > 0) {
         sql += ` LIMIT $${idx} OFFSET $${idx + 1}`;

@@ -64,6 +64,21 @@ export const createFeeRecord = async (studentId: number, feeData: any) => {
     ];
     const result = await query(sql, params);
     
+    // Upsert student term presence for this year/term
+    try {
+        const upsertSql = `
+            INSERT INTO student_terms (school_id, student_id, year, term, class_name_at_term, status_at_term, presence)
+            SELECT s.school_id, s.student_id, $1, $2, s.class_name, s.student_status, TRUE
+            FROM students s WHERE s.student_id = $3
+            ON CONFLICT (student_id, year, term)
+            DO UPDATE SET presence = TRUE, class_name_at_term = EXCLUDED.class_name_at_term, status_at_term = EXCLUDED.status_at_term
+        `;
+        await query(upsertSql, [feeData.year, feeData.term, studentId]);
+    } catch (e) {
+        // non-fatal; presence can be managed separately
+        console.warn('[fees.service] student_terms upsert failed (create):', (e as any)?.message || e);
+    }
+
     // After creating a record, update the student's overall fees status
     await updateStudentFeesStatus(studentId);
 
@@ -83,18 +98,32 @@ export const findFeeRecordsByStudent = async (studentId: number) => {
  * Updates a fee record, typically to add a payment.
  */
 export const updateFeeRecord = async (feeRecordId: number, updateData: { amount_paid: number }) => {
-    const recordQuery = 'SELECT student_id, total_fees_due FROM fees_records WHERE fee_record_id = $1';
+    const recordQuery = 'SELECT student_id, total_fees_due, year, term FROM fees_records WHERE fee_record_id = $1';
     const recordResult = await query(recordQuery, [feeRecordId]);
     
     if (recordResult.rows.length === 0) {
         throw new Error('Fee record not found');
     }
 
-    const { student_id, total_fees_due } = recordResult.rows[0];
+    const { student_id, total_fees_due, year, term } = recordResult.rows[0];
     // balance_due is generated; only update amount_paid. Postgres will compute balance_due automatically.
     const sql = 'UPDATE fees_records SET amount_paid = $1, updated_at = NOW() WHERE fee_record_id = $2 RETURNING *';
     const params = [updateData.amount_paid, feeRecordId];
     const result = await query(sql, params);
+
+    // Upsert student term presence for this year/term
+    try {
+        const upsertSql = `
+            INSERT INTO student_terms (school_id, student_id, year, term, class_name_at_term, status_at_term, presence)
+            SELECT s.school_id, s.student_id, $1, $2, s.class_name, s.student_status, TRUE
+            FROM students s WHERE s.student_id = $3
+            ON CONFLICT (student_id, year, term)
+            DO UPDATE SET presence = TRUE, class_name_at_term = EXCLUDED.class_name_at_term, status_at_term = EXCLUDED.status_at_term
+        `;
+        await query(upsertSql, [year, term, student_id]);
+    } catch (e) {
+        console.warn('[fees.service] student_terms upsert failed (update):', (e as any)?.message || e);
+    }
 
     // After updating a record, update the student's overall fees status
     await updateStudentFeesStatus(student_id);

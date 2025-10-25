@@ -41,7 +41,7 @@ export class StudentService {
 
   constructor(private http: HttpClient) { }
 
-  getStudents(schoolId: number, searchTerm?: string, classTerm?: string, statusTerm?: string, feesStatusTerm?: string, yearTerm?: string, page: number = 0, pageSize: number = 10, sort: string = 'student_name', order: string = 'ASC'): Observable<{ items: Student[]; total: number }> {
+  getStudents(schoolId: number, searchTerm?: string, classTerm?: string, statusTerm?: string, feesStatusTerm?: string, yearTerm?: string, term?: string, page: number = 0, pageSize: number = 10, sort: string = 'student_name', order: string = 'ASC'): Observable<{ items: Student[]; total: number }> {
     let params = new HttpParams()
       .append('schoolId', schoolId.toString())
       .append('page', page.toString())
@@ -63,6 +63,9 @@ export class StudentService {
     }
     if (yearTerm) {
       params = params.append('year', yearTerm);
+    }
+    if (term) {
+      params = params.append('term', term);
     }
   const url = this.apiUrl;
     console.log('[StudentService] GET', url, 'params:', params.toString());
@@ -121,6 +124,10 @@ export class StudentService {
         return throwError(() => err);
       })
     );
+  }
+
+  upsertStudentTerm(studentId: number, year: number, term: number, presence = true, statusAtTerm?: string, classAtTerm?: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/${studentId}/terms`, { year, term, presence, status_at_term: statusAtTerm, class_name_at_term: classAtTerm });
   }
 
   sendSms(studentId: number, message: string): Observable<void> {

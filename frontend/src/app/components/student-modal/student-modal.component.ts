@@ -54,6 +54,7 @@ export class StudentModalComponent implements OnInit, OnChanges {
       parent_name_mother: [''],
       parent_name_father: [''],
       residence_district: ['', Validators.required],
+      joining_term: [''],
     });
   }
 
@@ -114,8 +115,17 @@ export class StudentModalComponent implements OnInit, OnChanges {
       : this.studentService.createStudent(formValue, schoolId || undefined);
 
     operation.subscribe({
-      next: () => {
+      next: (created: any) => {
         const successMessage = this.isEditMode ? 'Student updated successfully!' : 'Student created successfully!';
+        // If joining_term provided and it's a create, upsert presence
+        if (!this.isEditMode) {
+          const term = Number(this.studentForm.get('joining_term')?.value || 0);
+          const year = Number(this.studentForm.get('year_enrolled')?.value || new Date().getFullYear());
+          if (term && created?.student_id) {
+            this.studentService.upsertStudentTerm(created.student_id, year, term, true, this.studentForm.get('student_status')?.value, this.studentForm.get('class_name')?.value)
+              .pipe(take(1)).subscribe({ next: ()=>{}, error: ()=>{} });
+          }
+        }
         this.snackBar.open(successMessage, 'Close', {
           duration: 3000,
           panelClass: ['success-snackbar'],

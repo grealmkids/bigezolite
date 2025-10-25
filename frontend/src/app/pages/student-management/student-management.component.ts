@@ -216,7 +216,7 @@ export class StudentManagementComponent implements OnInit {
         }
         // For per-term fees view, fetch students without backend feesStatus filtering to avoid masking term balances
         const effectiveFeesStatus = (feesStatusTerm && feesStatusTerm.trim()) ? '' : feesStatusTerm;
-        return this.studentService.getStudents(schoolId, searchTerm, classTerm, statusTerm, effectiveFeesStatus, yearTerm, page, limit, sort, order);
+        return this.studentService.getStudents(schoolId, searchTerm, classTerm, statusTerm, effectiveFeesStatus, yearTerm, termSel || '', page, limit, sort, order);
       })
     );
 
@@ -474,6 +474,7 @@ export class StudentManagementComponent implements OnInit {
       statusTerm,
       feesStatusTerm,
       yearTerm,
+      this.termFilter.value || '',
       0,
       10000, // Large limit to get all students
       this.sortColumn.value,

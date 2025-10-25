@@ -110,7 +110,7 @@ export const getStudents = async (req: AuthenticatedRequest, res: Response) => {
             return res.status(403).json({ message: 'Forbidden: You do not have access to this school.' });
         }
 
-        const { search, class: classTerm, status, feesStatus, year, sort, order } = req.query;
+        const { search, class: classTerm, status, feesStatus, year, term, sort, order } = req.query;
         const feesStatusParam = typeof feesStatus === 'string' ? feesStatus : undefined;
         const normalizedFeesStatus = (feesStatusParam && feesStatusParam.toLowerCase() === 'partially paid') ? 'Pending' : feesStatusParam;
 
@@ -125,6 +125,7 @@ export const getStudents = async (req: AuthenticatedRequest, res: Response) => {
             status as string | undefined,
             normalizedFeesStatus as string | undefined,
             year as string | undefined,
+            term as string | undefined,
             page,
             limit,
             sort as string | undefined,

@@ -58,7 +58,12 @@
           </thead>
           <tbody>
             <tr *ngFor="let record of feeRecords">
-              <td>Term {{ record.term }}, {{ record.year }}</td>
+              <td>
+                Term {{ record.term }}, {{ record.year }}
+                <span class="fees-status-badge" [ngClass]="feesClassFromLabel(deriveFeesStatus(record.total_fees_due, record.amount_paid, record.balance_due))">
+                  {{ deriveFeesStatus(record.total_fees_due, record.amount_paid, record.balance_due) }}
+                </span>
+              </td>
               <td>{{ record.total_fees_due | currency:'UGX ':'symbol':'1.0-0' }}</td>
               <td>
                 <ng-container *ngIf="editingRecordId !== record.fee_record_id; else editAmountPaid">
@@ -68,7 +73,9 @@
                     <input type="number" [(ngModel)]="editingAmountPaid">
                 </ng-template>
               </td>
-              <td>{{ record.balance_due | currency:'UGX ':'symbol':'1.0-0' }}</td>
+              <td [ngClass]="(record.balance_due || 0) > 0 ? 'amount-neg' : 'amount-pos'">
+                {{ record.balance_due | currency:'UGX ':'symbol':'1.0-0' }}
+              </td>
               <td>{{ record.due_date | date:'mediumDate' }}</td>
               <td class="actions">
                 <ng-container *ngIf="editingRecordId !== record.fee_record_id; else saveCancelButtons">

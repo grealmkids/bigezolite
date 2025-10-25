@@ -62,7 +62,23 @@ doc.text(`Total Students: ${header.totalStudents}`, rightX, metaY, { align: 'rig
 
     // Table
     const head = [['#', 'Reg Number', 'Student Name', 'Class', 'Fees Status', 'Term', 'Year', 'Total Due', 'Paid', 'Balance', 'Parent Phone']];
-    const body = rows.map((r, i) => [i + 1, r.reg, r.name, r.klass, (r.feesStatus || '').toLowerCase() === 'pending' ? 'Partially Paid' : (r.feesStatus || ''), r.term ?? '', r.year ?? '', r.total ?? '', r.paid ?? '', r.balance ?? '', r.phone]);
+    const fmt0 = (n: any) => {
+      const v = Number(n || 0);
+      return v.toLocaleString('en-US', { maximumFractionDigits: 0 });
+    };
+    const body = rows.map((r, i) => [
+      i + 1,
+      r.reg,
+      r.name,
+      r.klass,
+      (r.feesStatus || '').toLowerCase() === 'pending' ? 'Partially Paid' : (r.feesStatus || ''),
+      r.term ?? '',
+      r.year ?? '',
+      fmt0(r.total),
+      fmt0(r.paid),
+      fmt0(r.balance),
+      r.phone
+    ]);
 
     autoTable(doc, {
       startY: header.filterInfo ? metaY + 8 : metaY + 2,
@@ -77,11 +93,18 @@ doc.text(`Total Students: ${header.totalStudents}`, rightX, metaY, { align: 'rig
       },
       alternateRowStyles: { fillColor: [245,247,250] },
       didParseCell: (data) => {
+        if (data.column.index === 9 && data.section === 'body') {
+          // Balance color: red if > 0 else green
+          const raw = (data.cell.raw as string) || '0';
+          const numeric = Number(String(raw).replace(/[^0-9.-]/g, '')) || 0;
+          data.cell.styles.textColor = numeric > 0 ? [198, 40, 40] : [46, 125, 50];
+          data.cell.styles.fontStyle = 'bold';
+        }
         if (data.column.index === 4 && data.section === 'body') {
           const status = (data.cell.raw as string || '').toLowerCase();
           let bg: [number,number,number] = [255,255,255]; let tx: [number,number,number] = [40,40,40];
           if (status === 'paid') { bg = [198,246,213]; tx = [22,163,74]; }
-          if (status === 'pending') { bg = [254,243,199]; tx = [202,138,4]; }
+          if (status === 'pending' || status === 'partially paid') { bg = [227,242,253]; tx = [25,118,210]; }
           if (status === 'defaulter') { bg = [254,202,202]; tx = [220,38,38]; }
           data.cell.styles.fillColor = bg; data.cell.styles.textColor = tx; data.cell.styles.fontStyle = 'bold';
         }
@@ -270,13 +293,13 @@ doc.text(`Total Students: ${header.totalStudents}`, rightX, metaY, { align: 'rig
           
           switch (status?.toLowerCase()) {
             case 'paid':
-              bgColor = [198, 246, 213]; // Vivid green
+              bgColor = [198, 246, 213]; // Green tint
               textColor = [22, 163, 74];
               break;
             case 'pending':
             case 'partially paid':
-              bgColor = [254, 243, 199]; // Vivid yellow
-              textColor = [202, 138, 4];
+              bgColor = [227, 242, 253]; // Light blue
+              textColor = [25, 118, 210]; // Brand blue
               break;
             case 'defaulter':
               bgColor = [254, 202, 202]; // Vivid red

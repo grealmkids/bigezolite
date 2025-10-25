@@ -143,4 +143,19 @@ export class FeesManagementModalComponent implements OnInit {
     this.showReminderPreview = false;
     this.selectedFeeRecord = null;
   }
+
+  // Helpers for UI coloring and status
+  deriveFeesStatus(total?: number, paid?: number, balance?: number): 'Paid' | 'Partially Paid' | 'Defaulter' {
+    const b = Number(balance || 0);
+    const p = Number(paid || 0);
+    if (b <= 0) return 'Paid';
+    if (p > 0) return 'Partially Paid';
+    return 'Defaulter';
+  }
+
+  feesClassFromLabel(label: string): string {
+    const s = (label || '').toLowerCase();
+    if (s === 'partially paid') return 'pending';
+    return s; // 'paid' | 'defaulter'
+  }
 }

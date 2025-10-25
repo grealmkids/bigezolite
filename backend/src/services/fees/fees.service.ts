@@ -1,20 +1,20 @@
 import { query } from '../../database/database';
 
 const updateStudentFeesStatus = async (studentId: number) => {
-    // First, get all fee records for the student
-    const feeRecordsSql = 'SELECT balance_due FROM fees_records WHERE student_id = $1';
-    const feeRecordsResult = await query(feeRecordsSql, [studentId]);
-    const records = feeRecordsResult.rows;
+    // Aggregate totals for accurate status derivation
+    const aggSql = 'SELECT COALESCE(SUM(total_fees_due),0) AS total_due, COALESCE(SUM(amount_paid),0) AS total_paid FROM fees_records WHERE student_id = $1';
+    const aggResult = await query(aggSql, [studentId]);
+    const total_due = Number(aggResult.rows[0]?.total_due || 0);
+    const total_paid = Number(aggResult.rows[0]?.total_paid || 0);
+    const total_balance = total_due - total_paid;
 
     let newStatus: 'Paid' | 'Defaulter' | 'Pending' = 'Pending';
-
-    if (records.length > 0) {
-        const totalBalance = records.reduce((acc, record) => acc + parseFloat(record.balance_due), 0);
-        if (totalBalance <= 0) {
-            newStatus = 'Paid';
-        } else {
-            newStatus = 'Defaulter';
-        }
+    if (total_balance <= 0) {
+        newStatus = 'Paid';
+    } else if (total_paid > 0) {
+        newStatus = 'Pending'; // partially paid
+    } else {
+        newStatus = 'Defaulter';
     }
 
     // Update the student's fees_status

@@ -22,6 +22,9 @@
     }
 }
 
+/* Hidden by default; shown on small screens */
+.header-actions-mobile { display: none; }
+
 .header-actions {
     display: flex;
     gap: 1rem;
@@ -157,7 +160,18 @@
     }        .mat-mdc-paginator-range-label {
             margin: 0 24px;
         }
-    }
+}
+
+/* Fees table visuals */
+.student-table.fees-mode thead th {
+  background: #f3f6fb;
+  color: #1f2937;
+}
+.student-table.fees-mode tbody td {
+  vertical-align: middle;
+}
+.amount-pos { color: #2e7d32; font-weight: 600; }
+.amount-neg { color: #c62828; font-weight: 700; }
 
 .student-table {
     width: 100%;
@@ -216,7 +230,7 @@
     background: #fff;
   }
   .icon-btn[disabled] { opacity: 0.6; }
-  
+
   .student-table {
     min-width: 650px; // Force horizontal scroll
     font-size: 0.9em;
@@ -320,9 +334,9 @@
 
 .fees-status {
     font-weight: bold;
-    &.pending { color: #ffc107; }
-    &.paid { color: #28a745; }
-    &.defaulter { color: #dc3545; }
+    &.pending { color: #1976d2; } /* brand blue for Partially Paid */
+    &.paid { color: #2e7d32; } /* green */
+    &.defaulter { color: #c62828; } /* red */
 }
 
 .actions {

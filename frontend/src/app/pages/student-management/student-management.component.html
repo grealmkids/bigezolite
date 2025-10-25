@@ -235,7 +235,7 @@
           </table>
         </ng-container>
         <ng-template #feesTable>
-          <table class="student-table">
+          <table class="student-table fees-mode">
             <thead>
               <tr>
                 <th style="width: 50px">#</th>
@@ -262,10 +262,14 @@
                 <td>{{ row.name }}</td>
                 <td>{{ row.klass }}</td>
                 <td>{{ row.category }}</td>
-                <td>{{ formatFeesStatus(row.feesStatus) }}</td>
-                <td>{{ row.total ?? '' }}</td>
-                <td>{{ row.paid ?? '' }}</td>
-                <td>{{ row.balance ?? '' }}</td>
+                <td>
+                  <span class="fees-status" [ngClass]="feesClassFromLabel(deriveFeesStatus(row.total, row.paid, row.balance))">
+                    {{ deriveFeesStatus(row.total, row.paid, row.balance) }}
+                  </span>
+                </td>
+                <td>{{ row.total | number:'1.0-0' }}</td>
+                <td>{{ row.paid  | number:'1.0-0' }}</td>
+                <td [ngClass]="(row.balance || 0) > 0 ? 'amount-neg' : 'amount-pos'">{{ row.balance | number:'1.0-0' }}</td>
                 <td>{{ row.phone }}</td>
               </tr>
             </tbody>

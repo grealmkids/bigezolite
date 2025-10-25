@@ -121,6 +121,21 @@
                 }
             }
         }
+
+        .fees-status-badge {
+            display: inline-block;
+            margin-left: 8px;
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            &.paid { color: #2e7d32; background: #e8f5e9; }
+            &.pending { color: #1976d2; background: #e3f2fd; }
+            &.defaulter { color: #c62828; background: #ffebee; }
+        }
+
+        .amount-pos { color: #2e7d32; font-weight: 600; }
+        .amount-neg { color: #c62828; font-weight: 700; }
     }
 }
 

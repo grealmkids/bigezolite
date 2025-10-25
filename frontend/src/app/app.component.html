@@ -3,7 +3,12 @@
 <ng-container *ngIf="isLoggedIn; else authPages">
   <ng-container *ngIf="showSidenav; else simpleShell">
     <mat-sidenav-container class="sidenav-container">
-      <mat-sidenav #sidenav [mode]="sidenavMode" [opened]="sidenavOpened" class="sidenav">
+      <mat-sidenav
+        #sidenav
+        [mode]="sidenavMode"
+        [opened]="sidenavOpened"
+        class="sidenav"
+      >
         <h2 class="logo">BIGEZO</h2>
         <div
           class="current-school-block"
@@ -75,7 +80,11 @@
             <mat-icon mat-list-icon>analytics</mat-icon>
             <span mat-line>Analytics</span>
           </a>
-          <a mat-list-item (click)="checkBalance(); onNavItemClicked()" class="check-balance-item">
+          <a
+            mat-list-item
+            (click)="checkBalance(); onNavItemClicked()"
+            class="check-balance-item"
+          >
             <mat-icon mat-list-icon>account_balance</mat-icon>
             <span mat-line>Check Balance</span>
           </a>
@@ -98,7 +107,7 @@
           </button>
           <span>{{ title }}</span>
           <span class="spacer"></span>
-          <button mat-button (click)="logout()">
+          <button class="logoutbtn" mat-button (click)="logout()">
             <mat-icon>exit_to_app</mat-icon>
             <span>Logout</span>
           </button>

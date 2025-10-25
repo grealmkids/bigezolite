@@ -318,6 +318,20 @@ export class StudentManagementComponent implements OnInit {
     return s === 'pending' ? 'Partially Paid' : (v || '');
   }
 
+  deriveFeesStatus(total?: number, paid?: number, balance?: number): string {
+    const b = Number(balance || 0);
+    const p = Number(paid || 0);
+    if (b <= 0) return 'Paid';
+    if (p > 0) return 'Partially Paid';
+    return 'Defaulter';
+  }
+
+  feesClassFromLabel(label: string): string {
+    const s = (label || '').toLowerCase();
+    if (s === 'partially paid') return 'pending';
+    return s; // 'paid' | 'defaulter'
+  }
+
   private buildFeesRowsFor(students: Student[]): void {
     if (!students || students.length === 0) { this.displayedFeeRows = []; return; }
     this.loadingFees = true;
@@ -330,12 +344,13 @@ export class StudentManagementComponent implements OnInit {
           if (fees && fees.length) {
             latest = [...fees].sort((a, b) => (b.year - a.year) || (b.term - a.term))[0];
           }
+          const feesStatus = this.deriveFeesStatus(latest?.total_fees_due, latest?.amount_paid, latest?.balance_due);
           return {
             reg: (s.reg_number || '').replace(/-/g, ''),
             name: s.student_name || '',
             klass: s.class_name || '',
             category: s.student_status || '',
-            feesStatus: s.fees_status || '',
+            feesStatus,
             total: latest?.total_fees_due,
             paid: latest?.amount_paid,
             balance: latest?.balance_due,
@@ -448,6 +463,26 @@ export class StudentManagementComponent implements OnInit {
           return;
         }
 
+        // Compute header/meta first (used by both exports)
+        let schoolName = 'School Registry';
+        try {
+          const schoolData = localStorage.getItem('bigezo_selected_school');
+          if (schoolData) {
+            const school = JSON.parse(schoolData);
+            schoolName = school?.school_name || 'School Registry';
+          }
+        } catch {}
+        const filters: string[] = [];
+        if (searchTerm) filters.push(`Search: \"${searchTerm}\"`);
+        if (classTerm) filters.push(`Class: ${classTerm}`);
+        if (statusTerm) filters.push(`Status: ${statusTerm}`);
+        if (yearTerm) filters.push(`Year: ${yearTerm}`);
+        const filterInfo = filters.length > 0 ? filters.join(', ') : undefined;
+        const currentMonth = new Date().getMonth() + 1;
+        let term = 'Term 1';
+        if (currentMonth >= 5 && currentMonth <= 8) term = 'Term 2';
+        else if (currentMonth >= 9 && currentMonth <= 12) term = 'Term 3';
+
         // If fees status filter is active, export fees details instead of student list
         if (feesStatusTerm) {
           const requests = allStudents.map(s => this.feesService.getFeeRecords(s.student_id).pipe(take(1)));
@@ -461,11 +496,12 @@ export class StudentManagementComponent implements OnInit {
                 if (fees && fees.length) {
                   latest = [...fees].sort((a, b) => (b.year - a.year) || (b.term - a.term))[0];
                 }
+                const feesStatus = this.deriveFeesStatus(latest?.total_fees_due, latest?.amount_paid, latest?.balance_due);
                 return {
                   reg: (s.reg_number || '').replace(/-/g, ''),
                   name: s.student_name || '',
                   klass: s.class_name || '',
-                  feesStatus: s.fees_status || '',
+                  feesStatus,
                   term: latest?.term,
                   year: latest?.year,
                   total: latest?.total_fees_due,
@@ -489,35 +525,6 @@ export class StudentManagementComponent implements OnInit {
           });
           return;
         }
-
-        // Get school info for PDF header (using synchronous approach)
-        let schoolName = 'School Registry';
-        const selectedSchoolId = this.schoolService.getSelectedSchoolId();
-        
-        // Try to get from localStorage
-        try {
-          const schoolData = localStorage.getItem('bigezo_selected_school');
-          if (schoolData) {
-            const school = JSON.parse(schoolData);
-            schoolName = school?.school_name || 'School Registry';
-          }
-        } catch (e) {
-          // Ignore parse errors
-        }
-        
-        // Build filter info string
-        const filters: string[] = [];
-        if (searchTerm) filters.push(`Search: "${searchTerm}"`);
-        if (classTerm) filters.push(`Class: ${classTerm}`);
-        if (statusTerm) filters.push(`Status: ${statusTerm}`);
-        if (yearTerm) filters.push(`Year: ${yearTerm}`);
-        const filterInfo = filters.length > 0 ? filters.join(', ') : undefined;
-
-        // Determine term (you can customize this logic)
-        const currentMonth = new Date().getMonth() + 1;
-        let term = 'Term 1';
-        if (currentMonth >= 5 && currentMonth <= 8) term = 'Term 2';
-        else if (currentMonth >= 9 && currentMonth <= 12) term = 'Term 3';
 
         // Generate PDF (student list)
         this.pdfExportService.generateStudentListPDF(allStudents, {

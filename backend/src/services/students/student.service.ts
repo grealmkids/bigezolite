@@ -104,59 +104,83 @@ export const findStudentsBySchool = async (
     order: string = 'ASC'
 ) => {
     // Build WHERE clause and params
-    let where = 'WHERE school_id = $1';
+    let where = 'WHERE students.school_id = $1';
     const params: any[] = [schoolId];
     let idx = 2;
 
     if (searchTerm) {
-        where += ` AND (student_name ILIKE $${idx} OR CAST(reg_number AS TEXT) ILIKE $${idx})`;
+        where += ` AND (students.student_name ILIKE $${idx} OR CAST(students.reg_number AS TEXT) ILIKE $${idx})`;
         params.push(`%${searchTerm}%`);
         idx++;
     }
 
     if (classTerm) {
-        where += ` AND class_name = $${idx}`;
+        where += ` AND students.class_name = $${idx}`;
         params.push(classTerm);
         idx++;
     }
 
     if (statusTerm) {
-        where += ` AND student_status = $${idx}`;
+        where += ` AND students.student_status = $${idx}`;
         params.push(String(statusTerm));
         idx++;
     }
 
-    if (feesStatusTerm) {
-        where += ` AND fees_status = $${idx}`;
-        params.push(String(feesStatusTerm));
-        idx++;
-    }
-
     if (yearTerm) {
-        where += ` AND year_enrolled = $${idx}`;
+        where += ` AND students.year_enrolled = $${idx}`;
         const yearVal = Number(yearTerm);
         params.push(Number.isNaN(yearVal) ? yearTerm : yearVal);
         idx++;
     }
 
-    // Total count
-    const countSql = `SELECT COUNT(*) AS total FROM students ${where}`;
+    // Build derived fees aggregates subquery once
+    const feesJoin = `LEFT JOIN (
+        SELECT student_id,
+               COALESCE(SUM(total_fees_due),0) AS total_due,
+               COALESCE(SUM(amount_paid),0) AS total_paid
+        FROM fees_records
+        GROUP BY student_id
+    ) fr ON fr.student_id = students.student_id`;
+
+    // Derived fees status expression
+    const derivedStatus = `CASE WHEN COALESCE(fr.total_due,0) - COALESCE(fr.total_paid,0) <= 0 THEN 'Paid'
+                                WHEN COALESCE(fr.total_paid,0) > 0 THEN 'Pending'
+                                ELSE 'Defaulter' END`;
+
+    // If filtering by fees status, append to WHERE using derived expression
+    if (feesStatusTerm) {
+        const termLc = String(feesStatusTerm).toLowerCase();
+        if (termLc === 'defaulter') {
+            // Show both Defaulter and Partially Paid (i.e., any balance > 0)
+            where += ` AND (${derivedStatus} <> 'Paid')`;
+        } else {
+            where += ` AND ${derivedStatus} = $${idx}`;
+            params.push(String(feesStatusTerm));
+            idx++;
+        }
+    }
+
+    // Total count (with join)
+    const countSql = `SELECT COUNT(*) AS total FROM students ${feesJoin} ${where}`;
     const countResult = await query(countSql, params);
     const total = parseInt(countResult.rows[0]?.total || '0', 10);
 
     // Whitelist sortable columns to prevent SQL injection
     const sortableColumns: { [key: string]: string } = {
-        'reg_number': 'reg_number',
-        'student_name': 'student_name',
-        'class_name': 'class_name',
-        'student_status': 'student_status',
+        'reg_number': 'students.reg_number',
+        'student_name': 'students.student_name',
+        'class_name': 'students.class_name',
+        'student_status': 'students.student_status',
         'fees_status': 'fees_status'
     };
     const sortColumn = sortableColumns[sort] || 'student_name'; // Default to student_name
     const sortOrder = order.toUpperCase() === 'DESC' ? 'DESC' : 'ASC'; // Default to ASC
 
-    // Select with ordering and optional pagination
-    let sql = `SELECT student_id, reg_number, student_name, class_name, student_status, fees_status, parent_phone_sms FROM students ${where} ORDER BY ${sortColumn} ${sortOrder}`;
+    // Select with ordering and optional pagination (select derived fees_status)
+    let sql = `SELECT students.student_id, students.reg_number, students.student_name, students.class_name, students.student_status,
+                      ${derivedStatus} AS fees_status, students.parent_phone_sms
+               FROM students ${feesJoin} ${where}
+               ORDER BY ${sortColumn} ${sortOrder}`;
     if (limit && limit > 0) {
         sql += ` LIMIT $${idx} OFFSET $${idx + 1}`;
         params.push(limit, page * limit);

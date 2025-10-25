@@ -53,7 +53,8 @@ export class PdfExportService {
     const leftX = 14; const rightX = pageWidth - 14;
     doc.setTextColor(255, 255, 255);
     doc.text(`Academic Year: ${header.year}`, leftX, 29);
-    doc.text(`Term: ${header.term}`, rightX, 29, { align: 'right' });
+    const termText1 = (() => { const t = String(header.term || ''); return /^\s*term\b/i.test(t) ? t : (t ? `Term ${t}` : ''); })();
+    if (termText1) doc.text(termText1, rightX, 29, { align: 'right' });
 
     // Meta
     doc.setTextColor(0, 0, 0);
@@ -192,7 +193,8 @@ export class PdfExportService {
     doc.text(`Academic Year: ${header.year}`, leftX, 29);
     
     // Right side info
-    doc.text(`Term: ${header.term}`, rightX, 29, { align: 'right' });
+    const termText2 = (() => { const t = String(header.term || ''); return /^\s*term\b/i.test(t) ? t : (t ? `Term ${t}` : ''); })();
+    if (termText2) doc.text(termText2, rightX, 29, { align: 'right' });
 
     // Reset text color for body
     doc.setTextColor(0, 0, 0);

@@ -30,5 +30,7 @@ router.post('/:studentId/fees', feesController.createFeeRecord);
 
 // GET /api/v1/students/:studentId/fees - Get all fee records for a student
 router.get('/:studentId/fees', feesController.getFeeRecords);
+// DELETE /api/v1/students/:studentId/fees/:feeRecordId - Delete a specific fee record
+router.delete('/:studentId/fees/:feeRecordId', feesController.deleteFeeRecord);
 
 export default router;

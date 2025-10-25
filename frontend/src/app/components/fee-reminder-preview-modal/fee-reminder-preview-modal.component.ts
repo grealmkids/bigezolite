@@ -6,6 +6,7 @@ import { FeeRecord } from '../../services/fees.service';
 import { CommunicationService } from '../../services/communication.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { SchoolService, School } from '../../services/school.service';
+import { FeesToTrackService } from '../../services/fees-to-track.service';
 
 @Component({
   selector: 'app-fee-reminder-preview-modal',
@@ -25,11 +26,13 @@ export class FeeReminderPreviewModalComponent implements OnInit {
   mode: 'single' | 'report' = 'single';
   schoolName: string = '';
   rsvpNumber: string = '';
+  feeName: string = '';
 
   constructor(
     private communicationService: CommunicationService,
     private snackBar: MatSnackBar,
-    private schoolService: SchoolService
+    private schoolService: SchoolService,
+    private feesToTrackService: FeesToTrackService
   ) {}
 
   ngOnInit(): void {
@@ -47,7 +50,16 @@ export class FeeReminderPreviewModalComponent implements OnInit {
         }
       }
     } catch {}
-    this.generateMessage();
+    // If a specific fee record is selected and has fee_id, fetch fee name
+    const fid = this.feeRecord?.fee_id;
+    if (fid) {
+      this.feesToTrackService.getById(fid).subscribe({
+        next: (f: any) => { this.feeName = f?.name || ''; this.generateMessage(); },
+        error: () => { this.generateMessage(); }
+      });
+    } else {
+      this.generateMessage();
+    }
   }
 
   generateMessage(): void {
@@ -74,10 +86,11 @@ export class FeeReminderPreviewModalComponent implements OnInit {
     const total = this.feeRecord.total_fees_due || 0;
     const termYear = `Term ${this.feeRecord.term}, ${this.feeRecord.year}`;
     const dueDate = this.feeRecord.due_date ? this.formatDate(new Date(this.feeRecord.due_date)) : '';
-    const school = this.schoolName ? ` at ${this.schoolName}` : '';
+    const feeLabel = this.feeName || 'School Fees';
     const rsvp = this.rsvpNumber ? ` RSVP: ${this.rsvpNumber}` : '';
+    const schoolTag = this.schoolName ? ` -${this.schoolName}: ${termYear}` : ` -${termYear}`;
     const deadlineText = dueDate ? ` before ${dueDate}` : '';
-    this.message = `Dear parent of ${this.student.student_name}${school}, ${termYear}: Paid ${this.formatCurrency(paid)} of ${this.formatCurrency(total)}. Balance ${this.formatCurrency(bal)}${deadlineText}.${rsvp}`;
+    this.message = `Dear parent of ${this.student.student_name}, you have paid ${this.formatCurrency(paid)} out of ${this.formatCurrency(total)} for ${feeLabel}. Please pay Balance ${this.formatCurrency(bal)}${deadlineText}. Thank you.${rsvp}${schoolTag}`;
   }
 
   formatCurrency(amount: number): string {

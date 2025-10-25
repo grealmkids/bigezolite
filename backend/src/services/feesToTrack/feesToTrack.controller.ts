@@ -50,6 +50,22 @@ export const updateFee = async (req: AuthenticatedRequest, res: Response) => {
   }
 };
 
+export const getFee = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+    const feeId = Number(req.params.feeId);
+    if (!userId || !feeId) return res.status(400).json({ message: 'Missing parameters' });
+    const fee = await feesToTrackService.findFeeToTrackById(feeId);
+    if (!fee) return res.status(404).json({ message: 'Not found' });
+    const access = await verifyUserSchoolAccess(userId, fee.school_id);
+    if (!access) return res.status(403).json({ message: 'Forbidden' });
+    res.status(200).json(fee);
+  } catch (e:any) {
+    console.error(e);
+    res.status(400).json({ message: e?.message || 'Failed to fetch fee' });
+  }
+};
+
 export const deleteFee = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.user?.userId;

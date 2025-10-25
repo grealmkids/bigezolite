@@ -94,3 +94,31 @@ export const updateFeeRecord = async (req: AuthenticatedRequest, res: Response) 
         res.status(500).json({ message: 'Internal server error' });
     }
 };
+
+export const deleteFeeRecord = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+    const { feeRecordId } = req.params;
+    if (!userId) return res.status(401).json({ message: 'Unauthorized: User not authenticated.' });
+
+    // Auth check: record belongs to student's school owned by user
+    const authSql = `
+      SELECT fr.student_id FROM fees_records fr
+      JOIN students s ON fr.student_id = s.student_id
+      JOIN schools sch ON s.school_id = sch.school_id
+      WHERE fr.fee_record_id = $1 AND sch.user_id = $2
+    `;
+    const auth = await query(authSql, [feeRecordId, userId]);
+    if (auth.rows.length === 0) return res.status(403).json({ message: 'Forbidden' });
+    const studentId = auth.rows[0].student_id;
+
+    await feesService.deleteFeeRecord(Number(feeRecordId));
+    // Recompute student fees status after deletion
+    await feesService.updateStudentFeesStatus(studentId);
+
+    res.status(200).json({ message: 'Fee record deleted' });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};

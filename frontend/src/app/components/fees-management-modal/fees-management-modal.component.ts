@@ -7,6 +7,7 @@ import { SchoolService } from '../../services/school.service';
 import { CommunicationService } from '../../services/communication.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { FeeReminderPreviewModalComponent } from '../fee-reminder-preview-modal/fee-reminder-preview-modal.component';
+import { FeesToTrackService } from '../../services/fees-to-track.service';
 
 @Component({
   selector: 'app-fees-management-modal',
@@ -23,6 +24,9 @@ export class FeesManagementModalComponent implements OnInit {
   feeForm: FormGroup;
   editingRecordId: number | null = null;
   editingAmountPaid: number | null = null;
+
+  // fee name cache by fee_id
+  feeNames: Record<number, string> = {};
   
   // Fee reminder preview modal
   showReminderPreview: boolean = false;
@@ -33,7 +37,8 @@ export class FeesManagementModalComponent implements OnInit {
     private feesService: FeesService,
     private schoolService: SchoolService,
     private communicationService: CommunicationService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private feesToTrackService: FeesToTrackService
   ) {
     this.feeForm = this.fb.group({
       term: [1, Validators.required],
@@ -65,11 +70,24 @@ export class FeesManagementModalComponent implements OnInit {
         next: (records) => {
           this.feeRecords = records;
           console.log('[FeesModal] Loaded fee records:', records);
+          this.populateFeeNames();
         },
         error: (err) => {
           console.error('[FeesModal] Error loading fee records:', err);
           this.feeRecords = [];
         }
+      });
+    }
+  }
+
+  private populateFeeNames(): void {
+    // fetch unique fee_ids and cache names; default to 'School Fees'
+    const ids = Array.from(new Set((this.feeRecords || []).map(r => r.fee_id).filter(Boolean))) as number[];
+    for (const id of ids) {
+      if (this.feeNames[id]) continue;
+      this.feesToTrackService.getById(id).subscribe({
+        next: (f: any) => { this.feeNames[id] = f?.name || 'School Fees'; },
+        error: () => { this.feeNames[id] = 'School Fees'; }
       });
     }
   }
@@ -119,6 +137,19 @@ export class FeesManagementModalComponent implements OnInit {
           }
         });
     }
+  }
+
+  onDeleteRecord(record: FeeRecord): void {
+    if (!confirm('Delete this fee record? This cannot be undone.')) return;
+    this.feesService.deleteFeeRecord(record.fee_record_id).subscribe({
+      next: () => {
+        this.snackBar.open('Fee record deleted', 'Close', { duration: 2500, panelClass: ['success-snackbar'], verticalPosition: 'top', horizontalPosition: 'center' });
+        this.loadFeeRecords();
+      },
+      error: (err) => {
+        this.snackBar.open(err?.error?.message || 'Failed to delete fee record', 'Close', { duration: 4000, panelClass: ['error-snackbar'], verticalPosition: 'top', horizontalPosition: 'center' });
+      }
+    });
   }
 
   openReminderPreview(record: FeeRecord): void {

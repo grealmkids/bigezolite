@@ -98,6 +98,11 @@ export const updateFeeToTrack = async (feeId: number, updates: any, userId: numb
   return updated;
 };
 
+export const findFeeToTrackById = async (feeId: number) => {
+  const r = await query('SELECT * FROM fees_to_track WHERE fee_id = $1', [feeId]);
+  return r.rows[0] || null;
+};
+
 export const deleteFeeToTrack = async (feeId: number, userId: number) => {
   // capture affected students before delete
   const auth = await query('SELECT school_id FROM fees_to_track WHERE fee_id = $1', [feeId]);

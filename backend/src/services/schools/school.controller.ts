@@ -28,8 +28,8 @@ export const createSchool = async (req: AuthenticatedRequest, res: Response) => 
         });
 
         // Automatically switch to the new school
-        if (req.session) {
-            req.session.schoolId = school.school_id;
+        if ((req as any).session) {
+            (req as any).session.schoolId = school.school_id;
         }
 
         res.status(201).json(school);
@@ -57,8 +57,8 @@ export const switchSchool = async (req: AuthenticatedRequest, res: Response) => 
         }
 
         // Update the schoolId in the session
-        if (req.session) {
-            req.session.schoolId = schoolId;
+        if ((req as any).session) {
+            (req as any).session.schoolId = schoolId;
         }
 
         res.status(200).json({ message: 'Switched school successfully.', schoolId });

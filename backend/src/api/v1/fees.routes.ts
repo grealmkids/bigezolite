@@ -10,5 +10,7 @@ router.use(authenticateToken);
 
 // PUT /api/v1/fees/:feeRecordId - Update a fee record
 router.put('/:feeRecordId', feesController.updateFeeRecord);
+// DELETE /api/v1/fees/:feeRecordId - Delete a fee record
+router.delete('/:feeRecordId', feesController.deleteFeeRecord);
 
 export default router;

@@ -28,7 +28,9 @@ export class CommunicationService {
   }
 
   sendSingleSms(studentId: number, message: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/single-sms`, { studentId, message });
+    const schoolId = this.schoolService.getSelectedSchoolId();
+    const q = schoolId ? `?schoolId=${schoolId}` : '';
+    return this.http.post(`${this.apiUrl}/single-sms${q}`, { studentId, message });
   }
 
   setSmsCredentials(username: string, password: string, provider?: string): Observable<any> {

@@ -9,6 +9,8 @@ router.use(authenticateToken);
 router.get('/', feesToTrackController.listFees);
 // Create a new fee to track and apply to students
 router.post('/', feesToTrackController.createFee);
+// Get a single fee definition by id
+router.get('/:feeId', feesToTrackController.getFee);
 // Update a fee (limited fields)
 router.put('/:feeId', feesToTrackController.updateFee);
 // Delete a fee (cascade deletes fee_records)

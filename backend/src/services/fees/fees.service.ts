@@ -74,7 +74,7 @@ export const createFeeRecord = async (studentId: number, feeData: any) => {
  * Finds all fee records for a given student.
  */
 export const findFeeRecordsByStudent = async (studentId: number) => {
-    const sql = 'SELECT * FROM fees_records WHERE student_id = $1 ORDER BY year DESC, term DESC';
+    const sql = 'SELECT * FROM fees_records WHERE student_id = $1 ORDER BY year DESC, term DESC, fee_record_id DESC';
     const result = await query(sql, [studentId]);
     return result.rows;
 };
@@ -99,5 +99,10 @@ export const updateFeeRecord = async (feeRecordId: number, updateData: { amount_
     // After updating a record, update the student's overall fees status
     await updateStudentFeesStatus(student_id);
 
+    return result.rows[0];
+};
+
+export const deleteFeeRecord = async (feeRecordId: number) => {
+    const result = await query('DELETE FROM fees_records WHERE fee_record_id = $1 RETURNING student_id', [feeRecordId]);
     return result.rows[0];
 };

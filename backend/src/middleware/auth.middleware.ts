@@ -70,8 +70,9 @@ export const authenticateToken = async (req: AuthenticatedRequest, res: Response
     req.user = { userId: payload.userId };
 
     // Prioritize schoolId from session if available (for school switching)
-    if (req.session && req.session.schoolId) {
-        req.user.schoolId = req.session.schoolId;
+    const sess: any = (req as any).session;
+    if (sess && typeof sess.schoolId !== 'undefined') {
+        req.user.schoolId = sess.schoolId as number;
     } else {
         // Fallback to fetching the user's most recent school_id for data isolation.
         // When a user has multiple schools, we pick the most recently created one.

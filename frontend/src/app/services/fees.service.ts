@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 export interface FeeRecord {
@@ -41,5 +41,10 @@ export class FeesService {
 
   updateFeeRecord(feeRecordId: number, amount_paid: number): Observable<FeeRecord> {
     return this.http.put<FeeRecord>(`${this.apiUrl}/fees/${feeRecordId}`, { amount_paid });
+  }
+
+  deleteFeeRecord(feeRecordId: number): Observable<{ message: string }> {
+    // Delete by unique fee_record_id; backend enforces auth via joins
+    return this.http.delete<{ message: string }>(`${this.apiUrl}/fees/${feeRecordId}`);
   }
 }

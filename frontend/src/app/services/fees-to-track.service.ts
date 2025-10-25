@@ -35,6 +35,10 @@ export class FeesToTrackService {
     return this.http.put<FeeToTrack>(`${this.apiUrl}/${fee_id}`, payload);
   }
 
+  getById(fee_id: number): Observable<FeeToTrack> {
+    return this.http.get<FeeToTrack>(`${this.apiUrl}/${fee_id}`);
+  }
+
   delete(fee_id: number): Observable<{ message: string }> {
     return this.http.delete<{ message: string }>(`${this.apiUrl}/${fee_id}`);
   }

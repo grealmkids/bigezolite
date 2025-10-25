@@ -49,7 +49,7 @@
           <thead>
             <tr>
               <th>Term/Year</th>
-              <th>Total Due</th>
+              <th>Fee</th>
               <th>Amount Paid</th>
               <th>Balance</th>
               <th>Due Date</th>
@@ -64,7 +64,7 @@
                   {{ deriveFeesStatus(record.total_fees_due, record.amount_paid, record.balance_due) }}
                 </span>
               </td>
-              <td>{{ record.total_fees_due | currency:'UGX ':'symbol':'1.0-0' }}</td>
+              <td>{{ (record.fee_id && feeNames[record.fee_id]) || 'School Fees' }}</td>
               <td>
                 <ng-container *ngIf="editingRecordId !== record.fee_record_id; else editAmountPaid">
                   {{ record.amount_paid | currency:'UGX ':'symbol':'1.0-0' }}
@@ -81,6 +81,7 @@
                 <ng-container *ngIf="editingRecordId !== record.fee_record_id; else saveCancelButtons">
                     <button class="action-btn edit" (click)="startEditing(record)">Edit</button>
                     <button class="action-btn reminder" (click)="openReminderPreview(record)">📧 Send Reminder</button>
+                    <button class="action-btn cancel" (click)="onDeleteRecord(record)">Delete</button>
                 </ng-container>
                 <ng-template #saveCancelButtons>
                     <button class="action-btn save" (click)="onUpdateFeeRecord(record.fee_record_id)">Save</button>

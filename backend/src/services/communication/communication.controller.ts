@@ -53,7 +53,8 @@ export const sendBulkSms = async (req: AuthenticatedRequest, res: Response) => {
 
 export const sendSingleSms = async (req: AuthenticatedRequest, res: Response) => {
     try {
-        const schoolId = req.user?.schoolId;
+        const schoolIdFromQuery = req.query.schoolId ? Number(req.query.schoolId) : null;
+        const schoolId = schoolIdFromQuery || req.user?.schoolId;
         if (!schoolId) return res.status(401).json({ message: 'Unauthorized: missing school context' });
         const { studentId, message } = req.body;
         await processSingleSms(schoolId, studentId, message);

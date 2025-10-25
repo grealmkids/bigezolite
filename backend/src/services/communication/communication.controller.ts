@@ -97,7 +97,8 @@ export const getSmsCredentials = async (req: AuthenticatedRequest, res: Response
 // Send fees reminder to individual student
 export const sendFeesReminder = async (req: AuthenticatedRequest, res: Response) => {
     try {
-        const schoolId = req.user?.schoolId;
+        const schoolIdFromQuery = req.query.schoolId ? Number(req.query.schoolId) : null;
+        const schoolId = schoolIdFromQuery || req.user?.schoolId;
         if (!schoolId) return res.status(401).json({ message: 'Unauthorized: missing school context' });
         const studentId = parseInt(req.params.studentId);
         if (!studentId) return res.status(400).json({ message: 'Student ID is required' });

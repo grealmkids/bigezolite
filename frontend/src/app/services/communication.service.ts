@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { SchoolService } from './school.service';
 
 @Injectable({
   providedIn: 'root'
@@ -12,7 +13,7 @@ export class CommunicationService {
   private smsCreditBalance = new BehaviorSubject<number>(0);
   smsCreditBalance$ = this.smsCreditBalance.asObservable();
 
-  constructor(private http: HttpClient) { 
+  constructor(private http: HttpClient, private schoolService: SchoolService) { 
     this.fetchSmsCreditBalance();
   }
 
@@ -39,7 +40,9 @@ export class CommunicationService {
   }
 
   sendFeesReminder(studentId: number): Observable<any> {
-    return this.http.post(`${this.apiUrl}/fees-reminder/${studentId}`, {});
+    const schoolId = this.schoolService.getSelectedSchoolId();
+    const q = schoolId ? `?schoolId=${schoolId}` : '';
+    return this.http.post(`${this.apiUrl}/fees-reminder/${studentId}${q}`, {});
   }
 
   previewBulkFeesReminders(

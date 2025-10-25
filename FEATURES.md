@@ -143,11 +143,13 @@ Opens when clicking student row, shows:
    - "Add" button
 
 2. **Payment History Table**
-   Columns: Term/Year, Total Due, Amount Paid, Balance, Due Date, Actions
+   Columns: Term/Year, Fee (fees_to_track name), Amount Paid, Balance, Due Date, Actions
+   - Fee column shows the configured fee name for the record (e.g., “Sports fees”); defaults to “School Fees” for legacy records or when missing
    
    **Actions per row:**
    - **Edit button**: Enter edit mode, modify amount paid
-   - **📧 Send Reminder button**: Opens reminder preview modal
+   - **📧 Send Reminder button**: Opens reminder preview modal (see structure below)
+   - **Delete button**: Permanently deletes the specific fee record (with confirm) and recomputes fees status
    - **Save/Cancel buttons**: When editing
 
 3. **Footer**
@@ -236,6 +238,10 @@ Opens when clicking student row, shows:
 ### Individual Fees Reminders
 
 **Access**: From Fees modal → Click "📧 Send Reminder" on any fee record row
+
+**Message Structure (Updated)**:
+- “Dear parent of {Student}, Paid UGX X out of UGX Y for {FeeName|School Fees}. Please pay Balance UGX Z before DD-MMM-YYYY. Thank you. RSVP: {RSVP} -{School}: Term T, YYYY”
+- FeeName is read from the fee record’s fees_to_track linkage; defaults to “School Fees” when not present
 
 **Flow**:
 1. Click "Send Reminder" button on fee record
@@ -523,9 +529,19 @@ schools (1) ─── (many) sms_transactions
 - `/auth/*` - Authentication
 - `/schools/*` - School management
 - `/students/*` - Student CRUD
-- `/fees/*` - Fees records
-- `/fees-to-track/*` - Fee definitions (create/apply/update/delete) (NEW)
+- `/fees/*`
+  - PUT `/fees/:feeRecordId` — update amount_paid
+  - DELETE `/fees/:feeRecordId` — delete a fee record (recomputes fees status)
+- `/fees-to-track/*` (NEW)
+  - GET `/fees-to-track` — list by school
+  - POST `/fees-to-track` — create and auto-apply to matching students
+  - GET `/fees-to-track/:feeId` — get single fee definition
+  - PUT `/fees-to-track/:feeId` — update definition (propagates to related fee_records; amount_paid untouched)
+  - DELETE `/fees-to-track/:feeId` — delete (cascades fee_records)
 - `/communications/*` - SMS & reminders
+  - POST `/communications/single-sms?schoolId=...` — send a single SMS with school context override
+  - POST `/communications/fees-reminder/:studentId?schoolId=...` — send fees reminder using composed message
+  - GET `/communications/credits` — SMS balance
 - `/subscription/*` - Subscription orders
 
 **Authentication**: Bearer token in `Authorization` header
@@ -545,17 +561,20 @@ schools (1) ─── (many) sms_transactions
 
 ### ✅ Per-Term Fees View & Exports
 - Fees status filter shows per-student-per-term rows with client-side filtering for accuracy.
+- Fees modal now displays “Fee” (from fees_to_track) instead of “Total Due”, with default “School Fees”.
 - Updated Fees Details PDF with per-term rows, widened columns (Term/Year/Balance), themed stamp, and formatted amounts.
 
 ### ✅ Fees to Track Module
 - New page and APIs to define fee items per school (name, total_due, term, year, class/all, due_date).
-- Automatically applies to matching students by creating fees_records; updates and deletes cascade.
+- Automatically applies to matching students by creating fees_records (with RSVP number); updates propagate to related records; deletes cascade.
+- Inline edit/delete in the Fees to Track list.
 - Sidenav entry and route: `/fees-to-track`.
 
 ### ✅ Fees Reminder System
 - Individual reminder with editable preview modal
+- Single SMS supports schoolId override to ensure correct school context (fixes cross-school “student not found”)
+- Message format updated to include fee name and end-tag with school and term/year
 - Bulk reminders with analytics preview
-- Custom message generation per student
 - Proper currency formatting (commas, no decimals)
 - Date format: DD-MMM-YYYY
 - Balance threshold filtering
@@ -565,6 +584,7 @@ schools (1) ─── (many) sms_transactions
 
 ### ✅ UI/UX Improvements
 - Settings → Preview → Send flow for bulk reminders
+- Analytics cards use a 2-column layout (icon left, label/value right)
 - Dark grey "Back to Settings" button
 - Green gradient "Send" button
 - Mobile-responsive preview cards

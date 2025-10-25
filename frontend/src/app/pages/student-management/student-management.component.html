@@ -244,6 +244,8 @@
                 <th>Class</th>
                 <th>Category</th>
                 <th>Fees Status</th>
+                <th>Term</th>
+                <th>Year</th>
                 <th>Total Due</th>
                 <th>Amount Paid</th>
                 <th>Balance</th>
@@ -267,6 +269,8 @@
                     {{ deriveFeesStatus(row.total, row.paid, row.balance) }}
                   </span>
                 </td>
+                <td>{{ row.term }}</td>
+                <td>{{ row.year }}</td>
                 <td>{{ row.total | number:'1.0-0' }}</td>
                 <td>{{ row.paid  | number:'1.0-0' }}</td>
                 <td [ngClass]="(row.balance || 0) > 0 ? 'amount-neg' : 'amount-pos'">{{ row.balance | number:'1.0-0' }}</td>

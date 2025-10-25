@@ -44,7 +44,7 @@ export class StudentManagementComponent implements OnInit {
   students$: Observable<{ items: Student[]; total: number }> | undefined;
   displayedStudents: Student[] = [];
   // When fees filter is selected, we build fee rows for the current page
-  displayedFeeRows: Array<{ reg: string; name: string; klass: string; category: string; feesStatus: string; total?: number; paid?: number; balance?: number; phone: string }> = [];
+  displayedFeeRows: Array<{ reg: string; name: string; klass: string; category: string; feesStatus: string; term?: number; year?: number; total?: number; paid?: number; balance?: number; phone: string }> = [];
   loadingFees = false;
   isLoading = false;
   private searchTerms = new Subject<string>();
@@ -204,7 +204,9 @@ export class StudentManagementComponent implements OnInit {
           this.isLoading = false;
           return of({ items: [], total: 0 });
         }
-        return this.studentService.getStudents(schoolId, searchTerm, classTerm, statusTerm, feesStatusTerm, yearTerm, page, limit, sort, order);
+        // For per-term fees view, fetch students without backend feesStatus filtering to avoid masking term balances
+        const effectiveFeesStatus = (feesStatusTerm && feesStatusTerm.trim()) ? '' : feesStatusTerm;
+        return this.studentService.getStudents(schoolId, searchTerm, classTerm, statusTerm, effectiveFeesStatus, yearTerm, page, limit, sort, order);
       })
     );
 
@@ -338,25 +340,39 @@ export class StudentManagementComponent implements OnInit {
     const requests = students.map(s => this.feesService.getFeeRecords(s.student_id).pipe(take(1)));
     forkJoin(requests).pipe(take(1)).subscribe({
       next: (recordsList: any[]) => {
-        this.displayedFeeRows = students.map((s, idx) => {
+        const filter = (this.feesStatusFilter.value || '').toLowerCase();
+        const rows: Array<{ reg: string; name: string; klass: string; category: string; feesStatus: string; term?: number; year?: number; total?: number; paid?: number; balance?: number; phone: string }> = [];
+        students.forEach((s, idx) => {
           const fees = (recordsList[idx] || []) as FeeRecord[];
-          const sum = (arr: number[]) => arr.reduce((a,b)=>a + Number(b || 0), 0);
-          const total = sum(fees.map(f => f.total_fees_due));
-          const paid = sum(fees.map(f => f.amount_paid));
-          const balance = total - paid;
-          const status = this.deriveFeesStatus(total, paid, balance);
-          return {
-            reg: (s.reg_number || '').replace(/-/g, ''),
-            name: s.student_name || '',
-            klass: s.class_name || '',
-            category: s.student_status || '',
-            feesStatus: status,
-            total,
-            paid,
-            balance,
-            phone: s.parent_phone_sms || ''
-          };
+          fees.forEach(fr => {
+            const total = Number(fr.total_fees_due || 0);
+            const paid = Number(fr.amount_paid || 0);
+            const balance = Number(fr.balance_due ?? (total - paid));
+            const status = this.deriveFeesStatus(total, paid, balance);
+            // Apply per-record filter
+            const st = status.toLowerCase();
+            const include = !filter ||
+              (filter === 'paid' && balance <= 0) ||
+              ((filter === 'pending' || filter === 'partially paid') && balance > 0 && paid > 0) ||
+              (filter === 'defaulter' && balance > 0);
+            if (include) {
+              rows.push({
+                reg: (s.reg_number || '').replace(/-/g, ''),
+                name: s.student_name || '',
+                klass: s.class_name || '',
+                category: s.student_status || '',
+                feesStatus: status,
+                term: fr.term,
+                year: fr.year,
+                total,
+                paid,
+                balance,
+                phone: s.parent_phone_sms || ''
+              });
+            }
+          });
         });
+        this.displayedFeeRows = rows;
         this.loadingFees = false;
       },
       error: () => {
@@ -488,32 +504,38 @@ export class StudentManagementComponent implements OnInit {
           const requests = allStudents.map(s => this.feesService.getFeeRecords(s.student_id).pipe(take(1)));
           forkJoin(requests).pipe(take(1)).subscribe({
             next: (allFeeRecords: any[]) => {
-              // Build rows using aggregated totals across records so status reflects balances accurately
+              // Build per-term rows and filter per selected status
               type Row = { reg: string; name: string; klass: string; feesStatus: string; term: number|undefined; year: number|undefined; total: number|undefined; paid: number|undefined; balance: number|undefined; phone: string };
-              const rows: Row[] = allStudents.map((s, idx) => {
+              const rows: Row[] = [];
+              const filter = (feesStatusTerm || '').toLowerCase();
+              allStudents.forEach((s, idx) => {
                 const fees: FeeRecord[] = allFeeRecords[idx] || [];
-                const sum = (arr: number[]) => arr.reduce((a,b)=>a + Number(b || 0), 0);
-                const total = sum(fees.map(f => f.total_fees_due));
-                const paid = sum(fees.map(f => f.amount_paid));
-                const balance = total - paid;
-                const status = this.deriveFeesStatus(total, paid, balance);
-                // Keep latest term/year for info purposes only (not status)
-                let latest: FeeRecord | undefined;
-                if (fees && fees.length) latest = [...fees].sort((a,b)=> (b.year - a.year) || (b.term - a.term))[0];
-                return {
-                  reg: (s.reg_number || '').replace(/-/g, ''),
-                  name: s.student_name || '',
-                  klass: s.class_name || '',
-                  feesStatus: status,
-                  term: latest?.term,
-                  year: latest?.year,
-                  total,
-                  paid,
-                  balance,
-                  phone: s.parent_phone_sms || ''
-                };
+                fees.forEach(fr => {
+                  const total = Number(fr.total_fees_due || 0);
+                  const paid = Number(fr.amount_paid || 0);
+                  const balance = Number(fr.balance_due ?? (total - paid));
+                  const status = this.deriveFeesStatus(total, paid, balance);
+                  const include = !filter ||
+                    (filter === 'paid' && balance <= 0) ||
+                    ((filter === 'pending' || filter === 'partially paid') && balance > 0 && paid > 0) ||
+                    (filter === 'defaulter' && balance > 0);
+                  if (include) {
+                    rows.push({
+                      reg: (s.reg_number || '').replace(/-/g, ''),
+                      name: s.student_name || '',
+                      klass: s.class_name || '',
+                      feesStatus: status,
+                      term: fr.term,
+                      year: fr.year,
+                      total,
+                      paid,
+                      balance,
+                      phone: s.parent_phone_sms || ''
+                    });
+                  }
+                });
               });
-              this.emitFeesPDF(rows, schoolName, term, yearTerm || new Date().getFullYear().toString(), allStudents.length, filterInfo);
+              this.emitFeesPDF(rows, schoolName, term, yearTerm || new Date().getFullYear().toString(), rows.length, filterInfo);
             },
             error: (err) => {
               console.error('Error fetching fees for export:', err);

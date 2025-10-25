@@ -158,6 +158,21 @@ Opens when clicking student row, shows:
 - Pipe: `currency:'UGX ':'symbol':'1.0-0'`
 - Consistent across all fee-related views
 
+### Fees Status Filtering & Per-Term View (NEW)
+- Activating the Fees Status filter switches the list to one row per student per term.
+- Status rules:
+  - Paid: balance ≤ 0
+  - Partially Paid: balance > 0 and amount_paid > 0
+  - Defaulter: balance > 0 (includes Partially Paid)
+- Client-side per-term filtering ensures Paid never appears under other filters; Defaulter includes all outstanding balances.
+- Responsive actions: full buttons on large screens, icon-only on small screens for quick actions (refresh, download).
+
+### PDF Exports (Updated)
+- With Fees Status filter: generates a Fees Details PDF (per-student-per-term rows) including Reg No, Name, Class, Status, Term, Year, Total, Paid, Balance, Phone.
+- Widened columns for Term, Year, and Balance to prevent wrapping.
+- Status-themed header stamp (Paid/Partially Paid/Defaulter) and color-coded balance.
+- Without filter: generates the Student List PDF.
+
 ---
 
 ## SMS Communications
@@ -402,6 +417,7 @@ Renew → Active
 4. 🔔 Bulk Fees Reminders (NEW)
 5. 💰 Check Balance
 6. 💵 Subscription
+7. 🧾 Fees to Track (NEW)
 
 **Current School Block** (top of sidenav):
 - School name
@@ -480,7 +496,8 @@ Renew → Active
 - `users` - User accounts
 - `schools` - School organizations
 - `students` - Student records
-- `fees_records` - Fee tracking
+- `fees_to_track` - Fee definitions to apply per class/term/year (NEW)
+- `fees_records` - Fee tracking (now references `fees_to_track.fee_id`)
 - `sms_credentials` - SMS provider credentials
 - `sms_accounts` - SMS balance tracking
 - `sms_transactions` - SMS audit log
@@ -490,6 +507,8 @@ Renew → Active
 ```
 users (1) ─── (many) schools
 schools (1) ─── (many) students
+schools (1) ─── (many) fees_to_track
+fees_to_track (1) ─── (many) fees_records
 students (1) ─── (many) fees_records
 schools (1) ─── (1) sms_credentials
 schools (1) ─── (1) sms_accounts
@@ -505,6 +524,7 @@ schools (1) ─── (many) sms_transactions
 - `/schools/*` - School management
 - `/students/*` - Student CRUD
 - `/fees/*` - Fees records
+- `/fees-to-track/*` - Fee definitions (create/apply/update/delete) (NEW)
 - `/communications/*` - SMS & reminders
 - `/subscription/*` - Subscription orders
 
@@ -522,6 +542,15 @@ schools (1) ─── (many) sms_transactions
 ---
 
 ## Recent Updates (October 2025)
+
+### ✅ Per-Term Fees View & Exports
+- Fees status filter shows per-student-per-term rows with client-side filtering for accuracy.
+- Updated Fees Details PDF with per-term rows, widened columns (Term/Year/Balance), themed stamp, and formatted amounts.
+
+### ✅ Fees to Track Module
+- New page and APIs to define fee items per school (name, total_due, term, year, class/all, due_date).
+- Automatically applies to matching students by creating fees_records; updates and deletes cascade.
+- Sidenav entry and route: `/fees-to-track`.
 
 ### ✅ Fees Reminder System
 - Individual reminder with editable preview modal

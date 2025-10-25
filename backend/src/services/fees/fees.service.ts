@@ -1,6 +1,6 @@
 import { query } from '../../database/database';
 
-const updateStudentFeesStatus = async (studentId: number) => {
+export const updateStudentFeesStatus = async (studentId: number) => {
     // Aggregate totals for accurate status derivation
     const aggSql = 'SELECT COALESCE(SUM(total_fees_due),0) AS total_due, COALESCE(SUM(amount_paid),0) AS total_paid FROM fees_records WHERE student_id = $1';
     const aggResult = await query(aggSql, [studentId]);

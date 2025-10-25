@@ -1,0 +1,79 @@
+<div class="page-container">
+  <h1>Fees to Track</h1>
+
+  <div class="create-form card" style="margin-bottom: 1rem; padding: 1rem;">
+    <div style="display:flex; flex-wrap: wrap; gap: 0.75rem; align-items: end;">
+      <div>
+        <label>Name</label>
+        <input [(ngModel)]="name" placeholder="e.g. School Fees" />
+      </div>
+      <div>
+        <label>Description</label>
+        <input [(ngModel)]="description" placeholder="optional" />
+      </div>
+      <div>
+        <label>Total Due</label>
+        <input type="number" [(ngModel)]="total_due" />
+      </div>
+      <div>
+        <label>Term</label>
+        <select [(ngModel)]="term">
+          <option [value]="1">1</option>
+          <option [value]="2">2</option>
+          <option [value]="3">3</option>
+        </select>
+      </div>
+      <div>
+        <label>Year</label>
+        <input type="number" [(ngModel)]="year" />
+      </div>
+      <div>
+        <label>Class</label>
+        <select [(ngModel)]="class_name">
+          <option value="All">All</option>
+          <option *ngFor="let c of classes" [value]="c">{{ c }}</option>
+        </select>
+      </div>
+      <div>
+        <label>Due Date</label>
+        <input type="date" [(ngModel)]="due_date" />
+      </div>
+      <div>
+        <button class="btn primary" (click)="create()">Create and Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="padding: 0.5rem;">
+    <table class="student-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Class</th>
+          <th>Term</th>
+          <th>Year</th>
+          <th>Total Due</th>
+          <th>Due Date</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let it of items">
+          <td>{{ it.name }}</td>
+          <td>{{ it.class_name || 'All' }}</td>
+          <td>{{ it.term }}</td>
+          <td>{{ it.year }}</td>
+          <td>{{ it.total_due | number:'1.0-0' }}</td>
+          <td>{{ it.due_date | date:'yyyy-MM-dd' }}</td>
+          <td>
+            <!-- edit can be added later -->
+            <button class="btn danger" (click)="delete(it)">Delete</button>
+          </td>
+        </tr>
+        <tr *ngIf="items.length === 0 && !isLoading">
+          <td colspan="7">No fees configured yet.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

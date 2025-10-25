@@ -10,6 +10,7 @@ import { ManageSchoolComponent } from './pages/manage-school/manage-school.compo
 import { BulkFeesRemindersComponent } from './pages/bulk-fees-reminders/bulk-fees-reminders.component';
 import { AnalyticsComponent } from './pages/analytics/analytics.component';
 import { authGuard } from './guards/auth.guard';
+import { FeesToTrackComponent } from './pages/fees-to-track/fees-to-track.component';
 
 export const routes: Routes = [
     { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -53,6 +54,11 @@ export const routes: Routes = [
     {
         path: 'analytics',
         component: AnalyticsComponent,
+        canActivate: [authGuard]
+    },
+    {
+        path: 'fees-to-track',
+        component: FeesToTrackComponent,
         canActivate: [authGuard]
     },
     // Add a catch-all route to redirect to dashboard or login

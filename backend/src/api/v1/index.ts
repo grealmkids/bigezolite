@@ -8,6 +8,7 @@ import communicationRoutes from './communication.routes';
 import subscriptionRoutes from './subscription.routes';
 import authRoutes from './auth.routes';
 import analyticsRoutes from './analytics.routes';
+import feesToTrackRoutes from './fees-to-track.routes';
 
 const router = Router();
 
@@ -15,6 +16,7 @@ router.use('/users', userRoutes);
 router.use('/schools', schoolRoutes);
 router.use('/students', studentRoutes);
 router.use('/fees', feesRoutes);
+router.use('/fees-to-track', feesToTrackRoutes);
 router.use('/communications', communicationRoutes);
 router.use('/subscription', subscriptionRoutes);
 router.use('/auth', authRoutes);

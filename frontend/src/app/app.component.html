@@ -82,6 +82,15 @@
           </a>
           <a
             mat-list-item
+            routerLink="/fees-to-track"
+            routerLinkActive="active-link"
+            (click)="onNavItemClicked()"
+          >
+            <mat-icon mat-list-icon>playlist_add</mat-icon>
+            <span mat-line>Fees to Track</span>
+          </a>
+          <a
+            mat-list-item
             (click)="checkBalance(); onNavItemClicked()"
             class="check-balance-item"
           >

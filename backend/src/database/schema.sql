@@ -46,6 +46,22 @@ CREATE TABLE students (
     CONSTRAINT students_reg_number_school_unique UNIQUE (reg_number, school_id)
 );
 
+-- Fees to Track: defines a fee item to be applied to students for a school/term/year
+CREATE TABLE IF NOT EXISTS fees_to_track (
+    fee_id SERIAL PRIMARY KEY,
+    school_id INT NOT NULL REFERENCES schools(school_id) ON DELETE CASCADE,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    total_due NUMERIC(10,2) NOT NULL,
+    term INT NOT NULL,
+    year INT NOT NULL,
+    class_name VARCHAR(100), -- NULL means applies to all classes
+    due_date DATE NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_fees_to_track_school ON fees_to_track(school_id);
+
 -- Fees Records Table: Stores fee payment information for each student
 CREATE TABLE fees_records (
     fee_record_id SERIAL PRIMARY KEY,
@@ -57,6 +73,7 @@ CREATE TABLE fees_records (
     balance_due NUMERIC(10, 2) GENERATED ALWAYS AS (total_fees_due - amount_paid) STORED,
     due_date DATE NOT NULL,
     rsvp_number VARCHAR(255),
+    fee_id INT REFERENCES fees_to_track(fee_id) ON DELETE CASCADE ON UPDATE CASCADE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );

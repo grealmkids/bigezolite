@@ -12,6 +12,7 @@ export interface FeeRecord {
     balance_due: number;
     due_date: string; // Comes as a string from JSON
     rsvp_number: string;
+    fee_id?: number; // optional linkage to a fee-to-track item
 }
 
 export interface NewFeeRecord {

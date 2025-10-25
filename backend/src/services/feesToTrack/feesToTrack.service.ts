@@ -25,15 +25,19 @@ export const createFeeToTrackAndApply = async (schoolId: number, payload: any) =
   const students = await query(`SELECT student_id FROM students ${where}`, params);
 
   if (students.rows.length > 0) {
+    // Get school's RSVP/accountant number to store in fee records
+    const sch = await query('SELECT accountant_number FROM schools WHERE school_id = $1', [schoolId]);
+    const rsvp = sch.rows[0]?.accountant_number || null;
+
     // Bulk insert fee_records
     const values: string[] = [];
     const vparams: any[] = [];
     let idx = 1;
     for (const row of students.rows) {
-      values.push(`($${idx++}, $${idx++}, $${idx++}, $${idx++}, $${idx++}, $${idx++})`);
-      vparams.push(row.student_id, term, year, total_due, due_date, fee.fee_id);
+      values.push(`($${idx++}, $${idx++}, $${idx++}, $${idx++}, $${idx++}, $${idx++}, $${idx++})`);
+      vparams.push(row.student_id, term, year, total_due, due_date, rsvp, fee.fee_id);
     }
-    const frSql = `INSERT INTO fees_records (student_id, term, year, total_fees_due, due_date, fee_id)
+    const frSql = `INSERT INTO fees_records (student_id, term, year, total_fees_due, due_date, rsvp_number, fee_id)
                    VALUES ${values.join(', ')}`;
     await query(frSql, vparams);
 

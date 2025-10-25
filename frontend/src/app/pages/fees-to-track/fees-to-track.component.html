@@ -2,20 +2,20 @@
   <h1>Fees to Track</h1>
 
   <div class="create-form card" style="margin-bottom: 1rem; padding: 1rem;">
-    <div style="display:flex; flex-wrap: wrap; gap: 0.75rem; align-items: end;">
-      <div>
+    <div class="grid-form">
+      <div class="form-field">
         <label>Name</label>
         <input [(ngModel)]="name" placeholder="e.g. School Fees" />
       </div>
-      <div>
+      <div class="form-field">
         <label>Description</label>
         <input [(ngModel)]="description" placeholder="optional" />
       </div>
-      <div>
+      <div class="form-field">
         <label>Total Due</label>
         <input type="number" [(ngModel)]="total_due" />
       </div>
-      <div>
+      <div class="form-field">
         <label>Term</label>
         <select [(ngModel)]="term">
           <option [value]="1">1</option>
@@ -23,22 +23,22 @@
           <option [value]="3">3</option>
         </select>
       </div>
-      <div>
+      <div class="form-field">
         <label>Year</label>
         <input type="number" [(ngModel)]="year" />
       </div>
-      <div>
+      <div class="form-field">
         <label>Class</label>
         <select [(ngModel)]="class_name">
           <option value="All">All</option>
           <option *ngFor="let c of classes" [value]="c">{{ c }}</option>
         </select>
       </div>
-      <div>
+      <div class="form-field">
         <label>Due Date</label>
         <input type="date" [(ngModel)]="due_date" />
       </div>
-      <div>
+      <div class="form-actions">
         <button class="btn primary" (click)="create()">Create and Apply</button>
       </div>
     </div>
@@ -48,27 +48,47 @@
     <table class="student-table">
       <thead>
         <tr>
-          <th>Name</th>
-          <th>Class</th>
-          <th>Term</th>
-          <th>Year</th>
-          <th>Total Due</th>
-          <th>Due Date</th>
-          <th>Actions</th>
+          <th style="width: 26%">Name</th>
+          <th style="width: 10%">Class</th>
+          <th style="width: 8%">Term</th>
+          <th style="width: 10%">Year</th>
+          <th style="width: 16%">Total Due</th>
+          <th style="width: 18%">Due Date</th>
+          <th style="width: 12%">Actions</th>
         </tr>
       </thead>
       <tbody>
         <tr *ngFor="let it of items">
-          <td>{{ it.name }}</td>
-          <td>{{ it.class_name || 'All' }}</td>
-          <td>{{ it.term }}</td>
-          <td>{{ it.year }}</td>
-          <td>{{ it.total_due | number:'1.0-0' }}</td>
-          <td>{{ it.due_date | date:'yyyy-MM-dd' }}</td>
-          <td>
-            <!-- edit can be added later -->
-            <button class="btn danger" (click)="delete(it)">Delete</button>
-          </td>
+          <ng-container *ngIf="editingId !== it.fee_id; else editRow">
+            <td>{{ it.name }}</td>
+            <td>{{ it.class_name || 'All' }}</td>
+            <td>{{ it.term }}</td>
+            <td>{{ it.year }}</td>
+            <td>{{ it.total_due | number:'1.0-0' }}</td>
+            <td>{{ it.due_date | date:'yyyy-MM-dd' }}</td>
+            <td class="actions">
+              <button class="action-btn edit filled alt" (click)="startEdit(it)">Edit</button>
+              <button class="action-btn danger filled" (click)="delete(it)">Delete</button>
+            </td>
+          </ng-container>
+          <ng-template #editRow>
+            <td><input [(ngModel)]="editModel.name" /></td>
+            <td>{{ it.class_name || 'All' }}</td>
+            <td>
+              <select [(ngModel)]="editModel.term">
+                <option [value]="1">1</option>
+                <option [value]="2">2</option>
+                <option [value]="3">3</option>
+              </select>
+            </td>
+            <td><input type="number" [(ngModel)]="editModel.year" /></td>
+            <td><input type="number" [(ngModel)]="editModel.total_due" /></td>
+            <td><input type="date" [(ngModel)]="editModel.due_date" /></td>
+            <td class="actions">
+              <button class="action-btn save filled" (click)="saveEdit(it)">Save</button>
+              <button class="action-btn" (click)="cancelEdit()">Cancel</button>
+            </td>
+          </ng-template>
         </tr>
         <tr *ngIf="items.length === 0 && !isLoading">
           <td colspan="7">No fees configured yet.</td>

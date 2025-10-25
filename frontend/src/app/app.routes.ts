@@ -11,6 +11,7 @@ import { BulkFeesRemindersComponent } from './pages/bulk-fees-reminders/bulk-fee
 import { AnalyticsComponent } from './pages/analytics/analytics.component';
 import { authGuard } from './guards/auth.guard';
 import { FeesToTrackComponent } from './pages/fees-to-track/fees-to-track.component';
+import { TermsComponent } from './pages/terms/terms.component';
 
 export const routes: Routes = [
     { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -61,6 +62,7 @@ export const routes: Routes = [
         component: FeesToTrackComponent,
         canActivate: [authGuard]
     },
+    { path: 'terms', component: TermsComponent },
     // Add a catch-all route to redirect to dashboard or login
     { path: '**', redirectTo: '/dashboard' }
 ];

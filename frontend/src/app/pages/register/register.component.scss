@@ -1,6 +1,6 @@
 @use 'sass:color';
 
-:host { display:block; min-height:100vh; background: radial-gradient(circle at 10% 20%, #0f172a 0%, #071124 20%, #031428 45%, #021022 100%); color:#e6eef8; }
+:host { display:block; min-height:100vh; background: radial-gradient(circle at 10% 20%, #0f172a 0%, #071124 20%, #031428 45%, #021022 100%); color:#e6eef8; overflow-x:hidden; }
 
 .oc-landing { display:grid; grid-template-columns:1fr 420px; gap:2.5rem; align-items:center; max-width:1200px; margin:4rem auto; padding:2rem; }
 
@@ -44,4 +44,14 @@
 
 .error-message { color:#ff6b6b; margin-top:0.25rem; }
 
-@media (max-width:880px) { .oc-landing { grid-template-columns:1fr; padding:1.25rem; margin:1.25rem; } .oc-hero { order:2 } .oc-card-wrap { order:1 } }
+@media (max-width:880px) {
+  .oc-landing { grid-template-columns:1fr; padding:1rem; margin:0 auto; width:100%; }
+  .oc-hero { order:1; text-align:center; }
+  .oc-card-wrap { order:2; width:100%; }
+  .oc-card { max-width:520px; width:100%; margin:0 auto; padding:1rem; text-align:center; }
+  .oc-hero-decor { display:none; }
+  .form-compact { width:100%; }
+  .form-compact .form-row { width:100%; }
+  .form-compact .form-row input { width:100%; box-sizing:border-box; }
+  .oc-features { grid-template-columns: 1fr; }
+}

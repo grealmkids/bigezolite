@@ -24,7 +24,12 @@ export class CommunicationService {
   }
 
   sendBulkSms(recipientFilter: string, message: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/bulk-sms`, { recipientFilter, message });
+    const schoolId = this.schoolService.getSelectedSchoolId();
+    const q = schoolId ? `?schoolId=${schoolId}` : '';
+    const url = `${this.apiUrl}/bulk-sms${q}`;
+    const body = { recipientFilter, message };
+    console.log('[HTTP][POST]', url, body);
+    return this.http.post(url, body);
   }
 
   sendSingleSms(studentId: number, message: string): Observable<any> {
@@ -66,7 +71,9 @@ export class CommunicationService {
     if (term) body.term = term;
     if (feesStatus) body.feesStatus = feesStatus;
     if (messageTemplate != null) body.messageTemplate = messageTemplate;
-    return this.http.post(`${this.apiUrl}/bulk-fees-reminders/preview`, body);
+    const url = `${this.apiUrl}/bulk-fees-reminders/preview`;
+    console.log('[HTTP][POST]', url, body);
+    return this.http.post(url, body);
   }
 
   sendBulkFeesReminders(
@@ -88,6 +95,8 @@ export class CommunicationService {
     if (term) body.term = term;
     if (feesStatus) body.feesStatus = feesStatus;
     if (messageTemplate != null) body.messageTemplate = messageTemplate;
-    return this.http.post(`${this.apiUrl}/bulk-fees-reminders`, body);
+    const url = `${this.apiUrl}/bulk-fees-reminders`;
+    console.log('[HTTP][POST]', url, body);
+    return this.http.post(url, body);
   }
 }

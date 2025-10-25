@@ -5,6 +5,7 @@ import { SchoolService } from '../../services/school.service';
 import { ClassCategorizationService, SchoolType } from '../../services/class-categorization.service';
 import { debounceTime, distinctUntilChanged, take } from 'rxjs/operators';
 import { CommunicationService } from '../../services/communication.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-communications',
@@ -19,11 +20,13 @@ export class CommunicationsComponent implements OnInit {
   smsCreditsConsumed = 1;
   recipientFilter = 'All Students';
   classes: string[] = [];
+  isSending = false;
 
   constructor(
     private schoolService: SchoolService,
     private classCategorizationService: ClassCategorizationService,
-    public communicationService: CommunicationService
+    public communicationService: CommunicationService,
+    private snack: MatSnackBar
   ) { }
 
    ngOnInit(): void {
@@ -47,12 +50,25 @@ export class CommunicationsComponent implements OnInit {
   }
 
   sendBulkSms(): void {
-    if (this.message) {
-      this.communicationService.sendBulkSms(this.recipientFilter, this.message).subscribe(() => {
-        // Handle success
+    if (!this.message) return;
+    this.isSending = true;
+    console.log('[BulkSMS][payload]', { recipientFilter: this.recipientFilter, message: this.message });
+    this.communicationService.sendBulkSms(this.recipientFilter, this.message).subscribe({
+      next: (resp: any) => {
+        this.isSending = false;
+        console.log('[BulkSMS][response]', resp);
+        const sent = resp?.sentCount ?? 0;
+        const failed = resp?.failedCount ?? 0;
+        this.snack.open(`Sent ${sent} SMS${failed ? `, ${failed} failed` : ''}.`, 'Close', { duration: 4000, panelClass: ['success-snackbar'], verticalPosition: 'top', horizontalPosition: 'center' });
         this.message = '';
         this.recipientFilter = 'All Students';
-      });
-    }
+        this.communicationService.fetchSmsCreditBalance();
+      },
+      error: (err) => {
+        this.isSending = false;
+        console.error('[BulkSMS][error]', err);
+        this.snack.open(err?.error?.message || 'Failed to send bulk SMS', 'Close', { duration: 4000, panelClass: ['error-snackbar'], verticalPosition: 'top', horizontalPosition: 'center' });
+      }
+    });
   }
 }

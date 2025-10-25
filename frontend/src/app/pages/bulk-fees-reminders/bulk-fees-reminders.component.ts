@@ -93,6 +93,7 @@ export class BulkFeesRemindersComponent implements OnInit {
       messageTemplate: this.messageTemplate
     };
 
+    console.log('[BulkFeesPreview][payload]', payload);
     this.isLoadingPreview = true;
     this.communicationService.previewBulkFeesReminders(
       payload.thresholdAmount,
@@ -107,6 +108,7 @@ export class BulkFeesRemindersComponent implements OnInit {
     ).subscribe({
       next: (response) => {
         this.isLoadingPreview = false;
+        console.log('[BulkFeesPreview][response]', response);
         this.previewData = response;
         this.showPreview = true;
       },
@@ -155,6 +157,7 @@ export class BulkFeesRemindersComponent implements OnInit {
       messageTemplate: this.messageTemplate
     };
 
+    console.log('[BulkFeesSend][payload]', payload);
     this.isSending = true;
     this.communicationService.sendBulkFeesReminders(
       payload.thresholdAmount,
@@ -169,9 +172,11 @@ export class BulkFeesRemindersComponent implements OnInit {
     ).subscribe({
       next: (response) => {
         this.isSending = false;
-        const count = this.previewData?.recipientCount || response?.sentCount || 0;
+        console.log('[BulkFeesSend][response]', response);
+        const count = response?.sentCount ?? (this.previewData?.recipientCount || 0);
+        const failed = response?.failedCount ?? 0;
         this.snackBar.open(
-          `Successfully sent ${count} fees reminder${count !== 1 ? 's' : ''}!`,
+          `Sent ${count} reminder${count !== 1 ? 's' : ''}${failed ? `, ${failed} failed` : ''}.`,
           'Close',
           {
             duration: 5000,

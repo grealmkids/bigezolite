@@ -13,7 +13,7 @@ export const getSmsCredits = async (schoolId: number): Promise<number> => {
     return 0;
 };
 
-export const processBulkSms = async (schoolId: number, recipientFilter: any, message: string): Promise<void> => {
+export const processBulkSms = async (schoolId: number, recipientFilter: any, message: string): Promise<{ sentCount: number; failedCount: number; failures: Array<{ phone: string; error: string }> }> => {
     const params: any[] = [schoolId];
     let query = 'SELECT parent_phone_sms FROM students WHERE school_id = $1';
 
@@ -49,14 +49,26 @@ export const processBulkSms = async (schoolId: number, recipientFilter: any, mes
         throw err;
     }
 
+    const failures: Array<{ phone: string; error: string }> = [];
+    let sentCount = 0;
     for (const phoneNumber of phoneNumbers) {
-        await sendSms(phoneNumber, message, creds.username, creds.password, creds.username);
+        try {
+            console.log(`[BulkSMS] -> ${phoneNumber}: ${message}`);
+            await sendSms(phoneNumber, message, creds.username, creds.password, creds.username);
+            sentCount++;
+        } catch (e: any) {
+            console.error(`[BulkSMS][FAIL] ${phoneNumber}:`, e?.message || e);
+            failures.push({ phone: phoneNumber, error: e?.message || String(e) });
+        }
     }
 
-    // Record transaction and update provider-backed account
-    await addSmsTransaction(schoolId, 'debit', requiredAmount, { type: 'bulk', recipients: recipientCount });
-    const newProviderBalance = providerBalance - requiredAmount;
+    // Record transaction and update provider-backed account (charge only for successful sends)
+    const charge = sentCount * costPerSms;
+    await addSmsTransaction(schoolId, 'debit', charge, { type: 'bulk', recipients: sentCount });
+    const newProviderBalance = providerBalance - charge;
     await upsertSmsAccount(schoolId, newProviderBalance);
+
+    return { sentCount, failedCount: failures.length, failures };
 };
 
 export const processSingleSms = async (schoolId: number, studentId: number, message: string): Promise<void> => {
@@ -217,6 +229,13 @@ export const previewBulkFeesRemindersData = async (
     const schoolName: string = school?.school_name || '';
     const rsvpNumber: string = school?.accountant_number || '';
 
+    // Check if student_terms has data for this school's students (avoid excluding everyone when empty)
+    const stProbe = await pool.query(
+        `SELECT 1 FROM student_terms st JOIN students s ON s.student_id = st.student_id WHERE s.school_id = $1 LIMIT 1`,
+        [schoolId]
+    );
+    const hasStudentTerms = ((stProbe as any)?.rowCount ?? 0) > 0;
+
     // Build base query to select the TOP outstanding fees record per student (by highest balance, then earliest due date)
     // Apply optional year/term filters on fees_records and status from student_terms when term/year provided
     let sql = `
@@ -263,7 +282,7 @@ export const previewBulkFeesRemindersData = async (
     }
 
     // For status: if year/term provided, prefer student_terms.status; else use students.student_status
-    const useStudentTerms = Boolean(term || year);
+    const useStudentTerms = Boolean(term || year) && hasStudentTerms;
     if (statusFilter && statusFilter !== 'All Statuses') {
         if (useStudentTerms) {
             let stClause = ' AND EXISTS (SELECT 1 FROM student_terms st WHERE st.student_id = base_students.student_id';
@@ -300,9 +319,12 @@ export const previewBulkFeesRemindersData = async (
     } else { sql = sql.replace(' AND f.term = $T', ''); }
     sql = sql.replace('$X', String(next)); params.push(Number(thresholdAmount));
 
+    console.debug('[BulkFeesPreview] filters:', { thresholdAmount, classFilter, statusFilter, customDeadline, year, term, feesStatus, messageType });
+    console.debug('[BulkFeesPreview] SQL params:', params);
     // Execute query
     const result = await pool.query(sql, params);
     let rows: any[] = result.rows || [];
+    console.debug('[BulkFeesPreview] top-record rows:', rows.length);
 
     // Optional feesStatus filter similar to students page
     if (feesStatus) {
@@ -336,8 +358,10 @@ export const previewBulkFeesRemindersData = async (
         aggSql += ` GROUP BY s.student_id, s.student_name, s.parent_phone_sms, s.class_name, s.student_status`;
         aggSql += ` HAVING COALESCE(SUM(f.balance_due), 0) >= $${aNext}`; aParams.push(Number(thresholdAmount));
 
+        console.debug('[BulkFeesPreview][Fallback] SQL params:', aParams);
         const aggRes = await pool.query(aggSql, aParams);
         rows = aggRes.rows || [];
+        console.debug('[BulkFeesPreview][Fallback] rows:', rows.length);
 
         if (feesStatus) {
             rows = rows.filter((r: any) => {
@@ -420,7 +444,7 @@ export const previewBulkFeesRemindersData = async (
     const costPerSms = Number(config.costPerSms || 50);
     const estimatedCost = recipientCount * costPerSms;
 
-    return {
+    const preview = {
         recipientCount,
         totalBalance,
         sampleMessage,
@@ -433,7 +457,9 @@ export const previewBulkFeesRemindersData = async (
             balance: Number(s.balance_due || 0),
             amountPaid: Number(s.amount_paid || 0)
         }))
-    };
+    } as any;
+    console.debug('[BulkFeesPreview] preview summary:', { recipientCount: preview.recipientCount, totalBalance: preview.totalBalance, smsUnits: preview.smsUnits });
+    return preview;
 };
 
 // Process bulk fees reminders with filters
@@ -453,6 +479,13 @@ export const processBulkFeesReminders = async (
     const school = await findSchoolById(schoolId);
     const schoolName: string = school?.school_name || '';
     const rsvpNumber: string = school?.accountant_number || '';
+
+    // Check if student_terms has data for this school's students
+    const stProbe = await pool.query(
+        `SELECT 1 FROM student_terms st JOIN students s ON s.student_id = st.student_id WHERE s.school_id = $1 LIMIT 1`,
+        [schoolId]
+    );
+    const hasStudentTerms = ((stProbe as any)?.rowCount ?? 0) > 0;
 
     // Select top outstanding record per student similar to preview
     let sql = `
@@ -499,7 +532,7 @@ export const processBulkFeesReminders = async (
     }
 
     // For status: if year/term provided, prefer student_terms.status; else students.student_status
-    const useStudentTerms = Boolean(term || year);
+    const useStudentTerms = Boolean(term || year) && hasStudentTerms;
     if (statusFilter && statusFilter !== 'All Statuses') {
         if (useStudentTerms) {
             let stClause = ' AND EXISTS (SELECT 1 FROM student_terms st WHERE st.student_id = base_students.student_id';
@@ -534,8 +567,11 @@ export const processBulkFeesReminders = async (
     } else { sql = sql.replace(' AND f.term = $T', ''); }
     sql = sql.replace('$X', String(next)); params.push(Number(thresholdAmount));
 
+    console.debug('[BulkFeesSend] filters:', { thresholdAmount, classFilter, statusFilter, customDeadline, year, term, feesStatus, messageType });
+    console.debug('[BulkFeesSend] SQL params:', params);
     const result = await pool.query(sql, params);
     let rows: any[] = result.rows || [];
+    console.debug('[BulkFeesSend] top-record rows:', rows.length);
 
     // Optional feesStatus filter
     if (feesStatus) {
@@ -569,8 +605,10 @@ export const processBulkFeesReminders = async (
         aggSql += ` GROUP BY s.student_id, s.student_name, s.parent_phone_sms, s.class_name, s.student_status`;
         aggSql += ` HAVING COALESCE(SUM(f.balance_due), 0) >= $${aNext}`; aParams.push(Number(thresholdAmount));
 
+        console.debug('[BulkFeesSend][Fallback] SQL params:', aParams);
         const aggRes = await pool.query(aggSql, aParams);
         rows = aggRes.rows || [];
+        console.debug('[BulkFeesSend][Fallback] rows:', rows.length);
 
         if (feesStatus) {
             rows = rows.filter((r: any) => {
@@ -618,6 +656,8 @@ export const processBulkFeesReminders = async (
     const defaultSentHome = `Dear parent of {child's name}, we have sent your child back home for {fee_name} today {today's date}. {RSVP number} - {School name}.`;
     const templateToUse = messageType === 'sent_home' ? (messageTemplate && messageTemplate.trim().length > 0 ? messageTemplate : defaultSentHome) : (messageType === 'custom' ? (messageTemplate || '') : '');
 
+    const failures: Array<{ phone: string; error: string }> = [];
+    let sentCount = 0;
     // Send SMS
     for (const r of rows) {
         const dueDate = formattedCustomDeadline || (r.due_date ? new Date(r.due_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-') : undefined);
@@ -653,10 +693,21 @@ export const processBulkFeesReminders = async (
         } else {
             message = generateFeesReminderMessage(r.student_name, Number(r.amount_paid || 0), Number(r.balance_due || 0), dueDate || '');
         }
-        await sendSms(r.parent_phone_sms, message, creds.username, creds.password, creds.username);
+        try {
+            console.log(`[BulkFeesSMS] -> ${r.parent_phone_sms}: ${message}`);
+            await sendSms(r.parent_phone_sms, message, creds.username, creds.password, creds.username);
+            sentCount++;
+        } catch (e: any) {
+            console.error('[BulkFeesSMS][FAIL]', r.parent_phone_sms, e?.message || e);
+            failures.push({ phone: r.parent_phone_sms, error: e?.message || String(e) });
+        }
     }
 
-    await addSmsTransaction(schoolId, 'debit', requiredAmount, { type: 'bulk-fees-reminders', recipients: recipientCount, thresholdAmount, messageType });
-    const newProviderBalance = providerBalance - requiredAmount;
+    // Charge successful only
+    const charge = sentCount * costPerSms;
+    await addSmsTransaction(schoolId, 'debit', charge, { type: 'bulk-fees-reminders', recipients: sentCount, thresholdAmount, messageType });
+    const newProviderBalance = providerBalance - charge;
     await upsertSmsAccount(schoolId, newProviderBalance);
+
+    return { sentCount, failedCount: failures.length, failures } as any;
 };

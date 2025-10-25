@@ -38,11 +38,13 @@ export const getSmsCreditBalance = async (req: AuthenticatedRequest, res: Respon
 
 export const sendBulkSms = async (req: AuthenticatedRequest, res: Response) => {
     try {
-        const schoolId = req.user?.schoolId;
+        const schoolIdFromQuery = req.query.schoolId ? Number(req.query.schoolId) : null;
+        const schoolId = schoolIdFromQuery || req.user?.schoolId;
         if (!schoolId) return res.status(401).json({ message: 'Unauthorized: missing school context' });
         const { recipientFilter, message } = req.body;
-        await processBulkSms(schoolId, recipientFilter, message);
-        return res.status(200).json({ message: 'Bulk SMS processed successfully' });
+        console.debug('[sendBulkSms] recipientFilter:', recipientFilter, 'schoolId:', schoolId);
+        const report = await processBulkSms(schoolId, recipientFilter, message);
+        return res.status(200).json({ message: 'Bulk SMS processed successfully', ...report });
     } catch (error: any) {
         // Provide more informative failure to frontend when possible
         const providerMessage = error?.details || error?.message || (error?.response && error.response.data) || null;
@@ -134,8 +136,8 @@ export const sendBulkFeesReminders = async (req: AuthenticatedRequest, res: Resp
         if (!schoolId) return res.status(401).json({ message: 'Unauthorized: missing school context' });
         const { thresholdAmount, classFilter, statusFilter, customDeadline, year, term, feesStatus, messageType, messageTemplate } = req.body;
         if (thresholdAmount == null || thresholdAmount < 0) return res.status(400).json({ message: 'Valid threshold amount is required' });
-        await processBulkFeesReminders(schoolId, thresholdAmount, classFilter, statusFilter, customDeadline, year, term, feesStatus, messageType, messageTemplate);
-        return res.status(200).json({ message: 'Bulk fees reminders sent successfully' });
+        const report: any = await processBulkFeesReminders(schoolId, thresholdAmount, classFilter, statusFilter, customDeadline, year, term, feesStatus, messageType, messageTemplate);
+        return res.status(200).json({ message: 'Bulk fees reminders sent successfully', ...report });
     } catch (error: any) {
         const providerMessage = error?.details || error?.message || (error?.response && error.response.data) || null;
         const statusCode = error?.statusCode || 500;

@@ -30,8 +30,9 @@
     </div>
 
     <div class="send-action">
-      <button class="btn btn-primary" (click)="sendBulkSms()" [disabled]="!message">
-        Send Bulk SMS
+      <button class="btn btn-primary" (click)="sendBulkSms()" [disabled]="!message || isSending">
+        <span *ngIf="!isSending">Send Bulk SMS</span>
+        <span *ngIf="isSending">Sending...</span>
       </button>
       <p class="credits-info">Your current SMS credit balance is: <strong>{{ communicationService.smsCreditBalance$ | async }}</strong></p>
     </div>

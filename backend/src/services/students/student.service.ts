@@ -147,16 +147,19 @@ export const findStudentsBySchool = async (
                                 WHEN COALESCE(fr.total_paid,0) > 0 THEN 'Pending'
                                 ELSE 'Defaulter' END`;
 
-    // If filtering by fees status, append to WHERE using derived expression
+    // If filtering by fees status, append to WHERE based on numeric balance/paid
     if (feesStatusTerm) {
         const termLc = String(feesStatusTerm).toLowerCase();
-        if (termLc === 'defaulter') {
-            // Show both Defaulter and Partially Paid (i.e., any balance > 0)
-            where += ` AND (${derivedStatus} <> 'Paid')`;
-        } else {
-            where += ` AND ${derivedStatus} = $${idx}`;
-            params.push(String(feesStatusTerm));
-            idx++;
+        const balanceExpr = `(COALESCE(fr.total_due,0) - COALESCE(fr.total_paid,0))`;
+        const paidExpr = `COALESCE(fr.total_paid,0)`;
+        if (termLc === 'paid') {
+            where += ` AND ${balanceExpr} <= 0`;
+        } else if (termLc === 'pending' || termLc === 'partially paid') {
+            // Partially paid: balance > 0 and some payment made
+            where += ` AND ${balanceExpr} > 0 AND ${paidExpr} > 0`;
+        } else if (termLc === 'defaulter') {
+            // Defaulter view: any balance > 0 (includes partially paid and pure defaulters)
+            where += ` AND ${balanceExpr} > 0`;
         }
     }
 

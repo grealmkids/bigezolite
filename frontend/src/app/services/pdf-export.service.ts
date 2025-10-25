@@ -10,6 +10,8 @@ interface PDFHeader {
   generatedDate: string;
   totalStudents: number;
   filterInfo?: string;
+  statusLabel?: string;
+  statusTheme?: 'paid' | 'pending' | 'defaulter';
 }
 
 @Injectable({
@@ -24,10 +26,20 @@ export class PdfExportService {
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
 
-    // Header (reuse style)
-    doc.setFillColor(0, 89, 179);
+    // Theming colors based on selected status
+    const themes: any = {
+      paid: { main: [16, 122, 57], accent: [198, 246, 213] },
+      pending: { main: [25, 118, 210], accent: [227, 242, 253] },
+      defaulter: { main: [220, 38, 38], accent: [254, 202, 202] },
+      default: { main: [0, 89, 179], accent: [255, 193, 7] },
+    };
+    const themeKey = (header.statusTheme || 'default') as keyof typeof themes;
+    const col = themes[themeKey] || themes.default;
+
+    // Header
+    doc.setFillColor(col.main[0], col.main[1], col.main[2]);
     doc.rect(0, 0, pageWidth, 35, 'F');
-    doc.setFillColor(255, 193, 7);
+    doc.setFillColor(col.accent[0], col.accent[1], col.accent[2]);
     doc.rect(0, 35, pageWidth, 2, 'F');
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(24);
@@ -52,12 +64,28 @@ export class PdfExportService {
     doc.text(`Generated: ${header.generatedDate}`, leftX, metaY);
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
-    doc.setTextColor(0, 89, 179);
-doc.text(`Total Students: ${header.totalStudents}`, rightX, metaY, { align: 'right' });
+    doc.setTextColor(col.main[0], col.main[1], col.main[2]);
+    doc.text(`Total Students: ${header.totalStudents}`, rightX, metaY, { align: 'right' });
     if (header.filterInfo) {
       doc.setFontSize(8);
       doc.setTextColor(150, 150, 150);
       doc.text(`Filters Applied: ${header.filterInfo}`, pageWidth / 2, metaY + 4, { align: 'center' });
+    }
+
+    // Status stamp above table if provided
+    let tableStartYOffset = header.filterInfo ? metaY + 8 : metaY + 2;
+    if (header.statusLabel) {
+      const stampY = tableStartYOffset;
+      const label = String(header.statusLabel).toUpperCase();
+      const textW = doc.getTextWidth(label) + 10;
+      const x = (pageWidth - textW) / 2;
+      doc.setFillColor(col.accent[0], col.accent[1], col.accent[2]);
+      doc.roundedRect(x, stampY, textW, 8, 3, 3, 'F');
+      doc.setTextColor(col.main[0], col.main[1], col.main[2]);
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.text(label, pageWidth / 2, stampY + 5.5, { align: 'center' });
+      tableStartYOffset += 12;
     }
 
     // Table
@@ -81,7 +109,7 @@ doc.text(`Total Students: ${header.totalStudents}`, rightX, metaY, { align: 'rig
     ]);
 
     autoTable(doc, {
-      startY: header.filterInfo ? metaY + 8 : metaY + 2,
+      startY: tableStartYOffset,
       head,
       body,
       theme: 'grid',
@@ -89,7 +117,7 @@ doc.text(`Total Students: ${header.totalStudents}`, rightX, metaY, { align: 'rig
       headStyles: { fillColor: [52,73,94], textColor: [255,255,255], fontSize: 12, fontStyle: 'bold', halign: 'left', cellPadding: 4 },
       columnStyles: {
         0: { cellWidth: 8 }, 1: { cellWidth: 28 }, 2: { cellWidth: 48 }, 3: { cellWidth: 20 }, 4: { cellWidth: 24 },
-        5: { cellWidth: 12 }, 6: { cellWidth: 16 }, 7: { cellWidth: 22 }, 8: { cellWidth: 18 }, 9: { cellWidth: 22 }, 10: { cellWidth: 28 }
+        5: { cellWidth: 18 }, 6: { cellWidth: 22 }, 7: { cellWidth: 24 }, 8: { cellWidth: 22 }, 9: { cellWidth: 30 }, 10: { cellWidth: 28 }
       },
       alternateRowStyles: { fillColor: [245,247,250] },
       didParseCell: (data) => {

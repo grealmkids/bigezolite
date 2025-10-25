@@ -562,6 +562,12 @@ export class StudentManagementComponent implements OnInit {
   }
 
   private emitFeesPDF(rows: any[], schoolName: string, term: string, year: string, total: number, filterInfo?: string) {
+    // Determine selected label/theme from current filter
+    const raw = this.feesStatusFilter.value || '';
+    const label = (raw.toLowerCase() === 'pending') ? 'Partially Paid' : raw;
+    const theme = (raw.toLowerCase() === 'pending' || raw.toLowerCase() === 'partially paid')
+      ? 'pending' : (raw.toLowerCase() === 'paid' ? 'paid' : (raw ? 'defaulter' : undefined));
+
     this.pdfExportService.generateFeesDetailsPDF(rows, {
       schoolName,
       term,
@@ -570,7 +576,9 @@ export class StudentManagementComponent implements OnInit {
         year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
       }),
       totalStudents: total,
-      filterInfo
+      filterInfo,
+      statusLabel: label || undefined,
+      statusTheme: theme as any,
     } as any);
     this.snack.open(`PDF downloaded successfully (${total} students)`, 'Close', {
       duration: 3000,

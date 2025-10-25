@@ -23,6 +23,7 @@ import { SchoolService } from '../../services/school.service';
 import { ClassCategorizationService, SchoolType } from '../../services/class-categorization.service';
 import { LoadingSpinnerComponent } from '../../components/loading-spinner/loading-spinner.component';
 import { PdfExportService } from '../../services/pdf-export.service';
+import { FeesToTrackService } from '../../services/fees-to-track.service';
 import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-dialog.component';
 
 @Component({
@@ -52,6 +53,7 @@ export class StudentManagementComponent implements OnInit {
   private statusFilter = new BehaviorSubject<string>('');
   private feesStatusFilter = new BehaviorSubject<string>('');
   private yearFilter = new BehaviorSubject<string>('');
+  private termFilter = new BehaviorSubject<string>('');
   private pageIndex = new BehaviorSubject<number>(0);
   private pageSize = new BehaviorSubject<number>(10);
   private sortColumn = new BehaviorSubject<string>('student_name');
@@ -87,7 +89,8 @@ export class StudentManagementComponent implements OnInit {
   private snack: MatSnackBar,
   private pdfExportService: PdfExportService,
   private dialog: MatDialog,
-  private feesService: FeesService
+  private feesService: FeesService,
+  private feesToTrackService: FeesToTrackService
   ) { }
 
   onSearch(term: string): void {
@@ -121,6 +124,12 @@ export class StudentManagementComponent implements OnInit {
     this.pageEvent.pageIndex = 0;
     this.pageIndex.next(0);
     this.yearFilter.next(term);
+  }
+
+  onTermChange(term: string): void {
+    this.pageEvent.pageIndex = 0;
+    this.pageIndex.next(0);
+    this.termFilter.next(term);
   }
 
   onPageChange(event: PageEvent): void {
@@ -190,13 +199,14 @@ export class StudentManagementComponent implements OnInit {
       this.statusFilter.pipe(distinctUntilChanged(), startWith('')),
       this.feesStatusFilter.pipe(distinctUntilChanged(), startWith('')),
       this.yearFilter.pipe(distinctUntilChanged(), startWith('')),
+      this.termFilter.pipe(distinctUntilChanged(), startWith('')),
       this.pageIndex.pipe(distinctUntilChanged(), startWith(0)),
       this.pageSize.pipe(distinctUntilChanged(), startWith(10)),
       this.sortColumn.pipe(distinctUntilChanged(), startWith('student_name')),
       this.sortDirection.pipe(distinctUntilChanged(), startWith('ASC')),
       this.refreshTick.pipe(startWith(void 0))
     ]).pipe(
-      switchMap(([searchTerm, classTerm, statusTerm, feesStatusTerm, yearTerm, page, limit, sort, order]) => {
+      switchMap(([searchTerm, classTerm, statusTerm, feesStatusTerm, yearTerm, termSel, page, limit, sort, order]) => {
         this.isLoading = true;
         const schoolId = this.schoolService.getSelectedSchoolId();
         if (!schoolId) {
@@ -344,7 +354,10 @@ export class StudentManagementComponent implements OnInit {
         const rows: Array<{ reg: string; name: string; klass: string; category: string; feesStatus: string; term?: number; year?: number; total?: number; paid?: number; balance?: number; phone: string }> = [];
         students.forEach((s, idx) => {
           const fees = (recordsList[idx] || []) as FeeRecord[];
-          fees.forEach(fr => {
+          // filter by selected year and term (if provided)
+          const ySel = this.yearFilter.value ? Number(this.yearFilter.value) : null;
+          const tSel = this.termFilter.value ? Number(this.termFilter.value) : null;
+          fees.filter(fr => (ySel ? fr.year === ySel : true) && (tSel ? fr.term === tSel : true)).forEach(fr => {
             const total = Number(fr.total_fees_due || 0);
             const paid = Number(fr.amount_paid || 0);
             const balance = Number(fr.balance_due ?? (total - paid));
@@ -503,14 +516,19 @@ export class StudentManagementComponent implements OnInit {
         if (feesStatusTerm) {
           const requests = allStudents.map(s => this.feesService.getFeeRecords(s.student_id).pipe(take(1)));
           forkJoin(requests).pipe(take(1)).subscribe({
-            next: (allFeeRecords: any[]) => {
-              // Build per-term rows and filter per selected status
-              type Row = { reg: string; name: string; klass: string; feesStatus: string; term: number|undefined; year: number|undefined; total: number|undefined; paid: number|undefined; balance: number|undefined; phone: string };
+            next: async (allFeeRecords: any[]) => {
+              // Build per-term rows and filter per selected status, year, and term
+              type Row = { reg: string; name: string; klass: string; feesStatus: string; feeName?: string; term: number|undefined; year: number|undefined; total: number|undefined; paid: number|undefined; balance: number|undefined; phone: string };
               const rows: Row[] = [];
               const filter = (feesStatusTerm || '').toLowerCase();
+              const ySel = yearTerm ? Number(yearTerm) : new Date().getFullYear(); // enforce one year (default current)
+              const tSel = this.termFilter.value ? Number(this.termFilter.value) : null;
+
+              const neededFeeIds = new Set<number>();
+
               allStudents.forEach((s, idx) => {
-                const fees: FeeRecord[] = allFeeRecords[idx] || [];
-                fees.forEach(fr => {
+                const fees: FeeRecord[] = (allFeeRecords[idx] || []) as FeeRecord[];
+                fees.filter(fr => (fr.year === ySel) && (tSel ? fr.term === tSel : true)).forEach(fr => {
                   const total = Number(fr.total_fees_due || 0);
                   const paid = Number(fr.amount_paid || 0);
                   const balance = Number(fr.balance_due ?? (total - paid));
@@ -520,6 +538,7 @@ export class StudentManagementComponent implements OnInit {
                     ((filter === 'pending' || filter === 'partially paid') && balance > 0 && paid > 0) ||
                     (filter === 'defaulter' && balance > 0);
                   if (include) {
+                    if (fr.fee_id) neededFeeIds.add(fr.fee_id as number);
                     rows.push({
                       reg: (s.reg_number || '').replace(/-/g, ''),
                       name: s.student_name || '',
@@ -535,7 +554,38 @@ export class StudentManagementComponent implements OnInit {
                   }
                 });
               });
-              this.emitFeesPDF(rows, schoolName, term, yearTerm || new Date().getFullYear().toString(), rows.length, filterInfo);
+
+              // Fetch fee names for unique fee_ids
+              const idArr = Array.from(neededFeeIds);
+              const nameMap: Record<number, string> = {};
+              if (idArr.length) {
+                try {
+                  const nameCalls = idArr.map(id => this.feesToTrackService.getById(id).pipe(take(1)));
+                  const defsPromise = forkJoin(nameCalls).pipe(take(1)).toPromise() as Promise<any[]>;
+                  let defs: any[] = [];
+                  try { defs = await defsPromise; } catch {}
+                  defs?.forEach((d: any, i: number) => { nameMap[idArr[i]] = d?.name || 'School Fees'; });
+                } catch {
+                  // fallback names remain empty -> default later
+                }
+              }
+
+              // Attach feeName by matching fee_id from original records again
+              let recIdx = 0;
+              allStudents.forEach((s, si) => {
+                const fees: FeeRecord[] = (allFeeRecords[si] || []) as FeeRecord[];
+                fees.filter(fr => (fr.year === ySel) && (tSel ? fr.term === tSel : true)).forEach(fr => {
+                  if (recIdx < rows.length) {
+                    const nm = fr.fee_id ? nameMap[fr.fee_id] || 'School Fees' : 'School Fees';
+                    rows[recIdx].feeName = nm;
+                    recIdx++;
+                  }
+                });
+              });
+
+              // Header options: hide Year (in header) and hide Term if selected
+              const headerTerm = tSel ? `Term ${tSel}` : '';
+              this.emitFeesPDF(rows, schoolName, headerTerm || 'All Terms', String(ySel), rows.length, filterInfo, { hideYear: true, hideTerm: !!tSel });
             },
             error: (err) => {
               console.error('Error fetching fees for export:', err);
@@ -585,7 +635,7 @@ export class StudentManagementComponent implements OnInit {
     });
   }
 
-  private emitFeesPDF(rows: any[], schoolName: string, term: string, year: string, total: number, filterInfo?: string) {
+  private emitFeesPDF(rows: any[], schoolName: string, term: string, year: string, total: number, filterInfo?: string, opts?: { hideYear?: boolean; hideTerm?: boolean }) {
     // Determine selected label/theme from current filter
     const raw = this.feesStatusFilter.value || '';
     const label = (raw.toLowerCase() === 'pending') ? 'Partially Paid' : raw;
@@ -603,6 +653,8 @@ export class StudentManagementComponent implements OnInit {
       filterInfo,
       statusLabel: label || undefined,
       statusTheme: theme as any,
+      hideYear: opts?.hideYear,
+      hideTerm: opts?.hideTerm,
     } as any);
     this.snack.open(`PDF downloaded successfully (${total} students)`, 'Close', {
       duration: 3000,

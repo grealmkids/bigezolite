@@ -12,6 +12,8 @@ interface PDFHeader {
   filterInfo?: string;
   statusLabel?: string;
   statusTheme?: 'paid' | 'pending' | 'defaulter';
+  hideTerm?: boolean;
+  hideYear?: boolean;
 }
 
 @Injectable({
@@ -21,7 +23,7 @@ export class PdfExportService {
 
   constructor() { }
 
-  generateFeesDetailsPDF(rows: Array<{ reg: string; name: string; klass: string; feesStatus: string; term?: number; year?: number; total?: number; paid?: number; balance?: number; phone: string }>, header: PDFHeader): void {
+  generateFeesDetailsPDF(rows: Array<{ reg: string; name: string; klass: string; feesStatus: string; feeName?: string; term?: number; year?: number; total?: number; paid?: number; balance?: number; phone: string }>, header: PDFHeader): void {
     const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
@@ -90,24 +92,37 @@ export class PdfExportService {
     }
 
     // Table
-    const head = [['#', 'Reg Number', 'Student Name', 'Class', 'Fees Status', 'Term', 'Year', 'Total Due', 'Paid', 'Balance', 'Parent Phone']];
+    const includeTerm = !header.hideTerm;
+    const includeYear = !header.hideYear;
+    const head = [[
+      '#','Reg Number','Student Name','Class','Fees Status','Fee',
+      ...(includeTerm ? ['Term'] : []),
+      ...(includeYear ? ['Year'] : []),
+      'Total Due','Paid','Balance','Parent Phone'
+    ]];
     const fmt0 = (n: any) => {
       const v = Number(n || 0);
       return v.toLocaleString('en-US', { maximumFractionDigits: 0 });
     };
-    const body = rows.map((r, i) => [
-      i + 1,
-      r.reg,
-      r.name,
-      r.klass,
-      (r.feesStatus || '').toLowerCase() === 'pending' ? 'Partially Paid' : (r.feesStatus || ''),
-      r.term ?? '',
-      r.year ?? '',
-      fmt0(r.total),
-      fmt0(r.paid),
-      fmt0(r.balance),
-      r.phone
-    ]);
+    const body = rows.map((r, i) => {
+      const base: any[] = [
+        i + 1,
+        r.reg,
+        r.name,
+        r.klass,
+        (r.feesStatus || '').toLowerCase() === 'pending' ? 'Partially Paid' : (r.feesStatus || ''),
+        r.feeName || 'School Fees',
+      ];
+      if (includeTerm) base.push(r.term ?? '');
+      if (includeYear) base.push(r.year ?? '');
+      base.push(
+        fmt0(r.total),
+        fmt0(r.paid),
+        fmt0(r.balance),
+        r.phone
+      );
+      return base;
+    });
 
     autoTable(doc, {
       startY: tableStartYOffset,
@@ -117,8 +132,13 @@ export class PdfExportService {
       styles: { fontSize: 11, cellPadding: 3, lineColor: [0,0,0], lineWidth: 0.25, font: 'helvetica', textColor: [40,40,40], halign: 'left' },
       headStyles: { fillColor: [52,73,94], textColor: [255,255,255], fontSize: 12, fontStyle: 'bold', halign: 'left', cellPadding: 4 },
       columnStyles: {
-        0: { cellWidth: 8 }, 1: { cellWidth: 28 }, 2: { cellWidth: 48 }, 3: { cellWidth: 20 }, 4: { cellWidth: 24 },
-        5: { cellWidth: 18 }, 6: { cellWidth: 22 }, 7: { cellWidth: 24 }, 8: { cellWidth: 22 }, 9: { cellWidth: 30 }, 10: { cellWidth: 28 }
+        0: { cellWidth: 8 }, // #
+        1: { cellWidth: 28 }, // Reg
+        2: { cellWidth: 48 }, // Name
+        3: { cellWidth: 20 }, // Class
+        4: { cellWidth: 24 }, // Status
+        5: { cellWidth: 30 }, // Fee
+        6: { cellWidth: includeTerm ? 14 : (includeYear ? 20 : 24) }, // Term or Total Due depending on shifts
       },
       alternateRowStyles: { fillColor: [245,247,250] },
       didParseCell: (data) => {

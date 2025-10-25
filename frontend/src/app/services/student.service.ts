@@ -41,7 +41,7 @@ export class StudentService {
 
   constructor(private http: HttpClient) { }
 
-  getStudents(schoolId: number, searchTerm?: string, classTerm?: string, statusTerm?: string, yearTerm?: string, page: number = 0, pageSize: number = 10, sort: string = 'student_name', order: string = 'ASC'): Observable<{ items: Student[]; total: number }> {
+  getStudents(schoolId: number, searchTerm?: string, classTerm?: string, statusTerm?: string, feesStatusTerm?: string, yearTerm?: string, page: number = 0, pageSize: number = 10, sort: string = 'student_name', order: string = 'ASC'): Observable<{ items: Student[]; total: number }> {
     let params = new HttpParams()
       .append('schoolId', schoolId.toString())
       .append('page', page.toString())
@@ -57,6 +57,9 @@ export class StudentService {
     }
     if (statusTerm) {
       params = params.append('status', statusTerm);
+    }
+    if (feesStatusTerm) {
+      params = params.append('feesStatus', feesStatusTerm);
     }
     if (yearTerm) {
       params = params.append('year', yearTerm);

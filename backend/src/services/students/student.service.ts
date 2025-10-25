@@ -96,6 +96,7 @@ export const findStudentsBySchool = async (
     searchTerm?: string,
     classTerm?: string,
     statusTerm?: string,
+    feesStatusTerm?: string,
     yearTerm?: string,
     page: number = 0,
     limit: number = 0,
@@ -122,6 +123,12 @@ export const findStudentsBySchool = async (
     if (statusTerm) {
         where += ` AND student_status = $${idx}`;
         params.push(String(statusTerm));
+        idx++;
+    }
+
+    if (feesStatusTerm) {
+        where += ` AND fees_status = $${idx}`;
+        params.push(String(feesStatusTerm));
         idx++;
     }
 

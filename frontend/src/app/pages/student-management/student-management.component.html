@@ -90,6 +90,12 @@
         <option value="Suspended">Suspended</option>
         <option value="Sick">Sick</option>
       </select>
+      <select #feesStatusFilter (change)="onFeesStatusChange(feesStatusFilter.value)">
+        <option value="">All Fees Status</option>
+        <option value="Paid">Paid</option>
+        <option value="Pending">Partially Paid</option>
+        <option value="Defaulter">Defaulter</option>
+      </select>
       <select #yearFilter (change)="onYearChange(yearFilter.value)">
         <option value="">All Years</option>
         <option *ngFor="let year of years" [value]="year">{{ year }}</option>
@@ -153,96 +159,118 @@
           No students found matching your search criteria
         </div>
 
-        <table *ngIf="displayedStudents.length > 0" class="student-table">
-          <thead>
-            <tr>
-              <th style="width: 50px">#</th>
-              <th (click)="onSort('reg_number')" class="hide-mobile">
-                Reg Number
-              </th>
-              <th (click)="onSort('student_name')">Student Name</th>
-              <th (click)="onSort('class_name')">Class</th>
-              <th (click)="onSort('student_status')" class="hide-mobile">
-                Status
-              </th>
-              <th (click)="onSort('fees_status')" class="hide-mobile">
-                Fees Status
-              </th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngIf="isLoading">
-              <td colspan="7" class="table-spinner">
-                <app-loading-spinner></app-loading-spinner>
-              </td>
-            </tr>
-            <tr *ngFor="let student of displayedStudents; let i = index">
-              <td>{{ pageEvent.pageIndex * pageEvent.pageSize + i + 1 }}</td>
-              <td class="hide-mobile">{{ student.reg_number | noDash }}</td>
-              <td>{{ student.student_name }}</td>
-              <td>{{ student?.class_name || "" }}</td>
-              <td class="hide-mobile">
-                <span
-                  class="status"
-                  [ngClass]="(student?.student_status || '').toLowerCase()"
-                  >{{ student?.student_status || "" }}</span
-                >
-              </td>
-              <td class="hide-mobile">
-                <span
-                  class="fees-status"
-                  [ngClass]="(student?.fees_status || '').toLowerCase()"
-                  >{{ student?.fees_status || "" }}</span
-                >
-              </td>
-              <td class="actions">
-                <button
-                  class="action-btn fees filled"
-                  (click)="openFeesModal(student)"
-                >
-                  <span class="icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24">
-                      <path
-                        fill="currentColor"
-                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v2.93zM11 7h2v6h-2zm0 8h2v2h-2z"
-                      />
-                    </svg>
-                  </span>
-                  FEES
-                </button>
-                <button
-                  class="action-btn edit filled alt"
-                  (click)="openStudentModal(student)"
-                >
-                  <span class="icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24">
-                      <path
-                        fill="currentColor"
-                        d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
-                      />
-                    </svg>
-                  </span>
-                  EDIT
-                </button>
-                <button
-                  class="action-btn sms filled"
-                  (click)="openSmsModal(student)"
-                >
-                  <span class="icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24">
-                      <path
-                        fill="currentColor"
-                        d="M20 2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 14H6v-2h12v2zm0-4H6v-2h12v2zm0-4H6V6h12v2z"
-                      />
-                    </svg>
-                  </span>
-                  SMS
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <!-- Conditional tables: if fees status filter is active, show fees details table -->
+        <ng-container *ngIf="!hasFeesFilter(); else feesTable">
+          <table *ngIf="displayedStudents.length > 0" class="student-table">
+            <thead>
+              <tr>
+                <th style="width: 50px">#</th>
+                <th (click)="onSort('reg_number')" class="hide-mobile">
+                  Reg Number
+                </th>
+                <th (click)="onSort('student_name')">Student Name</th>
+                <th (click)="onSort('class_name')">Class</th>
+                <th (click)="onSort('student_status')" class="hide-mobile">
+                  Status
+                </th>
+                <th (click)="onSort('fees_status')" class="hide-mobile">
+                  Fees Status
+                </th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="isLoading">
+                <td colspan="7" class="table-spinner">
+                  <app-loading-spinner></app-loading-spinner>
+                </td>
+              </tr>
+              <tr *ngFor="let student of displayedStudents; let i = index">
+                <td>{{ pageEvent.pageIndex * pageEvent.pageSize + i + 1 }}</td>
+                <td class="hide-mobile">{{ student.reg_number | noDash }}</td>
+                <td>{{ student.student_name }}</td>
+                <td>{{ student?.class_name || "" }}</td>
+                <td class="hide-mobile">
+                  <span
+                    class="status"
+                    [ngClass]="(student?.student_status || '').toLowerCase()"
+                    >{{ student?.student_status || "" }}</span
+                  >
+                </td>
+                <td class="hide-mobile">
+                  <span
+                    class="fees-status"
+                    [ngClass]="(student?.fees_status || '').toLowerCase()"
+                    >{{ formatFeesStatus(student?.fees_status) }}</span
+                  >
+                </td>
+                <td class="actions">
+                  <button class="action-btn fees filled" (click)="openFeesModal(student)">
+                    <span class="icon">
+                      <svg width="18" height="18" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v2.93zM11 7h2v6h-2zm0 8h2v2h-2z" />
+                      </svg>
+                    </span>
+                    FEES
+                  </button>
+                  <button class="action-btn edit filled alt" (click)="openStudentModal(student)">
+                    <span class="icon">
+                      <svg width="18" height="18" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
+                      </svg>
+                    </span>
+                    EDIT
+                  </button>
+                  <button class="action-btn sms filled" (click)="openSmsModal(student)">
+                    <span class="icon">
+                      <svg width="18" height="18" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M20 2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 14H6v-2h12v2zm0-4H6v-2h12v2zm0-4H6V6h12v2z" />
+                      </svg>
+                    </span>
+                    SMS
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </ng-container>
+        <ng-template #feesTable>
+          <table class="student-table">
+            <thead>
+              <tr>
+                <th style="width: 50px">#</th>
+                <th>Reg Number</th>
+                <th>Student Name</th>
+                <th>Class</th>
+                <th>Category</th>
+                <th>Fees Status</th>
+                <th>Total Due</th>
+                <th>Amount Paid</th>
+                <th>Balance</th>
+                <th>Parent Phone</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="loadingFees">
+                <td colspan="10" class="table-spinner">
+                  <app-loading-spinner></app-loading-spinner>
+                </td>
+              </tr>
+              <tr *ngFor="let row of displayedFeeRows; let i = index">
+                <td>{{ pageEvent.pageIndex * pageEvent.pageSize + i + 1 }}</td>
+                <td>{{ row.reg }}</td>
+                <td>{{ row.name }}</td>
+                <td>{{ row.klass }}</td>
+                <td>{{ row.category }}</td>
+                <td>{{ formatFeesStatus(row.feesStatus) }}</td>
+                <td>{{ row.total ?? '' }}</td>
+                <td>{{ row.paid ?? '' }}</td>
+                <td>{{ row.balance ?? '' }}</td>
+                <td>{{ row.phone }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </ng-template>
 
         <!-- Simple pagination controls (replaces MatPaginator) -->
         <div

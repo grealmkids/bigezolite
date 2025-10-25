@@ -11,9 +11,10 @@ import { LoadingService } from '../../services/loading.service';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatDialog } from '@angular/material/dialog';
-import { Observable, Subject, combineLatest, BehaviorSubject, of } from 'rxjs';
+import { Observable, Subject, combineLatest, BehaviorSubject, of, forkJoin } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap, startWith, take, map } from 'rxjs/operators';
 import { Student, StudentService } from '../../services/student.service';
+import { FeesService, FeeRecord } from '../../services/fees.service';
 import { CommonModule } from '@angular/common';
 import { StudentModalComponent } from '../../components/student-modal/student-modal.component';
 import { FeesManagementModalComponent } from '../../components/fees-management-modal/fees-management-modal.component';
@@ -42,10 +43,14 @@ import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-
 export class StudentManagementComponent implements OnInit {
   students$: Observable<{ items: Student[]; total: number }> | undefined;
   displayedStudents: Student[] = [];
+  // When fees filter is selected, we build fee rows for the current page
+  displayedFeeRows: Array<{ reg: string; name: string; klass: string; category: string; feesStatus: string; total?: number; paid?: number; balance?: number; phone: string }> = [];
+  loadingFees = false;
   isLoading = false;
   private searchTerms = new Subject<string>();
   private classFilter = new BehaviorSubject<string>('');
   private statusFilter = new BehaviorSubject<string>('');
+  private feesStatusFilter = new BehaviorSubject<string>('');
   private yearFilter = new BehaviorSubject<string>('');
   private pageIndex = new BehaviorSubject<number>(0);
   private pageSize = new BehaviorSubject<number>(10);
@@ -81,7 +86,8 @@ export class StudentManagementComponent implements OnInit {
   private loadingService: LoadingService,
   private snack: MatSnackBar,
   private pdfExportService: PdfExportService,
-  private dialog: MatDialog
+  private dialog: MatDialog,
+  private feesService: FeesService
   ) { }
 
   onSearch(term: string): void {
@@ -103,6 +109,12 @@ export class StudentManagementComponent implements OnInit {
     this.pageEvent.pageIndex = 0;
     this.pageIndex.next(0);
     this.statusFilter.next(term);
+  }
+
+  onFeesStatusChange(term: string): void {
+    this.pageEvent.pageIndex = 0;
+    this.pageIndex.next(0);
+    this.feesStatusFilter.next(term);
   }
 
   onYearChange(term: string): void {
@@ -176,6 +188,7 @@ export class StudentManagementComponent implements OnInit {
       this.searchTerms.pipe(debounceTime(300), distinctUntilChanged(), startWith('')),
       this.classFilter.pipe(distinctUntilChanged(), startWith('')),
       this.statusFilter.pipe(distinctUntilChanged(), startWith('')),
+      this.feesStatusFilter.pipe(distinctUntilChanged(), startWith('')),
       this.yearFilter.pipe(distinctUntilChanged(), startWith('')),
       this.pageIndex.pipe(distinctUntilChanged(), startWith(0)),
       this.pageSize.pipe(distinctUntilChanged(), startWith(10)),
@@ -183,7 +196,7 @@ export class StudentManagementComponent implements OnInit {
       this.sortDirection.pipe(distinctUntilChanged(), startWith('ASC')),
       this.refreshTick.pipe(startWith(void 0))
     ]).pipe(
-      switchMap(([searchTerm, classTerm, statusTerm, yearTerm, page, limit, sort, order]) => {
+      switchMap(([searchTerm, classTerm, statusTerm, feesStatusTerm, yearTerm, page, limit, sort, order]) => {
         this.isLoading = true;
         const schoolId = this.schoolService.getSelectedSchoolId();
         if (!schoolId) {
@@ -191,7 +204,7 @@ export class StudentManagementComponent implements OnInit {
           this.isLoading = false;
           return of({ items: [], total: 0 });
         }
-        return this.studentService.getStudents(schoolId, searchTerm, classTerm, statusTerm, yearTerm, page, limit, sort, order);
+        return this.studentService.getStudents(schoolId, searchTerm, classTerm, statusTerm, feesStatusTerm, yearTerm, page, limit, sort, order);
       })
     );
 
@@ -200,6 +213,12 @@ export class StudentManagementComponent implements OnInit {
         this.displayedStudents = resp.items || [];
         this.pageEvent.length = resp.total;
         this.isLoading = false;
+        // Build fees table rows if fees status filter is active
+        if (this.hasFeesFilter()) {
+          this.buildFeesRowsFor(this.displayedStudents);
+        } else {
+          this.displayedFeeRows = [];
+        }
       },
       error: (err) => {
         this.isLoading = false;
@@ -290,6 +309,48 @@ export class StudentManagementComponent implements OnInit {
     this.refreshTick.next();
   }
 
+  hasFeesFilter(): boolean {
+    return !!(this.feesStatusFilter.value && this.feesStatusFilter.value.trim());
+  }
+
+  formatFeesStatus(v?: string | null): string {
+    const s = (v || '').toLowerCase();
+    return s === 'pending' ? 'Partially Paid' : (v || '');
+  }
+
+  private buildFeesRowsFor(students: Student[]): void {
+    if (!students || students.length === 0) { this.displayedFeeRows = []; return; }
+    this.loadingFees = true;
+    const requests = students.map(s => this.feesService.getFeeRecords(s.student_id).pipe(take(1)));
+    forkJoin(requests).pipe(take(1)).subscribe({
+      next: (recordsList: any[]) => {
+        this.displayedFeeRows = students.map((s, idx) => {
+          const fees = (recordsList[idx] || []) as FeeRecord[];
+          let latest: FeeRecord | undefined;
+          if (fees && fees.length) {
+            latest = [...fees].sort((a, b) => (b.year - a.year) || (b.term - a.term))[0];
+          }
+          return {
+            reg: (s.reg_number || '').replace(/-/g, ''),
+            name: s.student_name || '',
+            klass: s.class_name || '',
+            category: s.student_status || '',
+            feesStatus: s.fees_status || '',
+            total: latest?.total_fees_due,
+            paid: latest?.amount_paid,
+            balance: latest?.balance_due,
+            phone: s.parent_phone_sms || ''
+          };
+        });
+        this.loadingFees = false;
+      },
+      error: () => {
+        this.loadingFees = false;
+        this.displayedFeeRows = [];
+      }
+    });
+  }
+
   // Delete Method
   deleteStudent(studentId: number): void {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
@@ -361,11 +422,13 @@ export class StudentManagementComponent implements OnInit {
     const yearTerm = this.yearFilter.value || '';
 
     // Fetch ALL students matching the current filters (no pagination)
+    const feesStatusTerm = this.feesStatusFilter.value || '';
     this.studentService.getStudents(
       schoolId,
       searchTerm,
       classTerm,
       statusTerm,
+      feesStatusTerm,
       yearTerm,
       0,
       10000, // Large limit to get all students
@@ -381,6 +444,48 @@ export class StudentManagementComponent implements OnInit {
             panelClass: ['error-snackbar'],
             verticalPosition: 'top',
             horizontalPosition: 'center'
+          });
+          return;
+        }
+
+        // If fees status filter is active, export fees details instead of student list
+        if (feesStatusTerm) {
+          const requests = allStudents.map(s => this.feesService.getFeeRecords(s.student_id).pipe(take(1)));
+          forkJoin(requests).pipe(take(1)).subscribe({
+            next: (allFeeRecords: any[]) => {
+              // Build rows with latest fee record per student (by year then term)
+              type Row = { reg: string; name: string; klass: string; feesStatus: string; term: number|undefined; year: number|undefined; total: number|undefined; paid: number|undefined; balance: number|undefined; phone: string };
+              const rows: Row[] = allStudents.map((s, idx) => {
+                const fees: FeeRecord[] = allFeeRecords[idx] || [];
+                let latest: FeeRecord | undefined;
+                if (fees && fees.length) {
+                  latest = [...fees].sort((a, b) => (b.year - a.year) || (b.term - a.term))[0];
+                }
+                return {
+                  reg: (s.reg_number || '').replace(/-/g, ''),
+                  name: s.student_name || '',
+                  klass: s.class_name || '',
+                  feesStatus: s.fees_status || '',
+                  term: latest?.term,
+                  year: latest?.year,
+                  total: latest?.total_fees_due,
+                  paid: latest?.amount_paid,
+                  balance: latest?.balance_due,
+                  phone: s.parent_phone_sms || ''
+                };
+              });
+
+              this.emitFeesPDF(rows, schoolName, term, yearTerm || new Date().getFullYear().toString(), allStudents.length, filterInfo);
+            },
+            error: (err) => {
+              console.error('Error fetching fees for export:', err);
+              this.snack.open('Failed to fetch fees for export', 'Close', {
+                duration: 5000,
+                panelClass: ['error-snackbar'],
+                verticalPosition: 'top',
+                horizontalPosition: 'center'
+              });
+            }
           });
           return;
         }
@@ -414,7 +519,7 @@ export class StudentManagementComponent implements OnInit {
         if (currentMonth >= 5 && currentMonth <= 8) term = 'Term 2';
         else if (currentMonth >= 9 && currentMonth <= 12) term = 'Term 3';
 
-        // Generate PDF
+        // Generate PDF (student list)
         this.pdfExportService.generateStudentListPDF(allStudents, {
           schoolName: schoolName,
           term: term,
@@ -446,6 +551,25 @@ export class StudentManagementComponent implements OnInit {
           horizontalPosition: 'center'
         });
       }
+    });
+  }
+
+  private emitFeesPDF(rows: any[], schoolName: string, term: string, year: string, total: number, filterInfo?: string) {
+    this.pdfExportService.generateFeesDetailsPDF(rows, {
+      schoolName,
+      term,
+      year,
+      generatedDate: new Date().toLocaleDateString('en-US', { 
+        year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+      }),
+      totalStudents: total,
+      filterInfo
+    } as any);
+    this.snack.open(`PDF downloaded successfully (${total} students)`, 'Close', {
+      duration: 3000,
+      panelClass: ['success-snackbar'],
+      verticalPosition: 'top',
+      horizontalPosition: 'center'
     });
   }
 }

@@ -19,6 +19,81 @@ export class PdfExportService {
 
   constructor() { }
 
+  generateFeesDetailsPDF(rows: Array<{ reg: string; name: string; klass: string; feesStatus: string; term?: number; year?: number; total?: number; paid?: number; balance?: number; phone: string }>, header: PDFHeader): void {
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+
+    // Header (reuse style)
+    doc.setFillColor(0, 89, 179);
+    doc.rect(0, 0, pageWidth, 35, 'F');
+    doc.setFillColor(255, 193, 7);
+    doc.rect(0, 35, pageWidth, 2, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(24);
+    doc.setFont('helvetica', 'bold');
+    doc.text(header.schoolName, pageWidth / 2, 12, { align: 'center' });
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Fees Details Report', pageWidth / 2, 21, { align: 'center' });
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    const leftX = 14; const rightX = pageWidth - 14;
+    doc.setTextColor(255, 255, 255);
+    doc.text(`Academic Year: ${header.year}`, leftX, 29);
+    doc.text(`Term: ${header.term}`, rightX, 29, { align: 'right' });
+
+    // Meta
+    doc.setTextColor(0, 0, 0);
+    const metaY = 42;
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Generated: ${header.generatedDate}`, leftX, metaY);
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 89, 179);
+doc.text(`Total Students: ${header.totalStudents}`, rightX, metaY, { align: 'right' });
+    if (header.filterInfo) {
+      doc.setFontSize(8);
+      doc.setTextColor(150, 150, 150);
+      doc.text(`Filters Applied: ${header.filterInfo}`, pageWidth / 2, metaY + 4, { align: 'center' });
+    }
+
+    // Table
+    const head = [['#', 'Reg Number', 'Student Name', 'Class', 'Fees Status', 'Term', 'Year', 'Total Due', 'Paid', 'Balance', 'Parent Phone']];
+    const body = rows.map((r, i) => [i + 1, r.reg, r.name, r.klass, (r.feesStatus || '').toLowerCase() === 'pending' ? 'Partially Paid' : (r.feesStatus || ''), r.term ?? '', r.year ?? '', r.total ?? '', r.paid ?? '', r.balance ?? '', r.phone]);
+
+    autoTable(doc, {
+      startY: header.filterInfo ? metaY + 8 : metaY + 2,
+      head,
+      body,
+      theme: 'grid',
+      styles: { fontSize: 11, cellPadding: 3, lineColor: [0,0,0], lineWidth: 0.25, font: 'helvetica', textColor: [40,40,40], halign: 'left' },
+      headStyles: { fillColor: [52,73,94], textColor: [255,255,255], fontSize: 12, fontStyle: 'bold', halign: 'left', cellPadding: 4 },
+      columnStyles: {
+        0: { cellWidth: 8 }, 1: { cellWidth: 28 }, 2: { cellWidth: 48 }, 3: { cellWidth: 20 }, 4: { cellWidth: 24 },
+        5: { cellWidth: 12 }, 6: { cellWidth: 16 }, 7: { cellWidth: 22 }, 8: { cellWidth: 18 }, 9: { cellWidth: 22 }, 10: { cellWidth: 28 }
+      },
+      alternateRowStyles: { fillColor: [245,247,250] },
+      didParseCell: (data) => {
+        if (data.column.index === 4 && data.section === 'body') {
+          const status = (data.cell.raw as string || '').toLowerCase();
+          let bg: [number,number,number] = [255,255,255]; let tx: [number,number,number] = [40,40,40];
+          if (status === 'paid') { bg = [198,246,213]; tx = [22,163,74]; }
+          if (status === 'pending') { bg = [254,243,199]; tx = [202,138,4]; }
+          if (status === 'defaulter') { bg = [254,202,202]; tx = [220,38,38]; }
+          data.cell.styles.fillColor = bg; data.cell.styles.textColor = tx; data.cell.styles.fontStyle = 'bold';
+        }
+      },
+      margin: { left: 14, right: 14 },
+      tableWidth: 'auto'
+    });
+
+    const fileName = `Fees_Details_${header.year}_${header.term}_${new Date().getTime()}.pdf`;
+    doc.save(fileName);
+  }
+
   /**
    * Generates a professional PDF with student data
    * Designed with Adobe-quality styling
@@ -101,13 +176,14 @@ export class PdfExportService {
         console.warn('Missing parent_phone_sms for student:', student.student_name, student);
       }
       
+      const feesLabel = (student.fees_status || '').toLowerCase() === 'pending' ? 'Partially Paid' : (student.fees_status || '');
       return [
         index + 1,
         student.reg_number?.replace(/-/g, '') || '',
         student.student_name || '',
         student.class_name || '',
         student.student_status || '',
-        student.fees_status || '',
+        feesLabel,
         student.parent_phone_sms || 'N/A'
       ];
     });
@@ -198,6 +274,7 @@ export class PdfExportService {
               textColor = [22, 163, 74];
               break;
             case 'pending':
+            case 'partially paid':
               bgColor = [254, 243, 199]; // Vivid yellow
               textColor = [202, 138, 4];
               break;

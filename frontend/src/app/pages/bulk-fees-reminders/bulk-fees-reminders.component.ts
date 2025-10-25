@@ -17,7 +17,12 @@ export class BulkFeesRemindersComponent implements OnInit {
   thresholdAmount: number = 1000;
   customDeadline: string = ''; // Optional deadline
   selectedClass: string = 'All Students';
-  selectedStatus: string = 'All Statuses';
+  selectedStatus: string = 'Active';
+  selectedYear: string = new Date().getFullYear().toString();
+  selectedTerm: string = '';
+  selectedFeesStatus: string = 'Defaulter';
+  messageType: 'detailed' | 'sent_home' | 'custom' | 'generic' = 'detailed';
+  messageTemplate: string = '';
   isSending: boolean = false;
   isLoadingPreview: boolean = false;
   showPreview: boolean = false;
@@ -27,7 +32,10 @@ export class BulkFeesRemindersComponent implements OnInit {
 
   // Filter options
   classes: string[] = ['All Students'];
+  years: string[] = ['2023', '2024', '2025'];
+  terms: string[] = ['', '1', '2', '3'];
   studentStatuses: string[] = ['All Statuses', 'Active', 'Inactive', 'Expelled', 'Alumni', 'Suspended', 'Sick'];
+  feesStatuses: string[] = ['', 'Paid', 'Pending', 'Defaulter'];
   loadingClasses: boolean = false;
 
   constructor(
@@ -36,6 +44,16 @@ export class BulkFeesRemindersComponent implements OnInit {
     private classCategorizationService: ClassCategorizationService,
     private snackBar: MatSnackBar
   ) {}
+
+  onMessageTypeChange(type: 'detailed' | 'sent_home' | 'custom' | 'generic'): void {
+    this.messageType = type;
+    if (type === 'sent_home' && !this.messageTemplate.trim()) {
+      this.messageTemplate = "Dear parent of {child's name}, we have sent your child back home for {fee_name} today {today's date}. {RSVP number} - {School name}.";
+    }
+    if (type === 'detailed' || type === 'generic') {
+      this.messageTemplate = '';
+    }
+  }
 
   ngOnInit(): void {
     this.loadingClasses = true;
@@ -67,7 +85,12 @@ export class BulkFeesRemindersComponent implements OnInit {
       thresholdAmount: this.thresholdAmount,
       classFilter: this.selectedClass === 'All Students' ? undefined : this.selectedClass,
       statusFilter: this.selectedStatus === 'All Statuses' ? undefined : this.selectedStatus,
-      customDeadline: this.customDeadline || undefined
+      customDeadline: this.customDeadline || undefined,
+      year: this.selectedYear || undefined,
+      term: this.selectedTerm || undefined,
+      feesStatus: this.selectedFeesStatus || undefined,
+      messageType: this.messageType,
+      messageTemplate: this.messageTemplate
     };
 
     this.isLoadingPreview = true;
@@ -75,7 +98,12 @@ export class BulkFeesRemindersComponent implements OnInit {
       payload.thresholdAmount,
       payload.classFilter,
       payload.statusFilter,
-      payload.customDeadline
+      payload.customDeadline,
+      payload.year,
+      payload.term,
+      payload.feesStatus,
+      payload.messageType,
+      payload.messageTemplate
     ).subscribe({
       next: (response) => {
         this.isLoadingPreview = false;
@@ -119,7 +147,12 @@ export class BulkFeesRemindersComponent implements OnInit {
       thresholdAmount: this.thresholdAmount,
       classFilter: this.selectedClass === 'All Students' ? undefined : this.selectedClass,
       statusFilter: this.selectedStatus === 'All Statuses' ? undefined : this.selectedStatus,
-      customDeadline: this.customDeadline || undefined
+      customDeadline: this.customDeadline || undefined,
+      year: this.selectedYear || undefined,
+      term: this.selectedTerm || undefined,
+      feesStatus: this.selectedFeesStatus || undefined,
+      messageType: this.messageType,
+      messageTemplate: this.messageTemplate
     };
 
     this.isSending = true;
@@ -127,7 +160,12 @@ export class BulkFeesRemindersComponent implements OnInit {
       payload.thresholdAmount,
       payload.classFilter,
       payload.statusFilter,
-      payload.customDeadline
+      payload.customDeadline,
+      payload.year,
+      payload.term,
+      payload.feesStatus,
+      payload.messageType,
+      payload.messageTemplate
     ).subscribe({
       next: (response) => {
         this.isSending = false;

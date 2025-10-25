@@ -73,6 +73,67 @@
         </select>
       </div>
 
+      <!-- Term/Year Filters -->
+      <div class="form-group">
+        <label for="term">🗓️ Filter by Term</label>
+        <select id="term" [(ngModel)]="selectedTerm" name="term" class="form-control">
+          <option value="">All Terms</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="year">📆 Filter by Year</label>
+        <select id="year" [(ngModel)]="selectedYear" name="year" class="form-control">
+          <option value="">All Years</option>
+          <option *ngFor="let y of years" [value]="y">{{ y }}</option>
+        </select>
+      </div>
+
+      <!-- Fees Status Filter -->
+      <div class="form-group">
+        <label for="feesStatus">💼 Filter by Fees Status</label>
+        <select id="feesStatus" [(ngModel)]="selectedFeesStatus" name="feesStatus" class="form-control">
+          <option value="">All Fees Status</option>
+          <option value="Paid">Paid</option>
+          <option value="Pending">Partially Paid</option>
+          <option value="Defaulter">Defaulter</option>
+        </select>
+      </div>
+
+      <!-- Message Type -->
+      <div class="form-group">
+        <label for="messageType">✉️ Message Type</label>
+        <select id="messageType" [(ngModel)]="messageType" (ngModelChange)="onMessageTypeChange($event)" name="messageType" class="form-control">
+          <option value="detailed">Standard Fees Reminder (mimics single)</option>
+          <option value="sent_home">Sent Home Notice (customizable)</option>
+          <option value="custom">Custom Message</option>
+        </select>
+        <span class="help-text" *ngIf="messageType === 'detailed'">Uses each student's top outstanding fee record with term/year and due date.</span>
+      </div>
+
+      <!-- Template editor for sent_home/custom -->
+      <div class="form-group" *ngIf="messageType === 'sent_home' || messageType === 'custom'">
+        <label for="template">Message Template</label>
+        <textarea id="template" [(ngModel)]="messageTemplate" name="template" rows="4" class="form-control" placeholder="Enter your message... See placeholders list below."></textarea>
+        <span class="help-text">
+          Placeholders supported:
+          <code>{{'{'}}child's name{{'}'}}</code>,
+          <code>{{'{'}}student_name{{'}'}}</code>,
+          <code>{{'{'}}fee_name{{'}'}}</code>,
+          <code>{{'{'}}today's date{{'}'}}</code>,
+          <code>{{'{'}}RSVP number{{'}'}}</code>,
+          <code>{{'{'}}School name{{'}'}}</code>,
+          <code>{{'{'}}term{{'}'}}</code>,
+          <code>{{'{'}}year{{'}'}}</code>,
+          <code>{{'{'}}balance{{'}'}}</code>,
+          <code>{{'{'}}amount_paid{{'}'}}</code>,
+          <code>{{'{'}}total_due{{'}'}}</code>,
+          <code>{{'{'}}due_date{{'}'}}</code>
+        </span>
+      </div>
+
       <!-- Summary Info -->
       <div class="info-box">
         <h3>📤 Reminder Settings</h3>
@@ -80,7 +141,11 @@
           <li><strong>Threshold:</strong> UGX {{ thresholdAmount | number }}</li>
           <li><strong>Class:</strong> {{ selectedClass }}</li>
           <li><strong>Status:</strong> {{ selectedStatus }}</li>
+          <li><strong>Term:</strong> {{ selectedTerm || 'All' }}</li>
+          <li><strong>Year:</strong> {{ selectedYear || 'All' }}</li>
+          <li><strong>Fees Status:</strong> {{ selectedFeesStatus || 'All' }}</li>
           <li><strong>Deadline:</strong> {{ customDeadline || 'Use individual due dates' }}</li>
+          <li><strong>Message Type:</strong> {{ messageType }}</li>
         </ul>
       </div>
 

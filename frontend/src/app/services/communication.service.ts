@@ -51,12 +51,21 @@ export class CommunicationService {
     thresholdAmount: number = 1000,
     classFilter?: string,
     statusFilter?: string,
-    customDeadline?: string
+    customDeadline?: string,
+    year?: string | number,
+    term?: string | number,
+    feesStatus?: string,
+    messageType: 'detailed' | 'sent_home' | 'custom' | 'generic' = 'detailed',
+    messageTemplate?: string
   ): Observable<any> {
-    const body: any = { thresholdAmount };
+    const body: any = { thresholdAmount, messageType };
     if (classFilter) body.classFilter = classFilter;
     if (statusFilter) body.statusFilter = statusFilter;
     if (customDeadline) body.customDeadline = customDeadline;
+    if (year) body.year = year;
+    if (term) body.term = term;
+    if (feesStatus) body.feesStatus = feesStatus;
+    if (messageTemplate != null) body.messageTemplate = messageTemplate;
     return this.http.post(`${this.apiUrl}/bulk-fees-reminders/preview`, body);
   }
 
@@ -64,12 +73,21 @@ export class CommunicationService {
     thresholdAmount: number = 1000,
     classFilter?: string,
     statusFilter?: string,
-    customDeadline?: string
+    customDeadline?: string,
+    year?: string | number,
+    term?: string | number,
+    feesStatus?: string,
+    messageType: 'detailed' | 'sent_home' | 'custom' | 'generic' = 'detailed',
+    messageTemplate?: string
   ): Observable<any> {
-    const body: any = { thresholdAmount };
+    const body: any = { thresholdAmount, messageType };
     if (classFilter) body.classFilter = classFilter;
     if (statusFilter) body.statusFilter = statusFilter;
     if (customDeadline) body.customDeadline = customDeadline;
+    if (year) body.year = year;
+    if (term) body.term = term;
+    if (feesStatus) body.feesStatus = feesStatus;
+    if (messageTemplate != null) body.messageTemplate = messageTemplate;
     return this.http.post(`${this.apiUrl}/bulk-fees-reminders`, body);
   }
 }

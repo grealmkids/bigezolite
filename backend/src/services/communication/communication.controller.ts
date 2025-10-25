@@ -117,9 +117,9 @@ export const previewBulkFeesReminders = async (req: AuthenticatedRequest, res: R
     try {
         const schoolId = req.user?.schoolId;
         if (!schoolId) return res.status(401).json({ message: 'Unauthorized: missing school context' });
-        const { thresholdAmount, classFilter, statusFilter, customDeadline } = req.body;
-        if (!thresholdAmount || thresholdAmount < 0) return res.status(400).json({ message: 'Valid threshold amount is required' });
-        const preview = await previewBulkFeesRemindersData(schoolId, thresholdAmount, classFilter, statusFilter, customDeadline);
+        const { thresholdAmount, classFilter, statusFilter, customDeadline, year, term, feesStatus, messageType, messageTemplate } = req.body;
+        if (thresholdAmount == null || thresholdAmount < 0) return res.status(400).json({ message: 'Valid threshold amount is required' });
+        const preview = await previewBulkFeesRemindersData(schoolId, thresholdAmount, classFilter, statusFilter, customDeadline, year, term, feesStatus, messageType, messageTemplate);
         return res.status(200).json(preview);
     } catch (error: any) {
         const statusCode = error?.statusCode || 500;
@@ -132,9 +132,9 @@ export const sendBulkFeesReminders = async (req: AuthenticatedRequest, res: Resp
     try {
         const schoolId = req.user?.schoolId;
         if (!schoolId) return res.status(401).json({ message: 'Unauthorized: missing school context' });
-        const { thresholdAmount, classFilter, statusFilter, customDeadline } = req.body;
-        if (!thresholdAmount || thresholdAmount < 0) return res.status(400).json({ message: 'Valid threshold amount is required' });
-        await processBulkFeesReminders(schoolId, thresholdAmount, classFilter, statusFilter, customDeadline);
+        const { thresholdAmount, classFilter, statusFilter, customDeadline, year, term, feesStatus, messageType, messageTemplate } = req.body;
+        if (thresholdAmount == null || thresholdAmount < 0) return res.status(400).json({ message: 'Valid threshold amount is required' });
+        await processBulkFeesReminders(schoolId, thresholdAmount, classFilter, statusFilter, customDeadline, year, term, feesStatus, messageType, messageTemplate);
         return res.status(200).json({ message: 'Bulk fees reminders sent successfully' });
     } catch (error: any) {
         const providerMessage = error?.details || error?.message || (error?.response && error.response.data) || null;

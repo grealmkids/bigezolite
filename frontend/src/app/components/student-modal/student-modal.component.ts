@@ -54,7 +54,7 @@ export class StudentModalComponent implements OnInit, OnChanges {
       parent_name_mother: [''],
       parent_name_father: [''],
       residence_district: ['', Validators.required],
-      joining_term: [''],
+      joining_term: ['', Validators.required],
     });
   }
 

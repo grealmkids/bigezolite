@@ -19,11 +19,13 @@ export interface StudentData {
     class_name: string;
     year_enrolled: number;
     student_status: 'Active' | 'Inactive' | 'Expelled' | 'Alumni' | 'Suspended' | 'Sick';
+    gender?: string;
     parent_primary_name: string;
     parent_phone_sms: string;
     parent_name_mother?: string;
     parent_name_father?: string;
     residence_district: string;
+    joining_term?: number; // optional in API, but required in UI form
 }
 
 @Injectable({

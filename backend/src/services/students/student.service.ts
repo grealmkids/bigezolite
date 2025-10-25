@@ -38,6 +38,7 @@ export const deleteStudentById = async (schoolId: number, studentId: number) => 
 
 import { query } from '../../database/database';
 import { Student } from './student.controller'; // We'll define the interface in the controller for now
+import { updateStudentFeesStatus } from '../fees/fees.service';
 
 /**
  * Verifies that a user has access to a specific school.
@@ -84,7 +85,62 @@ export const createStudent = async (student: Omit<Student, 'student_id' | 'reg_n
     ];
 
     const result = await query(sql, params);
-    return result.rows[0];
+    const created = result.rows[0];
+
+    // Auto-apply fees_to_track for this student (same year; optional joining term)
+    try {
+        const joiningTerm = (student as any)?.joining_term ? Number((student as any).joining_term) : null;
+        const ftParams: any[] = [schoolId, student.year_enrolled, student.class_name];
+        let ftSql = `SELECT fee_id, term, year, total_due, due_date FROM fees_to_track WHERE school_id = $1 AND year = $2 AND (class_name IS NULL OR class_name = $3)`;
+        if (joiningTerm) {
+            ftSql += ' AND term = $4';
+            ftParams.push(joiningTerm);
+        }
+        const fts = await query(ftSql, ftParams);
+        if (joiningTerm) {
+            // Always mark presence for the joining term
+            const upSql = `
+                INSERT INTO student_terms (school_id, student_id, year, term, class_name_at_term, status_at_term, presence)
+                VALUES ($1,$2,$3,$4,$5,$6,TRUE)
+                ON CONFLICT (student_id, year, term)
+                DO UPDATE SET presence = TRUE, class_name_at_term = $5, status_at_term = $6
+            `;
+            await query(upSql, [schoolId, created.student_id, student.year_enrolled, joiningTerm, student.class_name, student.student_status || 'Active']);
+        }
+
+        if (fts.rows.length) {
+            const sch = await query('SELECT accountant_number FROM schools WHERE school_id = $1', [schoolId]);
+            const rsvp = sch.rows[0]?.accountant_number || null;
+            const values: string[] = [];
+            const vparams: any[] = [];
+            let idx = 1;
+            for (const r of fts.rows) {
+                values.push(`($${idx++}, $${idx++}, $${idx++}, $${idx++}, $${idx++}, $${idx++}, $${idx++})`);
+                vparams.push(created.student_id, r.term, r.year, r.total_due, r.due_date, rsvp, r.fee_id);
+            }
+            const insSql = `INSERT INTO fees_records (student_id, term, year, total_fees_due, due_date, rsvp_number, fee_id) VALUES ${values.join(',')}`;
+            await query(insSql, vparams);
+
+            // Upsert student_terms presence for each term applied
+            const termSet = new Set<number>(fts.rows.map((r:any)=> Number(r.term)));
+            for (const t of termSet) {
+                const upSql = `
+                    INSERT INTO student_terms (school_id, student_id, year, term, class_name_at_term, status_at_term, presence)
+                    VALUES ($1,$2,$3,$4,$5,$6,TRUE)
+                    ON CONFLICT (student_id, year, term)
+                    DO UPDATE SET presence = TRUE, class_name_at_term = $5, status_at_term = $6
+                `;
+                await query(upSql, [schoolId, created.student_id, student.year_enrolled, t, student.class_name, student.student_status || 'Active']);
+            }
+
+            // Update derived fees_status
+            await updateStudentFeesStatus(created.student_id);
+        }
+    } catch (e) {
+        console.warn('[students.create] auto-apply fees_to_track failed:', (e as any)?.message || e);
+    }
+
+    return created;
 };
 
 /**

@@ -100,6 +100,51 @@ export class AuthService {
         .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
     });
     
+    // Clear Cache Storage and unregister service workers (best-effort)
+    if (typeof window !== 'undefined') {
+      try {
+        if ('caches' in window) {
+          caches.keys().then((names) => Promise.all(names.map((n) => caches.delete(n)))).catch(() => {});
+        }
+        if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) {
+          navigator.serviceWorker.getRegistrations().then((regs) => regs.forEach((r) => r.unregister())).catch(() => {});
+        }
+      } catch (err) {
+        // ignore non-critical errors
+        console.debug('Failed to clear caches/service-workers during logout:', err);
+      }
+    }
+
     this.authState.next(false);
+  }
+
+  /**
+   * Clear local/session storage, cache storage and attempt to unregister service workers.
+   * Use on login page load to ensure a clean session before authentication.
+   */
+  async clearClientData(): Promise<void> {
+    try {
+      localStorage.clear();
+      sessionStorage.clear();
+      // Best-effort cookie clear
+      document.cookie.split(";").forEach((c) => {
+        document.cookie = c
+          .replace(/^ +/, "")
+          .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+      });
+
+      if (typeof window !== 'undefined') {
+        if ('caches' in window) {
+          const keys = await caches.keys();
+          await Promise.all(keys.map((k) => caches.delete(k)));
+        }
+        if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) {
+          const regs = await navigator.serviceWorker.getRegistrations();
+          await Promise.all(regs.map((r) => r.unregister()));
+        }
+      }
+    } catch (err) {
+      console.debug('clearClientData error:', err);
+    }
   }
 }

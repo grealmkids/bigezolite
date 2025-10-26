@@ -38,6 +38,14 @@ export class LoginComponent {
 
   ngOnInit(): void {
     document.body.classList.add('auth-bg');
+    // Ensure any leftover client-side state is cleared when loading the login page
+    // so the user starts with a clean session (localStorage, sessionStorage, caches).
+    try {
+      this.authService.clearClientData()?.catch?.(() => {});
+    } catch (e) {
+      // ignore errors during cleanup
+      console.debug('Login init: clearClientData failed', e);
+    }
   }
 
   ngOnDestroy(): void {

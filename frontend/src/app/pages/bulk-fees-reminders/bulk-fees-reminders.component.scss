@@ -308,6 +308,22 @@
   }
 }
 
+/* Mono-icon helpers: small, monochrome SVGs that follow the app side-nav style */
+.mono-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #374151; /* default monochrome color (dark slate) */
+  vertical-align: middle;
+
+  svg {
+    width: 18px;
+    height: 18px;
+    fill: currentColor;
+    flex-shrink: 0;
+  }
+}
+
 .analytics-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));

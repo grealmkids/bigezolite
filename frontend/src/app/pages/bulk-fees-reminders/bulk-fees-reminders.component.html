@@ -1,18 +1,40 @@
 <div class="bulk-fees-reminders-container">
   <div class="page-header">
-    <h1>📋 Bulk Fees Reminders</h1>
-    <p class="subtitle">Send payment reminders to students with outstanding balances</p>
+    <h1>
+      <span class="mono-icon" aria-hidden="true">
+        <!-- clipboard SVG -->
+        <svg
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <path
+            d="M16 2H8a2 2 0 0 0-2 2v1H4v2h16V5h-2V4a2 2 0 0 0-2-2zM6 7v13a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6z"
+          />
+        </svg>
+      </span>
+      Bulk Fees Reminders
+    </h1>
+    <p class="subtitle">
+      Send payment reminders to students with outstanding balances
+    </p>
   </div>
 
   <div class="content-card">
     <!-- Settings Form - Hidden when preview is shown -->
-    <form (ngSubmit)="sendBulkReminders()" class="reminder-form" *ngIf="!showPreview">
-      
+    <form
+      (ngSubmit)="sendBulkReminders()"
+      class="reminder-form"
+      *ngIf="!showPreview"
+    >
       <!-- Threshold Amount -->
       <div class="form-group">
         <label for="threshold">
           💰 Minimum Balance Threshold (UGX)
-          <span class="help-text">Only send to students with balance ≥ this amount</span>
+          <span class="help-text"
+            >Only send to students with balance ≥ this amount</span
+          >
         </label>
         <input
           type="number"
@@ -31,7 +53,10 @@
       <div class="form-group">
         <label for="deadline">
           📅 Payment Deadline (Optional)
-          <span class="help-text">If set, this deadline will be used for all reminders. Otherwise, individual due dates from records will be used.</span>
+          <span class="help-text"
+            >If set, this deadline will be used for all reminders. Otherwise,
+            individual due dates from records will be used.</span
+          >
         </label>
         <input
           type="date"
@@ -44,9 +69,7 @@
 
       <!-- Class Filter -->
       <div class="form-group">
-        <label for="class">
-          🎓 Filter by Class
-        </label>
+        <label for="class"> 🎓 Filter by Class </label>
         <select
           id="class"
           [(ngModel)]="selectedClass"
@@ -60,23 +83,28 @@
 
       <!-- Status Filter -->
       <div class="form-group">
-        <label for="status">
-          👤 Filter by Student Status
-        </label>
+        <label for="status"> 👤 Filter by Student Status </label>
         <select
           id="status"
           [(ngModel)]="selectedStatus"
           name="status"
           class="form-control"
         >
-          <option *ngFor="let status of studentStatuses" [value]="status">{{ status }}</option>
+          <option *ngFor="let status of studentStatuses" [value]="status">
+            {{ status }}
+          </option>
         </select>
       </div>
 
       <!-- Term/Year Filters -->
       <div class="form-group">
         <label for="term">🗓️ Filter by Term</label>
-        <select id="term" [(ngModel)]="selectedTerm" name="term" class="form-control">
+        <select
+          id="term"
+          [(ngModel)]="selectedTerm"
+          name="term"
+          class="form-control"
+        >
           <option value="">All Terms</option>
           <option value="1">1</option>
           <option value="2">2</option>
@@ -85,7 +113,12 @@
       </div>
       <div class="form-group">
         <label for="year">📆 Filter by Year</label>
-        <select id="year" [(ngModel)]="selectedYear" name="year" class="form-control">
+        <select
+          id="year"
+          [(ngModel)]="selectedYear"
+          name="year"
+          class="form-control"
+        >
           <option value="">All Years</option>
           <option *ngFor="let y of years" [value]="y">{{ y }}</option>
         </select>
@@ -94,7 +127,12 @@
       <!-- Fees Status Filter -->
       <div class="form-group">
         <label for="feesStatus">💼 Filter by Fees Status</label>
-        <select id="feesStatus" [(ngModel)]="selectedFeesStatus" name="feesStatus" class="form-control">
+        <select
+          id="feesStatus"
+          [(ngModel)]="selectedFeesStatus"
+          name="feesStatus"
+          class="form-control"
+        >
           <option value="">All Fees Status</option>
           <option value="Paid">Paid</option>
           <option value="Pending">Partially Paid</option>
@@ -105,32 +143,54 @@
       <!-- Message Type -->
       <div class="form-group">
         <label for="messageType">✉️ Message Type</label>
-        <select id="messageType" [(ngModel)]="messageType" (ngModelChange)="onMessageTypeChange($event)" name="messageType" class="form-control">
-          <option value="detailed">Standard Fees Reminder (mimics single)</option>
+        <select
+          id="messageType"
+          [(ngModel)]="messageType"
+          (ngModelChange)="onMessageTypeChange($event)"
+          name="messageType"
+          class="form-control"
+        >
+          <option value="detailed">
+            Standard Fees Reminder (mimics single)
+          </option>
           <option value="sent_home">Sent Home Notice (customizable)</option>
           <option value="custom">Custom Message</option>
         </select>
-        <span class="help-text" *ngIf="messageType === 'detailed'">Uses each student's top outstanding fee record with term/year and due date.</span>
+        <span class="help-text" *ngIf="messageType === 'detailed'"
+          >Uses each student's top outstanding fee record with term/year and due
+          date.</span
+        >
       </div>
 
       <!-- Template editor for sent_home/custom -->
-      <div class="form-group" *ngIf="messageType === 'sent_home' || messageType === 'custom'">
+      <div
+        class="form-group"
+        *ngIf="messageType === 'sent_home' || messageType === 'custom'"
+      >
         <label for="template">Message Template</label>
-        <textarea id="template" [(ngModel)]="messageTemplate" name="template" rows="4" class="form-control" placeholder="Enter your message... See placeholders list below."></textarea>
+        <textarea
+          id="template"
+          [(ngModel)]="messageTemplate"
+          name="template"
+          rows="4"
+          class="form-control"
+          placeholder="Enter your message... See placeholders list below."
+        ></textarea>
         <span class="help-text">
           Placeholders supported:
-          <code>{{'{'}}child's name{{'}'}}</code>,
-          <code>{{'{'}}student_name{{'}'}}</code>,
-          <code>{{'{'}}fee_name{{'}'}}</code>,
-          <code>{{'{'}}today's date{{'}'}}</code>,
-          <code>{{'{'}}RSVP number{{'}'}}</code>,
-          <code>{{'{'}}School name{{'}'}}</code>,
-          <code>{{'{'}}term{{'}'}}</code>,
-          <code>{{'{'}}year{{'}'}}</code>,
-          <code>{{'{'}}balance{{'}'}}</code>,
-          <code>{{'{'}}amount_paid{{'}'}}</code>,
-          <code>{{'{'}}total_due{{'}'}}</code>,
-          <code>{{'{'}}due_date{{'}'}}</code>
+          <code>{{ "{" }}child's name{{ "}" }}</code
+          >, <code>{{ "{" }}student_name{{ "}" }}</code
+          >, <code>{{ "{" }}fee_name{{ "}" }}</code
+          >, <code>{{ "{" }}today's date{{ "}" }}</code
+          >, <code>{{ "{" }}RSVP number{{ "}" }}</code
+          >, <code>{{ "{" }}School name{{ "}" }}</code
+          >, <code>{{ "{" }}term{{ "}" }}</code
+          >, <code>{{ "{" }}year{{ "}" }}</code
+          >, <code>{{ "{" }}balance{{ "}" }}</code
+          >, <code>{{ "{" }}amount_paid{{ "}" }}</code
+          >, <code>{{ "{" }}total_due{{ "}" }}</code
+          >,
+          <code>{{ "{" }}due_date{{ "}" }}</code>
         </span>
       </div>
 
@@ -138,13 +198,20 @@
       <div class="info-box">
         <h3>📤 Reminder Settings</h3>
         <ul>
-          <li><strong>Threshold:</strong> UGX {{ thresholdAmount | number }}</li>
+          <li>
+            <strong>Threshold:</strong> UGX {{ thresholdAmount | number }}
+          </li>
           <li><strong>Class:</strong> {{ selectedClass }}</li>
           <li><strong>Status:</strong> {{ selectedStatus }}</li>
-          <li><strong>Term:</strong> {{ selectedTerm || 'All' }}</li>
-          <li><strong>Year:</strong> {{ selectedYear || 'All' }}</li>
-          <li><strong>Fees Status:</strong> {{ selectedFeesStatus || 'All' }}</li>
-          <li><strong>Deadline:</strong> {{ customDeadline || 'Use individual due dates' }}</li>
+          <li><strong>Term:</strong> {{ selectedTerm || "All" }}</li>
+          <li><strong>Year:</strong> {{ selectedYear || "All" }}</li>
+          <li>
+            <strong>Fees Status:</strong> {{ selectedFeesStatus || "All" }}
+          </li>
+          <li>
+            <strong>Deadline:</strong>
+            {{ customDeadline || "Use individual due dates" }}
+          </li>
           <li><strong>Message Type:</strong> {{ messageType }}</li>
         </ul>
       </div>
@@ -166,11 +233,18 @@
     <!-- Preview Section - Replaces form when shown -->
     <div class="preview-section" *ngIf="showPreview && previewData">
       <h3>📊 Campaign Preview</h3>
-      
+
       <div class="analytics-grid">
         <div class="analytics-card">
           <div class="card-left">
-            <div class="card-icon">👥</div>
+            <div class="card-icon mono-icon" aria-hidden="true">
+              <!-- users icon -->
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M16 11c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM8 11c1.657 0 3-1.343 3-3S9.657 5 8 5 5 6.343 5 8s1.343 3 3 3zM8 13c-2.33 0-7 1.167-7 3.5V19h14v-2.5C15 14.167 10.33 13 8 13zM16 13c-.29 0-.62.02-.97.06 1.16.84 1.97 1.97 1.97 3.44V19h6v-2.5C23 14.167 18.33 13 16 13z"
+                />
+              </svg>
+            </div>
           </div>
           <div class="card-right">
             <div class="analytics-label">Recipients</div>
@@ -179,29 +253,57 @@
         </div>
         <div class="analytics-card">
           <div class="card-left">
-            <div class="card-icon">💵</div>
+            <div class="card-icon mono-icon" aria-hidden="true">
+              <!-- money/balance icon -->
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M21 7H3V5h18v2zM21 19H3v-2h18v2zM5 9h14v6H5V9z" />
+              </svg>
+            </div>
           </div>
           <div class="card-right">
             <div class="analytics-label">Total Balance</div>
-            <div class="analytics-value">UGX {{ previewData.totalBalance | number:'1.0-0' }}</div>
+            <div class="analytics-value">
+              UGX {{ previewData.totalBalance | number : "1.0-0" }}
+            </div>
           </div>
         </div>
         <div class="analytics-card">
           <div class="card-left">
-            <div class="card-icon">💸</div>
+            <div class="card-icon mono-icon" aria-hidden="true">
+              <!-- cost icon -->
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zM11 10h2v6h-2v-6z"
+                />
+              </svg>
+            </div>
           </div>
           <div class="card-right">
             <div class="analytics-label">Estimated Cost</div>
-            <div class="analytics-value">UGX {{ previewData.estimatedCost | number:'1.0-0' }}</div>
+            <div class="analytics-value">
+              UGX {{ previewData.estimatedCost | number : "1.0-0" }}
+            </div>
           </div>
         </div>
         <div class="analytics-card">
           <div class="card-left">
-            <div class="card-icon">✉️</div>
+            <div class="card-icon mono-icon" aria-hidden="true">
+              <!-- message icon -->
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M20 2H4a2 2 0 0 0-2 2v16l4-4h14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2zM6 9l6 4 6-4"
+                />
+              </svg>
+            </div>
           </div>
           <div class="card-right">
             <div class="analytics-label">Message Length</div>
-            <div class="analytics-value">{{ previewData.messageLength }} chars ({{ previewData.smsUnits }} SMS)</div>
+            <div class="analytics-value">
+              {{ previewData.messageLength }} chars ({{
+                previewData.smsUnits
+              }}
+              SMS)
+            </div>
           </div>
         </div>
       </div>
@@ -219,13 +321,23 @@
             <div class="recipient-col">Phone</div>
             <div class="recipient-col">Balance</div>
           </div>
-          <div class="recipient-row" *ngFor="let recipient of previewData.recipients.slice(0, 10)">
+          <div
+            class="recipient-row"
+            *ngFor="let recipient of previewData.recipients.slice(0, 10)"
+          >
             <div class="recipient-col">{{ recipient.studentName }}</div>
             <div class="recipient-col">{{ recipient.phoneNumber }}</div>
-            <div class="recipient-col">UGX {{ recipient.balance | number:'1.0-0' }}</div>
+            <div class="recipient-col">
+              UGX {{ recipient.balance | number : "1.0-0" }}
+            </div>
           </div>
-          <div class="recipient-row note" *ngIf="previewData.recipients.length > 10">
-            <div class="recipient-col" colspan="3">...and {{ previewData.recipients.length - 10 }} more</div>
+          <div
+            class="recipient-row note"
+            *ngIf="previewData.recipients.length > 10"
+          >
+            <div class="recipient-col" colspan="3">
+              ...and {{ previewData.recipients.length - 10 }} more
+            </div>
           </div>
         </div>
       </div>
@@ -259,19 +371,31 @@
     <div class="help-grid">
       <div class="help-item">
         <h4>1. Set Threshold</h4>
-        <p>Only students with outstanding balance greater than or equal to the threshold will receive reminders.</p>
+        <p>
+          Only students with outstanding balance greater than or equal to the
+          threshold will receive reminders.
+        </p>
       </div>
       <div class="help-item">
         <h4>2. Filter Recipients</h4>
-        <p>Narrow down recipients by class and student status (e.g., only Active students).</p>
+        <p>
+          Narrow down recipients by class and student status (e.g., only Active
+          students).
+        </p>
       </div>
       <div class="help-item">
         <h4>3. Optional Deadline</h4>
-        <p>Set a custom payment deadline for this campaign, or leave empty to use each student's individual due date.</p>
+        <p>
+          Set a custom payment deadline for this campaign, or leave empty to use
+          each student's individual due date.
+        </p>
       </div>
       <div class="help-item">
         <h4>4. Send Reminders</h4>
-        <p>SMS reminders will be sent to parents with student name, amount due, and payment details.</p>
+        <p>
+          SMS reminders will be sent to parents with student name, amount due,
+          and payment details.
+        </p>
       </div>
     </div>
   </div>

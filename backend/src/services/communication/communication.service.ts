@@ -264,97 +264,78 @@ export const previewBulkFeesRemindersData = async (
         hasStudentTerms = false;
     }
     
-    // For now, always use the simpler approach with students.student_status
-    const useStudentTerms = false; // Disabled until student_terms structure is confirmed
+    // Build SQL safely by assembling WHERE clauses and a params array in order.
+    // This avoids mismatched placeholder counts for different filter combinations.
+    const params: any[] = [];
 
-    // Build query based on different scenarios
-    let sql: string;
-    let params: any[];
-
-    if (useStudentTerms) {
-        // Query using student_terms for status filtering
-        sql = `
-            WITH base_students AS (
-                SELECT s.student_id, s.student_name, s.parent_phone_sms, s.class_name, s.student_status
-                FROM students s
-                WHERE s.school_id = $1
-            ),
-            filtered_students AS (
-                SELECT bs.* FROM base_students bs
-                WHERE EXISTS (
-                    SELECT 1 FROM student_terms st 
-                    WHERE st.student_id = bs.student_id
-                    ${year ? ' AND st.year = $2' : ''}
-                    ${term ? ` AND st.term = $${year ? '3' : '2'}` : ''}
-                    ${statusFilter && statusFilter !== 'All Statuses' ? ` AND st.student_status = $${year && term ? '4' : year || term ? '3' : '2'}` : ''}
-                )
-                ${classFilter && classFilter !== 'All Students' ? ` AND bs.class_name = $${[year, term, statusFilter && statusFilter !== 'All Statuses'].filter(Boolean).length + 2}` : ''}
-            ),
-            fr AS (
-                SELECT f.*, ft.name as fee_name
-                FROM fees_records f
-                LEFT JOIN fees_to_track ft ON ft.fee_id = f.fee_id
-                WHERE COALESCE(f.balance_due, 0) > 0
-                ${year ? ` AND f.year = $2` : ''}
-                ${term ? ` AND f.term = $${year ? '3' : '2'}` : ''}
-            ),
-            ranked AS (
-                SELECT fr.*, ROW_NUMBER() OVER (PARTITION BY fr.student_id ORDER BY COALESCE(fr.balance_due,0) DESC, fr.due_date ASC NULLS LAST) rn
-                FROM fr
-            )
-            SELECT fs.student_id, fs.student_name, fs.parent_phone_sms, fs.class_name, fs.student_status,
-                   r.total_fees_due, r.amount_paid, r.balance_due, r.term, r.year, r.due_date, r.fee_name
-            FROM filtered_students fs
-            JOIN ranked r ON r.student_id = fs.student_id AND r.rn = 1
-            WHERE COALESCE(r.balance_due,0) >= $${[schoolId, year, term, statusFilter && statusFilter !== 'All Statuses', classFilter && classFilter !== 'All Students'].filter(Boolean).length + 1}
-        `;
-        
-        params = [schoolId];
-        if (year) params.push(Number(year));
-        if (term) params.push(Number(term));
-        if (statusFilter && statusFilter !== 'All Statuses') params.push(statusFilter);
-        if (classFilter && classFilter !== 'All Students') params.push(classFilter);
-        params.push(Number(thresholdAmount));
-    } else {
-        // Simple query using students.student_status
-        sql = `
-            WITH base_students AS (
-                SELECT s.student_id, s.student_name, s.parent_phone_sms, s.class_name, s.student_status
-                FROM students s
-                WHERE s.school_id = $1
-                ${statusFilter && statusFilter !== 'All Statuses' ? ' AND s.student_status = $2' : ''}
-                ${classFilter && classFilter !== 'All Students' ? ` AND s.class_name = $${statusFilter && statusFilter !== 'All Statuses' ? '3' : '2'}` : ''}
-            ),
-            fr AS (
-                SELECT f.*, ft.name as fee_name
-                FROM fees_records f
-                LEFT JOIN fees_to_track ft ON ft.fee_id = f.fee_id
-                WHERE COALESCE(f.balance_due, 0) > 0
-                ${year ? ` AND f.year = $${[schoolId, statusFilter && statusFilter !== 'All Statuses', classFilter && classFilter !== 'All Students'].filter(Boolean).length + 1}` : ''}
-                ${term ? ` AND f.term = $${[schoolId, statusFilter && statusFilter !== 'All Statuses', classFilter && classFilter !== 'All Students', year].filter(Boolean).length + 1}` : ''}
-            ),
-            ranked AS (
-                SELECT fr.*, ROW_NUMBER() OVER (PARTITION BY fr.student_id ORDER BY COALESCE(fr.balance_due,0) DESC, fr.due_date ASC NULLS LAST) rn
-                FROM fr
-            )
-            SELECT bs.student_id, bs.student_name, bs.parent_phone_sms, bs.class_name, bs.student_status,
-                   r.total_fees_due, r.amount_paid, r.balance_due, r.term, r.year, r.due_date, r.fee_name
-            FROM base_students bs
-            JOIN ranked r ON r.student_id = bs.student_id AND r.rn = 1
-            WHERE COALESCE(r.balance_due,0) >= $${[schoolId, statusFilter && statusFilter !== 'All Statuses', classFilter && classFilter !== 'All Students', year, term].filter(Boolean).length + 1}
-        `;
-        
-        params = [schoolId];
-        if (statusFilter && statusFilter !== 'All Statuses') params.push(statusFilter);
-        if (classFilter && classFilter !== 'All Students') params.push(classFilter);
-        if (year) params.push(Number(year));
-        if (term) params.push(Number(term));
-        params.push(Number(thresholdAmount));
+    // Base students filters
+    const baseStudentWhere: string[] = [];
+    params.push(schoolId); // $1
+    baseStudentWhere.push('s.school_id = $1');
+    if (statusFilter && statusFilter !== 'All Statuses') {
+        baseStudentWhere.push(`s.student_status = $${params.length + 1}`);
+        params.push(statusFilter);
     }
+    if (classFilter && classFilter !== 'All Students') {
+        baseStudentWhere.push(`s.class_name = $${params.length + 1}`);
+        params.push(classFilter);
+    }
+
+    // fees_records filters
+    const feesWhere: string[] = [];
+    feesWhere.push('COALESCE(f.balance_due, 0) > 0');
+    if (year) {
+        feesWhere.push(`f.year = $${params.length + 1}`);
+        params.push(Number(year));
+    }
+    if (term) {
+        feesWhere.push(`f.term = $${params.length + 1}`);
+        params.push(Number(term));
+    }
+
+    // Threshold parameter (balance minimum)
+    const thresholdPlaceholder = `$${params.length + 1}`;
+    params.push(Number(thresholdAmount));
+
+    const sql = `
+        WITH base_students AS (
+            SELECT s.student_id, s.student_name, s.parent_phone_sms, s.class_name, s.student_status
+            FROM students s
+            WHERE ${baseStudentWhere.join(' AND ')}
+        ),
+        fr AS (
+            SELECT f.*, ft.name as fee_name
+            FROM fees_records f
+            LEFT JOIN fees_to_track ft ON ft.fee_id = f.fee_id
+            WHERE ${feesWhere.join(' AND ')}
+        ),
+        ranked AS (
+            SELECT fr.*, ROW_NUMBER() OVER (PARTITION BY fr.student_id ORDER BY COALESCE(fr.balance_due,0) DESC, fr.due_date ASC NULLS LAST) rn
+            FROM fr
+        )
+        SELECT bs.student_id, bs.student_name, bs.parent_phone_sms, bs.class_name, bs.student_status,
+               r.total_fees_due, r.amount_paid, r.balance_due, r.term, r.year, r.due_date, r.fee_name
+        FROM base_students bs
+        JOIN ranked r ON r.student_id = bs.student_id AND r.rn = 1
+        WHERE COALESCE(r.balance_due,0) >= ${thresholdPlaceholder}
+    `;
 
     console.debug('[BulkFeesPreview] filters:', { thresholdAmount, classFilter, statusFilter, customDeadline, year, term, feesStatus, messageType });
     console.debug('[BulkFeesPreview] SQL params:', params);
     console.debug('[BulkFeesPreview] Final SQL:', sql);
+    // Sanity check: ensure numeric placeholders ($1,$2,...) match params length
+    try {
+        const pm = sql.match(/\$([1-9][0-9]*)/g) || [];
+        const idxs = pm.map((m) => Number(m.slice(1)));
+        const maxPlaceholder = idxs.length ? Math.max(...idxs) : 0;
+        if (maxPlaceholder !== params.length) {
+            console.error('[BulkFeesPreview] placeholder/params mismatch', { maxPlaceholder, paramsLength: params.length, params, sql });
+            throw new Error(`SQL placeholder/params mismatch: SQL expects ${maxPlaceholder} params but provided ${params.length}`);
+        }
+    } catch (err) {
+        // rethrow to surface during development and to give a clear diagnostic
+        throw err;
+    }
     
     // Debug: Check what students exist for this school
     const studentCheck = await pool.query('SELECT COUNT(*) as count, array_agg(DISTINCT student_status) as statuses, array_agg(DISTINCT class_name) as classes FROM students WHERE school_id = $1', [schoolId]);
@@ -385,6 +366,13 @@ export const previewBulkFeesRemindersData = async (
     const result = await pool.query(sql, params);
     let rows: any[] = result.rows || [];
     console.debug('[BulkFeesPreview] top-record rows:', rows.length);
+
+    // Get school's SMS balance
+    const creds = await getSmsCredentialsForSchool(schoolId);
+    if (!creds) {
+        throw new Error('Missing SMS credentials. Subscribe or Contact Support');
+    }
+    const smsBalance = await checkBalance(creds.username, creds.password);
 
     // Optional feesStatus filter similar to students page
     if (feesStatus) {
@@ -500,17 +488,20 @@ export const previewBulkFeesRemindersData = async (
     }
 
     const recipientCount = rows.length;
-    const totalBalance = rows.reduce((sum, r) => sum + Number(r.balance_due || 0), 0);
+    // totalBalance in preview should reflect the school's SMS airtime balance (provider value)
+    const totalBalance = smsBalance;
     const costPerSms = Number(config.costPerSms || 50);
-    const estimatedCost = recipientCount * costPerSms;
+    const smsUnits = Math.max(1, Math.ceil(sampleMessage.length / 160));
+    const costPerRecipient = costPerSms * smsUnits; // total cost to send this message to one recipient
+    const estimatedCost = recipientCount * costPerRecipient;
 
     const preview = {
         recipientCount,
-        totalBalance,
+        totalBalance, // Use the school's SMS balance instead of fees balance
         sampleMessage,
-        estimatedCost,
+        estimatedCost, // total cost = recipients * cost per recipient
         messageLength: sampleMessage.length,
-        smsUnits: Math.ceil(sampleMessage.length / 160),
+        smsUnits,
         recipients: rows.map((s: any) => ({
             studentName: s.student_name,
             phoneNumber: s.parent_phone_sms,
@@ -593,42 +584,72 @@ LEFT JOIN fees_to_track ft ON ft.fee_id = f.fee_id
 
     // For status: if year/term provided, prefer student_terms.status; else students.student_status
     const useStudentTerms = Boolean(term || year) && hasStudentTerms;
-    if (statusFilter && statusFilter !== 'All Statuses') {
-        if (useStudentTerms) {
-            let stClause = ' AND EXISTS (SELECT 1 FROM student_terms st WHERE st.student_id = base_students.student_id';
-            if (year) { stClause += ` AND st.year = $${next}`; params.push(Number(year)); next++; }
-            if (term) { stClause += ` AND st.term = $${next}`; params.push(Number(term)); next++; }
-            stClause += ` AND st.student_status = $${next})`;
-            params.push(statusFilter);
-            next++;
-            sql = sql.replace('/*STATUS_OR_ST_FILTER*/', stClause);
+        if (statusFilter && statusFilter !== 'All Statuses') {
+            if (useStudentTerms) {
+                // Build student_terms existence clause using tokens ($Y/$T) for year/term
+                // so we only bind year/term once later when replacing $Y/$T placeholders.
+                let stClause = ' AND EXISTS (SELECT 1 FROM student_terms st WHERE st.student_id = base_students.student_id';
+                if (year) { stClause += ` AND st.year = $Y`; }
+                if (term) { stClause += ` AND st.term = $T`; }
+                // status_at_term will use the next numeric placeholder; push statusFilter now
+                stClause += ` AND st.status_at_term = $${next})`;
+                params.push(statusFilter);
+                next++;
+                sql = sql.replace('/*STATUS_OR_ST_FILTER*/', stClause);
+            } else {
+                sql = sql.replace('/*STATUS_OR_ST_FILTER*/', ` AND student_status = $${next}`);
+                params.push(statusFilter);
+                next++;
+            }
         } else {
-            sql = sql.replace('/*STATUS_OR_ST_FILTER*/', ` AND student_status = $${next}`);
-            params.push(statusFilter);
-            next++;
+            if (useStudentTerms) {
+                // Use tokens for year/term; actual numeric placeholders will be substituted below
+                let stClause = ' AND EXISTS (SELECT 1 FROM student_terms st WHERE st.student_id = base_students.student_id';
+                if (year) { stClause += ` AND st.year = $Y`; }
+                if (term) { stClause += ` AND st.term = $T`; }
+                stClause += ')';
+                sql = sql.replace('/*STATUS_OR_ST_FILTER*/', stClause);
+            } else {
+                sql = sql.replace('/*STATUS_OR_ST_FILTER*/', '');
+            }
         }
-    } else {
-        if (useStudentTerms) {
-            let stClause = ' AND EXISTS (SELECT 1 FROM student_terms st WHERE st.student_id = base_students.student_id';
-            if (year) { stClause += ` AND st.year = $${next}`; params.push(Number(year)); next++; }
-            if (term) { stClause += ` AND st.term = $${next}`; params.push(Number(term)); next++; }
-            stClause += ')';
-            sql = sql.replace('/*STATUS_OR_ST_FILTER*/', stClause);
-        } else {
-            sql = sql.replace('/*STATUS_OR_ST_FILTER*/', '');
-        }
-    }
 
     if (year) {
-        const idx = next; sql = sql.replace('$Y', String(idx)); params.push(Number(year)); next++;
-    } else { sql = sql.replace(' AND f.year = $Y', ''); }
+        const idx = next;
+        // replace all $Y tokens (may appear in multiple places like fr and student_terms)
+        // Use $<n> placeholder so Postgres binds correctly
+        sql = sql.split('$Y').join(`$${idx}`);
+        params.push(Number(year));
+        next++;
+    } else {
+        // remove any leftover year fragment in fr
+        sql = sql.split(' AND f.year = $Y').join('');
+    }
     if (term) {
-        const idx = next; sql = sql.replace('$T', String(idx)); params.push(Number(term)); next++;
-    } else { sql = sql.replace(' AND f.term = $T', ''); }
-    sql = sql.replace('$X', String(next)); params.push(Number(thresholdAmount));
+        const idx = next;
+        // replace all $T tokens
+        sql = sql.split('$T').join(`$${idx}`);
+        params.push(Number(term));
+        next++;
+    } else {
+        sql = sql.split(' AND f.term = $T').join('');
+    }
+    sql = sql.replace('$X', `$${next}`); params.push(Number(thresholdAmount));
 
     console.debug('[BulkFeesSend] filters:', { thresholdAmount, classFilter, statusFilter, customDeadline, year, term, feesStatus, messageType });
     console.debug('[BulkFeesSend] SQL params:', params);
+    // Sanity check: ensure numeric placeholders ($1,$2,...) match params length
+    try {
+        const pm = sql.match(/\$([1-9][0-9]*)/g) || [];
+        const idxs = pm.map((m) => Number(m.slice(1)));
+        const maxPlaceholder = idxs.length ? Math.max(...idxs) : 0;
+        if (maxPlaceholder !== params.length) {
+            console.error('[BulkFeesSend] placeholder/params mismatch', { maxPlaceholder, paramsLength: params.length, params, sql });
+            throw new Error(`SQL placeholder/params mismatch: SQL expects ${maxPlaceholder} params but provided ${params.length}`);
+        }
+    } catch (err) {
+        throw err;
+    }
     const result = await pool.query(sql, params);
     let rows: any[] = result.rows || [];
     console.debug('[BulkFeesSend] top-record rows:', rows.length);

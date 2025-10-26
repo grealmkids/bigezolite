@@ -600,6 +600,22 @@ schools (1) ─── (many) sms_transactions
 
 ---
 
+### ✅ Hotfixes & Stability Improvements (Oct 27, 2025)
+- Fixed SQL placeholder/parameter mismatch that caused Postgres errors like "bind message supplies X parameters, but prepared statement '' requires Y" by reworking the SQL builder to assemble ordered WHERE clauses and params and replacing $Y/$T tokens with proper $n placeholders.
+- Added audit logs for preview/send flows that print the highest $ placeholder and the params length; the handlers now fail-fast with a clear diagnostic when mismatches occur to make debugging trivial.
+- Corrected Bulk Fees Reminders preview to use the school's SMS provider balance (via per-school credentials) as `totalBalance` instead of student fee balances.
+- Updated Estimated Cost calculation to compute per-recipient cost including SMS fragmentation: estimatedCost = recipients × (costPerSms × smsUnits), where smsUnits = Math.max(1, ceil(message.length / 160)).
+- Replaced fragile string-replacement of student_terms tokens ($Y/$T) with global placeholder insertion so no leftover `$` tokens remain in SQL (resolves syntax errors near '$').
+- Implemented deterministic clause-based SQL builder for preview and send flows to ensure placeholders and params stay aligned across filter combinations.
+- Added unit tests covering the communication SQL builder to prevent regressions (`test/communication.service.test.ts`).
+- Improved logging in bulk flows to output final SQL and params for easier debugging in staging/production.
+
+### ✅ Client & UI Fixes
+- On the login page load and on logout, client-side clearing now removes app data from `localStorage` and `sessionStorage`, attempts to clear Cache Storage and unregister service workers, and performs best-effort cookie clearing to reduce stale data and privacy leakage.
+- Bulk Fees preview icons replaced with monochrome inline SVGs and `.mono-icon` CSS for consistent sizing and color with the side-nav.
+
+---
+
 ## Roadmap & Future Enhancements
 
 ### Planned Features

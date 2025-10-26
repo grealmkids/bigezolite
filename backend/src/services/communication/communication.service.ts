@@ -323,18 +323,15 @@ export const previewBulkFeesRemindersData = async (
     console.debug('[BulkFeesPreview] filters:', { thresholdAmount, classFilter, statusFilter, customDeadline, year, term, feesStatus, messageType });
     console.debug('[BulkFeesPreview] SQL params:', params);
     console.debug('[BulkFeesPreview] Final SQL:', sql);
+    // Audit placeholders vs params so we can trace mismatches in production
+    const _pm_preview = sql.match(/\$([1-9][0-9]*)/g) || [];
+    const _idxs_preview = _pm_preview.map((m) => Number(m.slice(1)));
+    const _maxPlaceholderPreview = _idxs_preview.length ? Math.max(..._idxs_preview) : 0;
+    console.debug('[BulkFeesPreview] placeholders vs params', { maxPlaceholder: _maxPlaceholderPreview, paramsLength: params.length });
     // Sanity check: ensure numeric placeholders ($1,$2,...) match params length
-    try {
-        const pm = sql.match(/\$([1-9][0-9]*)/g) || [];
-        const idxs = pm.map((m) => Number(m.slice(1)));
-        const maxPlaceholder = idxs.length ? Math.max(...idxs) : 0;
-        if (maxPlaceholder !== params.length) {
-            console.error('[BulkFeesPreview] placeholder/params mismatch', { maxPlaceholder, paramsLength: params.length, params, sql });
-            throw new Error(`SQL placeholder/params mismatch: SQL expects ${maxPlaceholder} params but provided ${params.length}`);
-        }
-    } catch (err) {
-        // rethrow to surface during development and to give a clear diagnostic
-        throw err;
+    if (_maxPlaceholderPreview !== params.length) {
+        console.error('[BulkFeesPreview] placeholder/params mismatch', { maxPlaceholder: _maxPlaceholderPreview, paramsLength: params.length, params, sql });
+        throw new Error(`SQL placeholder/params mismatch: SQL expects ${_maxPlaceholderPreview} params but provided ${params.length}`);
     }
     
     // Debug: Check what students exist for this school
@@ -638,17 +635,14 @@ LEFT JOIN fees_to_track ft ON ft.fee_id = f.fee_id
 
     console.debug('[BulkFeesSend] filters:', { thresholdAmount, classFilter, statusFilter, customDeadline, year, term, feesStatus, messageType });
     console.debug('[BulkFeesSend] SQL params:', params);
-    // Sanity check: ensure numeric placeholders ($1,$2,...) match params length
-    try {
-        const pm = sql.match(/\$([1-9][0-9]*)/g) || [];
-        const idxs = pm.map((m) => Number(m.slice(1)));
-        const maxPlaceholder = idxs.length ? Math.max(...idxs) : 0;
-        if (maxPlaceholder !== params.length) {
-            console.error('[BulkFeesSend] placeholder/params mismatch', { maxPlaceholder, paramsLength: params.length, params, sql });
-            throw new Error(`SQL placeholder/params mismatch: SQL expects ${maxPlaceholder} params but provided ${params.length}`);
-        }
-    } catch (err) {
-        throw err;
+    // Audit placeholders vs params for traceability
+    const _pm_send = sql.match(/\$([1-9][0-9]*)/g) || [];
+    const _idxs_send = _pm_send.map((m) => Number(m.slice(1)));
+    const _maxPlaceholderSend = _idxs_send.length ? Math.max(..._idxs_send) : 0;
+    console.debug('[BulkFeesSend] placeholders vs params', { maxPlaceholder: _maxPlaceholderSend, paramsLength: params.length });
+    if (_maxPlaceholderSend !== params.length) {
+        console.error('[BulkFeesSend] placeholder/params mismatch', { maxPlaceholder: _maxPlaceholderSend, paramsLength: params.length, params, sql });
+        throw new Error(`SQL placeholder/params mismatch: SQL expects ${_maxPlaceholderSend} params but provided ${params.length}`);
     }
     const result = await pool.query(sql, params);
     let rows: any[] = result.rows || [];

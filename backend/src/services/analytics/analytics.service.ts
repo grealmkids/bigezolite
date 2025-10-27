@@ -1,4 +1,7 @@
 import { query } from '../../database/database';
+import { checkBalance } from '../../utils/sms.util';
+import { getSmsCredentialsForSchool } from '../communication/smsCredentials.service';
+import { upsertSmsAccount, addSmsTransaction } from '../communication/smsAccount.service';
 
 export interface AnalyticsData {
     totalStudents: number;
@@ -22,53 +25,8 @@ export interface AnalyticsData {
 /**
  * Get comprehensive analytics for a school
  */
-export const getSchoolAnalytics = async (schoolId: number, year?: number, term?: number): Promise<AnalyticsData> => {
-    // Get student counts by status
-    const statusQuery = `
-        SELECT 
-            COUNT(*) FILTER (WHERE student_status = 'Active') as active_count,
-            COUNT(*) FILTER (WHERE student_status = 'Inactive') as inactive_count,
-            COUNT(*) FILTER (WHERE student_status = 'Alumni') as alumni_count,
-            COUNT(*) FILTER (WHERE student_status = 'Expelled') as expelled_count,
-            COUNT(*) FILTER (WHERE student_status = 'Suspended') as suspended_count,
-            COUNT(*) FILTER (WHERE student_status = 'Sick') as sick_count,
-            COUNT(*) as total_count
-        FROM students
-        WHERE school_id = $1
-    `;
-    const statusResult = await query(statusQuery, [schoolId]);
-    const statusData = statusResult.rows[0];
-
-    // Get active students by gender
-    const genderQuery = `
-        SELECT 
-            COUNT(*) FILTER (WHERE gender = 'Boy') as boys_count,
-            COUNT(*) FILTER (WHERE gender = 'Girl') as girls_count
-        FROM students
-        WHERE school_id = $1 AND student_status = 'Active'
-    `;
-    const genderResult = await query(genderQuery, [schoolId]);
-    const genderData = genderResult.rows[0];
-
-    // Get SMS account balance (use same algorithm as communications.checkBalance)
-    const smsQuery = `
-        SELECT provider_balance_bigint
-        FROM sms_accounts
-        WHERE school_id = $1
-    `;
-    const smsResult = await query(smsQuery, [schoolId]);
-    const smsData = smsResult.rows[0];
-    const rawBalance = Number(smsData?.provider_balance_bigint || 0);
-    // communications.checkBalance multiplies by (10/7) then rounds DOWN to the previous 10
-    const multiplied = rawBalance * (10 / 7);
-    const calculatedBalance = Math.floor(multiplied / 10) * 10;
-
-    // SMS count uses configured costPerSms from config when available
-    const { config } = await import('../../config');
-    const costPerSms = Number(config.costPerSms || 50);
-    const smsCount = Math.floor(calculatedBalance / costPerSms);
-
-    // Prepare optional fees_records filters (year, term) for per-student aggregates
+export const getSchoolAnalytics = async (schoolId: number, year?: number, term?: number, refresh: boolean = false): Promise<AnalyticsData> => {
+    // Prepare optional fees_records filters (year, term) for per-student aggregates and queries
     const feesJoinFilters: string[] = [];
     const params: any[] = [schoolId];
     let paramIdx = 2;
@@ -80,6 +38,88 @@ export const getSchoolAnalytics = async (schoolId: number, year?: number, term?:
         feesJoinFilters.push(`AND fr.term = $${paramIdx++}`);
         params.push(term);
     }
+
+    // Choose JOIN type: when year/term filters are present we INNER JOIN to limit to students with matching fees_records
+    const joinType = feesJoinFilters.length ? 'INNER JOIN' : 'LEFT JOIN';
+
+    // Get student counts by status (apply same fees_records filtering behavior)
+    const statusQuery = `
+        SELECT 
+            COUNT(DISTINCT s.student_id) FILTER (WHERE s.student_status = 'Active') as active_count,
+            COUNT(DISTINCT s.student_id) FILTER (WHERE s.student_status = 'Inactive') as inactive_count,
+            COUNT(DISTINCT s.student_id) FILTER (WHERE s.student_status = 'Alumni') as alumni_count,
+            COUNT(DISTINCT s.student_id) FILTER (WHERE s.student_status = 'Expelled') as expelled_count,
+            COUNT(DISTINCT s.student_id) FILTER (WHERE s.student_status = 'Suspended') as suspended_count,
+            COUNT(DISTINCT s.student_id) FILTER (WHERE s.student_status = 'Sick') as sick_count,
+            COUNT(DISTINCT s.student_id) as total_count
+        FROM students s
+        ${joinType} fees_records fr ON s.student_id = fr.student_id ${feesJoinFilters.length ? feesJoinFilters.join(' ') : ''}
+        WHERE s.school_id = $1
+    `;
+    const statusResult = await query(statusQuery, params);
+    const statusData = statusResult.rows[0] || {};
+
+    // Get active students by gender (apply same filtering)
+    const genderQuery = `
+        SELECT 
+            COUNT(DISTINCT s.student_id) FILTER (WHERE s.gender = 'Boy' AND s.student_status = 'Active') as boys_count,
+            COUNT(DISTINCT s.student_id) FILTER (WHERE s.gender = 'Girl' AND s.student_status = 'Active') as girls_count
+        FROM students s
+        ${joinType} fees_records fr ON s.student_id = fr.student_id ${feesJoinFilters.length ? feesJoinFilters.join(' ') : ''}
+        WHERE s.school_id = $1
+    `;
+    const genderResult = await query(genderQuery, params);
+    const genderData = genderResult.rows[0] || { boys_count: 0, girls_count: 0 };
+
+    // Get SMS account balance: prefer fresh provider check (when per-school creds exist),
+    // otherwise fall back to stored provider_balance_bigint from sms_accounts.
+    let rawBalance = 0;
+    try {
+        const creds = await getSmsCredentialsForSchool(schoolId);
+        if (creds && refresh) {
+            // call provider directly only when refresh requested
+            const providerRaw = await checkBalance(creds.username, creds.password);
+            rawBalance = Number(providerRaw || 0);
+            // persist provider raw balance and log transaction
+            try {
+                await upsertSmsAccount(schoolId, rawBalance);
+                await addSmsTransaction(schoolId, 'check', rawBalance, { source: 'analytics' });
+            } catch (persistErr) {
+                // non-fatal: log and continue with computed value
+                console.warn('[analytics] failed to persist sms account balance:', persistErr);
+            }
+        } else {
+            // no per-school credentials: fall back to stored value
+            const smsQuery = `
+                SELECT provider_balance_bigint
+                FROM sms_accounts
+                WHERE school_id = $1
+            `;
+            const smsResult = await query(smsQuery, [schoolId]);
+            const smsData = smsResult.rows[0];
+            rawBalance = Number(smsData?.provider_balance_bigint || 0);
+        }
+    } catch (err: any) {
+        // On error calling provider, fall back to stored value if available
+        console.warn('[analytics] error fetching provider balance, falling back to stored value:', err?.message || err);
+        const smsQuery = `
+            SELECT provider_balance_bigint
+            FROM sms_accounts
+            WHERE school_id = $1
+        `;
+        const smsResult = await query(smsQuery, [schoolId]);
+        const smsData = smsResult.rows[0];
+        rawBalance = Number(smsData?.provider_balance_bigint || 0);
+    }
+
+    // communications.checkBalance multiplies by (10/7) then rounds DOWN to the previous 10
+    const multiplied = rawBalance * (10 / 7);
+    const calculatedBalance = Math.floor(multiplied / 10) * 10;
+
+    // SMS count uses configured costPerSms from config when available
+    const { config } = await import('../../config');
+    const costPerSms = Number(config.costPerSms || 50);
+    const smsCount = Math.floor(calculatedBalance / costPerSms);
 
     // Aggregate paid/defaulter info: compute per-student sums then aggregate counts/totals
     const feesAggSql = `
@@ -94,7 +134,7 @@ export const getSchoolAnalytics = async (schoolId: number, year?: number, term?:
                 COALESCE(SUM(fr.amount_paid),0) as total_paid,
                 (COALESCE(SUM(fr.total_fees_due),0) - COALESCE(SUM(fr.amount_paid),0)) as balance
             FROM students s
-            LEFT JOIN fees_records fr ON s.student_id = fr.student_id ${feesJoinFilters.length ? feesJoinFilters.join(' ') : ''}
+            ${joinType} fees_records fr ON s.student_id = fr.student_id ${feesJoinFilters.length ? feesJoinFilters.join(' ') : ''}
             WHERE s.school_id = $1
             GROUP BY s.student_id
         ) t

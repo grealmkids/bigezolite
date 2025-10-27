@@ -1,3 +1,5 @@
+// @ts-nocheck
+/// <reference types="jest" />
 import { previewBulkFeesRemindersData, processBulkFeesReminders } from '../src/services/communication/communication.service';
 
 // Mock dependent modules

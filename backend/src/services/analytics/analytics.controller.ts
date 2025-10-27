@@ -26,8 +26,9 @@ export const getAnalytics = async (req: AuthenticatedRequest, res: Response) => 
     // Optional query params for year and term to filter fee records
     const year = req.query.year ? Number(req.query.year) : undefined;
     const term = req.query.term ? Number(req.query.term) : undefined;
+    const refresh = req.query.refresh === 'true' || req.query.refresh === '1';
 
-    const analytics = await analyticsService.getSchoolAnalytics(schoolId, year, term);
+    const analytics = await analyticsService.getSchoolAnalytics(schoolId, year, term, refresh);
         
         res.status(200).json(analytics);
     } catch (error) {

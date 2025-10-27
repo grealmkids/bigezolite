@@ -215,7 +215,7 @@ Opens when clicking student row, shows:
   - Character counter
   - SMS units indicator
 - Validates balance before send
-- Deducts cost (default 50 UGX per SMS)
+- Deducts cost (costPerSms per SMS; default configured via `COST_PER_SMS`). The actual total charged accounts for SMS fragmentation: total = smsUnits × costPerSms, where smsUnits = ceil(message.length / 160).
 
 #### 3. Send Bulk SMS
 - **Page**: Communications (Bulk SMS)
@@ -224,7 +224,7 @@ Opens when clicking student row, shows:
   - Custom message
 - **Process**:
   1. Query students by filter
-  2. Check balance (recipients × 50 UGX)
+  2. Check balance (recipients × costPerSms × smsUnits; costPerSms is configurable via server env var `COST_PER_SMS`)
   3. Send to all parent phones
   4. Update balance
   5. Log transaction
@@ -298,7 +298,7 @@ Displays:
 1. **📊 Analytics Cards Grid**
    - **Recipients**: Count of students matching criteria
    - **Total Balance**: Sum of all outstanding balances
-   - **Estimated Cost**: Total SMS cost (recipients × 50 UGX)
+  - **Estimated Cost**: Total SMS cost computed as recipients × (costPerSms × smsUnits). `costPerSms` is configurable via the server env var `COST_PER_SMS` (or returned by a runtime config endpoint) and `smsUnits` = ceil(message.length / 160).
    - **Message Length**: Character count and SMS units
 
 2. **📝 Sample Message Box**
@@ -347,8 +347,8 @@ HAVING COALESCE(SUM(f.balance_due), 0) >= $threshold
   - Occurs with longer names or larger amounts
 
 ### SMS Cost Calculation
-- **Cost per SMS**: 50 UGX (configurable via `COST_PER_SMS` env var)
-- **Balance check**: Before any send operation
+- **Cost per SMS**: Determined by the server `costPerSms` configuration (default via the `COST_PER_SMS` env var). Client UIs display prices computed as numberOfSms × costPerSms; the preview and send flows include SMS fragmentation by computing smsUnits = ceil(message.length / 160).
+- **Balance check**: Before any send operation the system verifies provider balance ≥ recipients × (costPerSms × smsUnits).
 - **Error handling**: Returns 402 if insufficient balance
 - **Transaction logging**: All sends recorded in `sms_transactions`
 
@@ -363,6 +363,10 @@ Located at: **Dashboard → "Buy SMS" Card → "Subscribe" Link**
 1. **Silver - 100 SMS**: 35,000 UGX
 2. **Gold - 300 SMS**: 100,000 UGX
 3. **Platinum - 1000 SMS**: 300,000 UGX
+
+### Pay-As-You-Go (Credits)
+- The system supports Pay‑As‑You‑Go SMS purchases (credits). Prices and credit calculations use the server `costPerSms` configuration. The frontend computes displayed package prices as `numberOfSms × costPerSms`.
+- For runtime updates without rebuilding the frontend, the client can fetch the current `costPerSms` from the runtime endpoint `GET /api/v1/config/sms` so price changes made in server environment variables take effect immediately.
 
 ### Order Process
 1. User selects package
@@ -542,6 +546,7 @@ schools (1) ─── (many) sms_transactions
   - POST `/communications/single-sms?schoolId=...` — send a single SMS with school context override
   - POST `/communications/fees-reminder/:studentId?schoolId=...` — send fees reminder using composed message
   - GET `/communications/credits` — SMS balance
+  - GET `/config/sms` — Runtime SMS pricing endpoint (optional). Returns `{ costPerSms: number }`. Frontend may call this at runtime to compute Pay‑As‑You‑Go prices without a rebuild.
 - `/subscription/*` - Subscription orders
 
 **Authentication**: Bearer token in `Authorization` header

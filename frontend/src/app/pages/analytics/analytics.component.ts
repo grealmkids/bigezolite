@@ -3,6 +3,9 @@ import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { MatButtonModule } from '@angular/material/button';
 import { AnalyticsService, AnalyticsData } from '../../services/analytics.service';
 import { SchoolService } from '../../services/school.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -15,6 +18,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
     MatCardModule,
     MatIconModule,
     MatProgressSpinnerModule
+    ,MatFormFieldModule,MatSelectModule,MatButtonModule
   ],
   templateUrl: './analytics.component.html',
   styleUrls: ['./analytics.component.scss']
@@ -55,7 +59,7 @@ export class AnalyticsComponent implements OnInit {
     this.loadAnalytics();
   }
 
-  loadAnalytics(): void {
+  loadAnalytics(refresh: boolean = true): void {
     // Reset all loading states
     this.loading = { overview: true, status: true, gender: true, sms: true };
     this.errors = { overview: null, status: null, gender: null, sms: null };
@@ -83,8 +87,8 @@ export class AnalyticsComponent implements OnInit {
   const yearParam = this.selectedYear || undefined;
   const termParam = (this.selectedTerm === '' || this.selectedTerm === undefined) ? undefined : Number(this.selectedTerm);
 
-  // Load all analytics data at once
-  this.analyticsService.getAnalytics(schoolId, yearParam, termParam).subscribe({
+  // Load all analytics data at once; pass refresh flag to request live provider balance when requested
+  this.analyticsService.getAnalytics(schoolId, yearParam, termParam, refresh).subscribe({
       next: (data) => {
         this.analytics = data;
         // Mark all sections as loaded
@@ -111,7 +115,8 @@ export class AnalyticsComponent implements OnInit {
   }
 
   refresh(): void {
-    this.loadAnalytics();
+    // explicit refresh request - asking backend to call provider live
+    this.loadAnalytics(true);
   }
 
   onYearChange(value: string): void {

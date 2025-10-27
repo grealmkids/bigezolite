@@ -30,11 +30,12 @@ export class AnalyticsService {
 
   constructor(private http: HttpClient) {}
 
-  getAnalytics(schoolId?: number, year?: number | string, term?: number | string): Observable<AnalyticsData> {
+  getAnalytics(schoolId?: number, year?: number | string, term?: number | string, refresh?: boolean): Observable<AnalyticsData> {
     const params: any = {};
     if (schoolId) params.schoolId = String(schoolId);
     if (year !== undefined && year !== null && year !== '') params.year = String(year);
     if (term !== undefined && term !== null && term !== '') params.term = String(term);
+    if (refresh) params.refresh = 'true';
     const options = Object.keys(params).length ? { params } : {};
     return this.http.get<AnalyticsData>(this.apiUrl, options);
   }

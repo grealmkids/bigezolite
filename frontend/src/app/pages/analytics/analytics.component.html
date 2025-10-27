@@ -13,25 +13,28 @@
   <div class="analytics-content">
     <!-- Filters: Year / Term -->
     <div class="filters-row">
-      <label for="year-select">Year:</label>
-      <select
-        id="year-select"
-        [value]="selectedYear"
-        (change)="onYearChange($any($event.target).value)"
-      >
-        <option *ngFor="let y of years" [value]="y">{{ y }}</option>
-      </select>
-      <label for="term-select">Term:</label>
-      <select
-        id="term-select"
-        [value]="selectedTerm"
-        (change)="onTermChange($any($event.target).value)"
-      >
-        <option [value]="''">All</option>
-        <option [value]="1">1</option>
-        <option [value]="2">2</option>
-        <option [value]="3">3</option>
-      </select>
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Year</mat-label>
+        <mat-select
+          [value]="selectedYear"
+          (selectionChange)="onYearChange($event.value)"
+        >
+          <mat-option *ngFor="let y of years" [value]="y">{{ y }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Term</mat-label>
+        <mat-select
+          [value]="selectedTerm"
+          (selectionChange)="onTermChange($event.value)"
+        >
+          <mat-option [value]="''">All</mat-option>
+          <mat-option [value]="1">1</mat-option>
+          <mat-option [value]="2">2</mat-option>
+          <mat-option [value]="3">3</mat-option>
+        </mat-select>
+      </mat-form-field>
     </div>
     <!-- Primary Metrics Section -->
     <div class="section-header">

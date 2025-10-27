@@ -11,12 +11,34 @@
   </div>
 
   <div class="analytics-content">
+    <!-- Filters: Year / Term -->
+    <div class="filters-row">
+      <label for="year-select">Year:</label>
+      <select
+        id="year-select"
+        [value]="selectedYear"
+        (change)="onYearChange($any($event.target).value)"
+      >
+        <option *ngFor="let y of years" [value]="y">{{ y }}</option>
+      </select>
+      <label for="term-select">Term:</label>
+      <select
+        id="term-select"
+        [value]="selectedTerm"
+        (change)="onTermChange($any($event.target).value)"
+      >
+        <option [value]="''">All</option>
+        <option [value]="1">1</option>
+        <option [value]="2">2</option>
+        <option [value]="3">3</option>
+      </select>
+    </div>
     <!-- Primary Metrics Section -->
     <div class="section-header">
       <mat-icon>school</mat-icon>
       <h2>Student Overview</h2>
     </div>
-    
+
     <div *ngIf="loading.overview" class="section-loading">
       <mat-spinner diameter="40"></mat-spinner>
       <p>Loading student overview...</p>
@@ -26,8 +48,11 @@
       <mat-icon>error_outline</mat-icon>
       <p>{{ errors.overview }}</p>
     </div>
-    
-    <div *ngIf="!loading.overview && !errors.overview && analytics" class="metrics-grid primary-metrics">
+
+    <div
+      *ngIf="!loading.overview && !errors.overview && analytics"
+      class="metrics-grid primary-metrics"
+    >
       <mat-card class="metric-card total">
         <div class="metric-icon-wrapper">
           <mat-icon>groups</mat-icon>
@@ -48,6 +73,23 @@
         </div>
       </mat-card>
 
+      <mat-card class="metric-card paid">
+        <div class="metric-icon-wrapper">
+          <mat-icon>paid</mat-icon>
+        </div>
+        <div class="metric-content">
+          <div class="metric-label">Paid (Total)</div>
+          <div class="metric-value" style="color: var(--success)">
+            {{
+              analytics.totalPaidAmount | currency : "UGX " : "symbol" : "1.0-0"
+            }}
+          </div>
+          <div class="metric-subtext">
+            {{ analytics.paidStudentsCount || 0 }} students
+          </div>
+        </div>
+      </mat-card>
+
       <mat-card class="metric-card alumni">
         <div class="metric-icon-wrapper">
           <mat-icon>school</mat-icon>
@@ -55,6 +97,24 @@
         <div class="metric-content">
           <div class="metric-label">Alumni</div>
           <div class="metric-value">{{ analytics.alumniStudents }}</div>
+        </div>
+      </mat-card>
+
+      <mat-card class="metric-card defaulters">
+        <div class="metric-icon-wrapper">
+          <mat-icon>report_problem</mat-icon>
+        </div>
+        <div class="metric-content">
+          <div class="metric-label">Defaulters</div>
+          <div class="metric-value" style="color: var(--danger)">
+            {{
+              analytics.totalDefaulterBalance
+                | currency : "UGX " : "symbol" : "1.0-0"
+            }}
+          </div>
+          <div class="metric-subtext">
+            {{ analytics.defaulterStudentsCount || 0 }} students
+          </div>
         </div>
       </mat-card>
 
@@ -85,7 +145,10 @@
       <p>{{ errors.status }}</p>
     </div>
 
-    <div *ngIf="!loading.status && !errors.status && analytics" class="metrics-grid secondary-metrics">
+    <div
+      *ngIf="!loading.status && !errors.status && analytics"
+      class="metrics-grid secondary-metrics"
+    >
       <mat-card class="metric-card expelled">
         <div class="metric-icon-wrapper">
           <mat-icon>block</mat-icon>
@@ -133,7 +196,10 @@
       <p>{{ errors.gender }}</p>
     </div>
 
-    <div *ngIf="!loading.gender && !errors.gender && analytics" class="metrics-grid gender-metrics">
+    <div
+      *ngIf="!loading.gender && !errors.gender && analytics"
+      class="metrics-grid gender-metrics"
+    >
       <mat-card class="metric-card boys">
         <div class="metric-icon-wrapper">
           <mat-icon>boy</mat-icon>
@@ -142,7 +208,11 @@
           <div class="metric-label">Active Boys</div>
           <div class="metric-value">{{ analytics.activeBoys }}</div>
           <div class="metric-percentage" *ngIf="analytics.activeStudents > 0">
-            {{ (analytics.activeBoys / analytics.activeStudents * 100).toFixed(1) }}%
+            {{
+              ((analytics.activeBoys / analytics.activeStudents) * 100).toFixed(
+                1
+              )
+            }}%
           </div>
         </div>
       </mat-card>
@@ -155,7 +225,12 @@
           <div class="metric-label">Active Girls</div>
           <div class="metric-value">{{ analytics.activeGirls }}</div>
           <div class="metric-percentage" *ngIf="analytics.activeStudents > 0">
-            {{ (analytics.activeGirls / analytics.activeStudents * 100).toFixed(1) }}%
+            {{
+              (
+                (analytics.activeGirls / analytics.activeStudents) *
+                100
+              ).toFixed(1)
+            }}%
           </div>
         </div>
       </mat-card>
@@ -177,14 +252,19 @@
       <p>{{ errors.sms }}</p>
     </div>
 
-    <div *ngIf="!loading.sms && !errors.sms && analytics" class="metrics-grid sms-metrics">
+    <div
+      *ngIf="!loading.sms && !errors.sms && analytics"
+      class="metrics-grid sms-metrics"
+    >
       <mat-card class="metric-card sms-balance">
         <div class="metric-icon-wrapper">
           <mat-icon>account_balance_wallet</mat-icon>
         </div>
         <div class="metric-content">
           <div class="metric-label">Account Balance</div>
-          <div class="metric-value">{{ analytics.smsBalance | currency:'UGX ':'symbol':'1.0-0' }}</div>
+          <div class="metric-value">
+            {{ analytics.smsBalance | currency : "UGX " : "symbol" : "1.0-0" }}
+          </div>
         </div>
       </mat-card>
 

@@ -15,6 +15,11 @@ export interface AnalyticsData {
   activeGirls: number;
   smsBalance: number;
   smsCount: number;
+  // New aggregates from server
+  totalPaidAmount?: number;
+  totalDefaulterBalance?: number;
+  paidStudentsCount?: number;
+  defaulterStudentsCount?: number;
 }
 
 @Injectable({
@@ -25,10 +30,12 @@ export class AnalyticsService {
 
   constructor(private http: HttpClient) {}
 
-  getAnalytics(schoolId?: number): Observable<AnalyticsData> {
-    const options = schoolId 
-      ? { params: { schoolId: schoolId.toString() } } 
-      : {};
+  getAnalytics(schoolId?: number, year?: number | string, term?: number | string): Observable<AnalyticsData> {
+    const params: any = {};
+    if (schoolId) params.schoolId = String(schoolId);
+    if (year !== undefined && year !== null && year !== '') params.year = String(year);
+    if (term !== undefined && term !== null && term !== '') params.term = String(term);
+    const options = Object.keys(params).length ? { params } : {};
     return this.http.get<AnalyticsData>(this.apiUrl, options);
   }
 }

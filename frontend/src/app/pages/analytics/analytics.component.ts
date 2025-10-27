@@ -21,6 +21,11 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 })
 export class AnalyticsComponent implements OnInit {
   analytics: AnalyticsData | null = null;
+  // Year and term filters (defaults)
+  years: string[] = [];
+  selectedYear: string = '';
+  termOptions: Array<string | number> = ['', 1, 2, 3]; // '' means all
+  selectedTerm: string | number = '';
   loading = {
     overview: true,
     status: true,
@@ -41,6 +46,12 @@ export class AnalyticsComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    // Prepare year options (use current year and nearby years)
+    const currentYear = new Date().getFullYear();
+    this.years = [String(currentYear - 2), String(currentYear - 1), String(currentYear)];
+    this.selectedYear = String(currentYear);
+    this.selectedTerm = '';
+
     this.loadAnalytics();
   }
 
@@ -49,7 +60,7 @@ export class AnalyticsComponent implements OnInit {
     this.loading = { overview: true, status: true, gender: true, sms: true };
     this.errors = { overview: null, status: null, gender: null, sms: null };
     
-    const schoolId = this.schoolService.getSelectedSchoolId();
+  const schoolId = this.schoolService.getSelectedSchoolId();
     
     if (!schoolId) {
       this.loading = { overview: false, status: false, gender: false, sms: false };
@@ -68,8 +79,12 @@ export class AnalyticsComponent implements OnInit {
       return;
     }
 
-    // Load all analytics data at once
-    this.analyticsService.getAnalytics(schoolId).subscribe({
+  // Load analytics data with optional year/term filters
+  const yearParam = this.selectedYear || undefined;
+  const termParam = (this.selectedTerm === '' || this.selectedTerm === undefined) ? undefined : Number(this.selectedTerm);
+
+  // Load all analytics data at once
+  this.analyticsService.getAnalytics(schoolId, yearParam, termParam).subscribe({
       next: (data) => {
         this.analytics = data;
         // Mark all sections as loaded
@@ -96,6 +111,16 @@ export class AnalyticsComponent implements OnInit {
   }
 
   refresh(): void {
+    this.loadAnalytics();
+  }
+
+  onYearChange(value: string): void {
+    this.selectedYear = value;
+    this.loadAnalytics();
+  }
+
+  onTermChange(value: string | number): void {
+    this.selectedTerm = value;
     this.loadAnalytics();
   }
 

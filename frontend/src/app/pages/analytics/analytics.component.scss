@@ -1,3 +1,7 @@
+:root {
+  --danger: #b33000;
+  --success: #0cc151;
+}
 .analytics-container {
   padding: 2rem;
   max-width: 1400px;
@@ -197,6 +201,37 @@
 
     &.sms-metrics {
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    }
+  }
+
+  /* Ensure material select dropdown panel has white background (override global overlay styles) */
+  ::ng-deep .mat-select-panel {
+    background: #ffffff !important;
+    color: #111827 !important;
+    box-shadow: 0 8px 24px rgba(31, 41, 55, 0.12) !important;
+    border-radius: 8px !important;
+  }
+
+  /* Options inside panel should also be white and readable */
+  ::ng-deep .mat-select-panel .mat-option {
+    background: #ffffff !important;
+    color: #111827 !important;
+  }
+
+  /* Make the mat-form-field input area for the filters have a white background */
+  .filters-row {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    background: #ffffff !important;
+
+    .filter-field {
+      min-width: 120px;
+
+      .mat-form-field-flex {
+        background: #ffffff;
+        border-radius: 8px;
+      }
     }
   }
 

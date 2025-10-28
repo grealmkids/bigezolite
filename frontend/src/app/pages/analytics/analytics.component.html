@@ -77,12 +77,12 @@
       </mat-card>
 
       <mat-card class="metric-card paid">
-        <div class="metric-icon-wrapper">
+        <div class="metric-icon-wrapper" style="color: #0cc151 !important">
           <mat-icon>paid</mat-icon>
         </div>
         <div class="metric-content">
           <div class="metric-label">Paid (Total)</div>
-          <div class="metric-value" style="color: var(--success)">
+          <div class="metric-value" style="color: #0cc151 !important">
             {{
               analytics.totalPaidAmount | currency : "UGX " : "symbol" : "1.0-0"
             }}
@@ -104,12 +104,12 @@
       </mat-card>
 
       <mat-card class="metric-card defaulters">
-        <div class="metric-icon-wrapper">
+        <div class="metric-icon-wrapper" style="color: #da2121 !important">
           <mat-icon>report_problem</mat-icon>
         </div>
         <div class="metric-content">
           <div class="metric-label">Defaulters</div>
-          <div class="metric-value" style="color: var(--danger)">
+          <div class="metric-value" style="color: #da2121 !important">
             {{
               analytics.totalDefaulterBalance
                 | currency : "UGX " : "symbol" : "1.0-0"

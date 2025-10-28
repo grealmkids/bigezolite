@@ -1,7 +1,7 @@
 <div class="page-container">
   <h1>Fees to Track</h1>
 
-  <div class="create-form card" style="margin-bottom: 1rem; padding: 1rem;">
+  <div class="create-form card" style="margin-bottom: 1rem; padding: 1rem">
     <div class="grid-form">
       <div class="form-field">
         <label>Name</label>
@@ -44,7 +44,7 @@
     </div>
   </div>
 
-  <div class="card" style="padding: 0.5rem;">
+  <div class="card" style="padding: 0.5rem">
     <table class="student-table">
       <thead>
         <tr>
@@ -61,19 +61,26 @@
         <tr *ngFor="let it of items">
           <ng-container *ngIf="editingId !== it.fee_id; else editRow">
             <td>{{ it.name }}</td>
-            <td>{{ it.class_name || 'All' }}</td>
+            <td>{{ it.class_name || "All" }}</td>
             <td>{{ it.term }}</td>
             <td>{{ it.year }}</td>
-            <td>{{ it.total_due | number:'1.0-0' }}</td>
-            <td>{{ it.due_date | date:'yyyy-MM-dd' }}</td>
+            <td class="balance">{{ it.total_due | number : "1.0-0" }}</td>
+            <td>{{ it.due_date | date : "yyyy-MM-dd" }}</td>
             <td class="actions">
-              <button class="action-btn edit filled alt" (click)="startEdit(it)">Edit</button>
-              <button class="action-btn danger filled" (click)="delete(it)">Delete</button>
+              <button
+                class="action-btn edit filled alt"
+                (click)="startEdit(it)"
+              >
+                Edit
+              </button>
+              <button class="action-btn danger filled" (click)="delete(it)">
+                Delete
+              </button>
             </td>
           </ng-container>
           <ng-template #editRow>
             <td><input [(ngModel)]="editModel.name" /></td>
-            <td>{{ it.class_name || 'All' }}</td>
+            <td>{{ it.class_name || "All" }}</td>
             <td>
               <select [(ngModel)]="editModel.term">
                 <option [value]="1">1</option>
@@ -85,7 +92,9 @@
             <td><input type="number" [(ngModel)]="editModel.total_due" /></td>
             <td><input type="date" [(ngModel)]="editModel.due_date" /></td>
             <td class="actions">
-              <button class="action-btn save filled" (click)="saveEdit(it)">Save</button>
+              <button class="action-btn save filled" (click)="saveEdit(it)">
+                Save
+              </button>
               <button class="action-btn" (click)="cancelEdit()">Cancel</button>
             </td>
           </ng-template>

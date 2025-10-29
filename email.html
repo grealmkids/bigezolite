@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Transform Your School Communication with BigezoLite</title>
+    <meta name="x-apple-disable-message-reformatting" />
+    <!-- Preheader: shown in many clients beside the subject -->
+    <meta
+      name="description"
+      content="Free school management & SMS comms app for Ugandan schools — BigezoLite. No setup cost. Start today." />
+    <style>
+      /* Email-safe, inline-friendly styles */
+      @media screen and (max-width: 600px) {
+        .container {
+          width: 100% !important;
+          padding: 16px !important;
+        }
+        .two-col {
+          display: block !important;
+        }
+        .col {
+          width: 100% !important;
+          display: block !important;
+        }
+        .btn {
+          width: 100% !important;
+        }
+      }
+
+      /* Use provided colors (kept inline for broad client support) */
+      body {
+        margin: 0;
+        padding: 0;
+        background: #f6f7fb;
+        color: #111827;
+        font-family: "Trebuchet MS", Trebuchet, Arial, sans-serif;
+      }
+      .container {
+        width: 680px;
+        max-width: 100%;
+        margin: 24px auto;
+        background: #ffffff;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 12px 36px rgba(2, 6, 23, 0.06);
+      }
+      .header {
+        background: linear-gradient(90deg, #ff9933 0%, #ffb566 100%);
+        padding: 22px 28px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+      .logo-mark {
+        width: 56px;
+        height: 56px;
+        border-radius: 10px;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .logo-mark svg {
+        width: 34px;
+        height: 34px;
+        fill: #ff9933;
+      }
+      .brand {
+        font-family: "Inspiration", cursive, Trebuchet, Arial, sans-serif;
+        font-size: 24px;
+        color: #ffffff;
+        margin: 0;
+      }
+      .pre {
+        padding: 20px 28px 0 28px;
+        color: #6b7280;
+        font-size: 13px;
+      }
+      .hero {
+        padding: 18px 28px;
+      }
+      .hero h1 {
+        margin: 0 0 8px 0;
+        font-family: "Trebuchet MS", Trebuchet, Arial, sans-serif;
+        font-size: 22px;
+        color: #0cc151;
+      }
+      .hero p.lead {
+        margin: 0 0 18px 0;
+        color: #374151;
+        line-height: 1.5;
+      }
+
+      /* subheading before features */
+      .subheading {
+        margin: 0 0 8px 0;
+        color: #0cc151;
+        font-family: "Trebuchet MS", Trebuchet, Arial, sans-serif;
+        font-size: 16px;
+      }
+
+      .features {
+        padding: 0 28px 18px 28px;
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .feature {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        width: 50%;
+        min-width: 220px;
+        padding: 12px 0;
+      }
+      /* green-themed icons: bold icon + faded green background */
+      .icon {
+        width: 44px;
+        height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        background: #ecfdf5;
+        box-shadow: 0 6px 18px rgba(12, 193, 81, 0.06);
+      }
+      .icon svg {
+        width: 22px;
+        height: 22px;
+        fill: #0cc151;
+        display: block;
+      }
+      .feature-text {
+        font-size: 14px;
+        color: #111827;
+      }
+      .feature-text .title {
+        font-weight: 700;
+        display: block;
+        margin-bottom: 4px;
+      }
+
+      .cta {
+        padding: 18px 28px;
+        display: flex;
+        gap: 12px;
+        align-items: center;
+      }
+      .btn {
+        display: inline-block;
+        background: #ff9933;
+        color: #111827;
+        padding: 12px 18px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 700;
+        box-shadow: 0 8px 20px rgba(255, 153, 51, 0.18);
+      }
+      .secondary {
+        color: #374151;
+        text-decoration: none;
+        font-size: 14px;
+      }
+
+      .contact {
+        padding: 14px 28px;
+        border-top: 1px solid #eef2ff;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .contact small {
+        color: #6b7280;
+      }
+
+      .footer {
+        padding: 18px 28px;
+        font-size: 12px;
+        color: #6b7280;
+        border-top: 1px solid #f3f4f6;
+      }
+
+      .divider {
+        height: 1px;
+        background: #f3f4f6;
+        margin: 8px 0;
+      }
+      .highlight {
+        background: #fffbf2;
+        border-left: 4px solid #ff9933;
+        padding: 12px 16px;
+        border-radius: 8px;
+        color: #6b4226;
+        font-size: 13px;
+      }
+      .mono {
+        filter: grayscale(1) contrast(0.9) brightness(0.95);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Preheader text for email clients -->
+    <div style="display: none; max-height: 0; overflow: hidden">
+      Free to use school management & SMS app for Ugandan schools — start today.
+      No setup cost.
+    </div>
+
+    <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
+      <tr>
+        <td align="center">
+          <table
+            role="presentation"
+            class="container"
+            cellpadding="0"
+            cellspacing="0"
+            width="680">
+            <tr>
+              <td class="header">
+                <div class="logo-mark" aria-hidden="true">
+                  <!-- Monochrome/one-color SVG logo mark -->
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true">
+                    <path
+                      d="M3 13.5v6a1 1 0 0 0 1 1h6.5a1 1 0 0 0 1-1V17H9.5v2H5v-4.5H3zM14 3h7v7h-2V6.4l-9 9V19h-2v-5.6L19.6 4H14V3z" />
+                  </svg>
+                </div>
+                <div>
+                  <h2 class="brand">BigezoLite</h2>
+                  <div
+                    style="font-size: 12px; color: rgba(255, 255, 255, 0.92)">
+                    By G-Realm Studio — simple, local, reliable
+                  </div>
+                </div>
+              </td>
+            </tr>
+
+            <tr>
+              <td class="pre">
+                Dear Headteacher / School Administrator — bring effortless
+                communication and fees management to your school.
+              </td>
+            </tr>
+
+            <tr>
+              <td class="hero">
+                <h1>Transform your school's communication with BigezoLite</h1>
+                <p class="lead">
+                  A free, locally developed school management and SMS
+                  communication app built to help Ugandan schools save time,
+                  reduce workload, and strengthen parent engagement.
+                </p>
+
+                <div class="highlight">
+                  <strong>No setup cost. No monthly fee.</strong> Pay only for
+                  SMS (UGX 50 per message). Sign up and start managing your
+                  school today.
+                </div>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="padding: 0 28px 12px 28px">
+                <h3 class="subheading">Features of the Bigezolite System</h3>
+                <ul style="margin: 8px 0 0 18px; color: #374151">
+                  <li>Free to use — pay only for SMS (UGX 50 per message)</li>
+                  <li>Smart fees tracking and automated reminders</li>
+                  <li>Exportable lists and advanced analytics</li>
+                  <li>Local support from G-Realm Studio</li>
+                </ul>
+              </td>
+            </tr>
+
+            <tr>
+              <td class="features" style="padding-bottom: 6px">
+                <div class="feature">
+                  <div class="icon" aria-hidden="true">
+                    <!-- phone icon -->
+                    <svg viewBox="0 0 24 24">
+                      <path
+                        d="M21 16.5v3a2.5 2.5 0 0 1-2.5 2.5 18 18 0 0 1-8.3-2.2 17.4 17.4 0 0 1-6-6A18 18 0 0 1 2 5.5 2.5 2.5 0 0 1 4.5 3h3A1.5 1.5 0 0 1 9 4.5V7a1 1 0 0 1-1 1 12 12 0 0 0 5.5 5.5 1 1 0 0 1 1 1v2.5A1.5 1.5 0 0 1 21 16.5z" />
+                    </svg>
+                  </div>
+                  <div class="feature-text">
+                    <span class="title">Instant Parent Communication</span> Send
+                    bulk or individual messages easily.
+                  </div>
+                </div>
+
+                <div class="feature">
+                  <div class="icon" aria-hidden="true">
+                    <!-- wallet/paid icon -->
+                    <svg viewBox="0 0 24 24">
+                      <path d="M2 7h20v10H2zM4 9v6h16V9H4zm4 2h8v2H8z" />
+                    </svg>
+                  </div>
+                  <div class="feature-text">
+                    <span class="title">Automated Fees Reminders</span> Reduce
+                    defaulters with scheduled messages and one-click reminders.
+                  </div>
+                </div>
+
+                <div class="feature">
+                  <div class="icon" aria-hidden="true">
+                    <!-- users icon -->
+                    <svg viewBox="0 0 24 24">
+                      <path
+                        d="M16 11a4 4 0 1 0-8 0 4 4 0 0 0 8 0zM2 20a6 6 0 0 1 12 0H2z" />
+                    </svg>
+                  </div>
+                  <div class="feature-text">
+                    <span class="title">Advanced Student Database</span> Secure,
+                    searchable student & parent records.
+                  </div>
+                </div>
+
+                <div class="feature">
+                  <div class="icon" aria-hidden="true">
+                    <!-- download/list icon -->
+                    <svg viewBox="0 0 24 24">
+                      <path d="M12 2v10l4-4h-3V2h-2zM3 14h18v6H3z" />
+                    </svg>
+                  </div>
+                  <div class="feature-text">
+                    <span class="title">Downloadable Lists</span> Export
+                    filtered lists — defaulters, fully-paid, or active learners.
+                  </div>
+                </div>
+
+                <div class="feature">
+                  <div class="icon" aria-hidden="true">
+                    <!-- chart icon -->
+                    <svg viewBox="0 0 24 24">
+                      <path
+                        d="M3 3v18h18v-2H5V3H3zM9 12h2v6H9v-6zm4-6h2v12h-2V6zm4 4h2v8h-2v-8z" />
+                    </svg>
+                  </div>
+                  <div class="feature-text">
+                    <span class="title">Analytics & Insights</span> View
+                    performance insights and fee trends across terms.
+                  </div>
+                </div>
+
+                <div class="feature">
+                  <div class="icon" aria-hidden="true">
+                    <!-- lock icon -->
+                    <svg viewBox="0 0 24 24">
+                      <path
+                        d="M6 10V8a6 6 0 0 1 12 0v2h1a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1h1zm2 0h8V8a4 4 0 0 0-8 0v2z" />
+                    </svg>
+                  </div>
+                  <div class="feature-text">
+                    <span class="title">Secure & Reliable</span> Built with
+                    modern, locally hosted technology and privacy-first design.
+                  </div>
+                </div>
+              </td>
+            </tr>
+
+            <tr>
+              <td class="cta">
+                <a
+                  href="mailto:admin@grealm.org?subject=Demo%20Request%20-%20BigezoLite"
+                  class="btn"
+                  >Request a Quick Demo</a
+                >
+                <a href="tel:+256773913902" class="secondary"
+                  >Call +256 773 913 902</a
+                >
+              </td>
+            </tr>
+
+            <tr>
+              <td class="contact">
+                <div style="flex: 1">
+                  <div style="font-weight: 700; color: #0f172a">
+                    Warm regards,
+                  </div>
+                  <div style="margin-top: 6px; font-weight: 700">
+                    Alfred Ochola
+                  </div>
+                  <div style="font-size: 13px; color: #6b7280">
+                    Lead Developer – G-Realm Studio
+                  </div>
+                  <div style="margin-top: 8px; font-size: 13px; color: #374151">
+                    📞 +256 773 913 902 | ✉️
+                    <a
+                      href="mailto:admin@grealm.org"
+                      style="color: #0059b3; text-decoration: none"
+                      >admin@grealm.org</a
+                    >
+                  </div>
+                </div>
+                <div style="text-align: right; min-width: 140px">
+                  <a
+                    href="https://www.grealm.org"
+                    style="
+                      color: #0059b3;
+                      text-decoration: none;
+                      font-weight: 700;
+                    "
+                    >www.grealm.org</a
+                  >
+                  <div style="font-size: 12px; color: #9ca3af; margin-top: 8px">
+                    G-Realm Studio
+                  </div>
+                </div>
+              </td>
+            </tr>
+
+            <tr>
+              <td class="footer">
+                <div style="font-size: 12px; color: #9ca3af">
+                  You received this email because you expressed interest in
+                  school management solutions. If you'd rather not receive these
+                  updates, reply with "Unsubscribe".
+                </div>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

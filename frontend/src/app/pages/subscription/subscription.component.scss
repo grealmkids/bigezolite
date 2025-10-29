@@ -187,3 +187,30 @@
     }
   }
 }
+
+/* Custom modal styles */
+.custom-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+.custom-modal {
+  background: #fff;
+  padding: 1.5rem;
+  border-radius: 8px;
+  width: 360px;
+  box-shadow: 0 12px 40px rgba(2,6,23,0.2);
+  text-align: center;
+}
+.custom-modal .muted { color:#6c757d; font-size:0.95rem; margin-bottom:0.8rem; }
+.custom-modal .field { margin: 0.75rem 0; }
+.sms-preview { display:flex; flex-direction:column; align-items:center; margin: 0.75rem 0; }
+.sms-count { font-size: 2.2rem; font-weight:800; color: var(--color-primary); }
+.sms-label { color:#6c757d; margin-top:0.25rem; }
+.modal-actions { display:flex; gap:8px; justify-content:center; margin-top:1rem; }
+.confirm-btn { background:var(--color-primary); color:#fff; padding:0.6rem 1rem; border-radius:6px; border:none; }
+.cancel-btn { background:#f3f4f6; color:#111; padding:0.6rem 1rem; border-radius:6px; border:none; }

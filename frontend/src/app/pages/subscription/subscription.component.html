@@ -116,4 +116,34 @@
     </div>
   </div>
   <!-- end packages-container -->
+
+  <!-- Custom amount modal -->
+  <div class="custom-modal-backdrop" *ngIf="showCustomModal">
+    <div class="custom-modal">
+      <h3>Custom SMS Package</h3>
+      <p class="muted">
+        Enter the total amount you wish to spend. We'll show how many SMS
+        credits that buys.
+      </p>
+      <div class="field">
+        <label>Amount (UGX)</label>
+        <input
+          type="number"
+          [(ngModel)]="customAmount"
+          name="customAmount"
+          min="0"
+        />
+      </div>
+      <div class="sms-preview">
+        <div class="sms-count">{{ computedSmsCount | number : "1.0-0" }}</div>
+        <div class="sms-label">SMS Credits</div>
+      </div>
+      <div class="modal-actions">
+        <button class="confirm-btn" (click)="confirmCustomAmount()">
+          Confirm
+        </button>
+        <button class="cancel-btn" (click)="cancelCustom()">Cancel</button>
+      </div>
+    </div>
+  </div>
 </div>

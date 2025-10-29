@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { SubscriptionService } from '../../services/subscription.service';
 import { SchoolService, School } from '../../services/school.service';
+import { CommunicationService } from '../../services/communication.service';
 import { Observable } from 'rxjs';
 import { take } from 'rxjs/operators';
 
@@ -17,6 +18,10 @@ import { take } from 'rxjs/operators';
 export class SubscriptionComponent implements OnInit {
   selectedSchool$: Observable<School | null>;
   showPurchase = false;
+  // Show the custom amount modal when user selects Custom package
+  showCustomModal = false;
+  customAmount = 0;
+  costPerSms = 50; // UGX per SMS (default; will try to fetch from backend)
   selectedPrice = 0;
   form: {
     schoolName: string;
@@ -28,7 +33,8 @@ export class SubscriptionComponent implements OnInit {
   constructor(
     private subscriptionService: SubscriptionService,
     private schoolService: SchoolService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private communicationService: CommunicationService
   ) {
     this.selectedSchool$ = this.schoolService.selectedSchool$;
   }
@@ -47,7 +53,22 @@ export class SubscriptionComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // Optionally, trigger a refresh or selection logic here
+    // Try to fetch the current cost-per-sms from the backend (if available).
+    // We call a lightweight preview endpoint that returns costPerSms as part of its response.
+    try {
+      this.communicationService.previewBulkSms('All Students').subscribe({
+        next: (res: any) => {
+          if (res && typeof res.costPerSms === 'number') {
+            this.costPerSms = Number(res.costPerSms) || this.costPerSms;
+          }
+        },
+        error: () => {
+          // ignore — keep default costPerSms
+        }
+      });
+    } catch (e) {
+      // ignore errors and keep default value
+    }
   }
 
   purchasePackage(packageType: string): void {
@@ -62,11 +83,38 @@ export class SubscriptionComponent implements OnInit {
         case 'Pay-As-You-Go 1': this.form.numberOfSms = 100; this.selectedPrice = 5000; break;
         case 'Pay-As-You-Go 2': this.form.numberOfSms = 410; this.selectedPrice = 20000; break;
         case 'Premium 1': this.form.numberOfSms = 10500; this.selectedPrice = 500000; break;
-        case 'Custom': this.form.numberOfSms = 0; this.selectedPrice = 0; break;
+        case 'Custom':
+          // Open a small modal to collect custom amount instead of immediate purchase form
+          this.form.numberOfSms = 0; this.selectedPrice = 0;
+          // Defer showing main purchase form — show custom modal first
+          this.showCustomModal = true;
+          return;
         default: this.form.numberOfSms = 0; this.selectedPrice = 0;
       }
       this.showPurchase = true;
     });
+  }
+
+  // Called when user confirms amount in custom modal
+  confirmCustomAmount(): void {
+    const amount = Number(this.customAmount) || 0;
+    // compute sms count (floor of amount / costPerSms)
+    const smsCount = Math.max(0, Math.floor(amount / this.costPerSms));
+    this.form.selectedPackage = 'Custom';
+    this.form.numberOfSms = smsCount;
+    this.selectedPrice = amount;
+    this.showCustomModal = false;
+    // show the existing purchase form so user can confirm contact details
+    this.showPurchase = true;
+  }
+
+  cancelCustom(): void {
+    this.showCustomModal = false;
+  }
+
+  get computedSmsCount(): number {
+    const amount = Number(this.customAmount) || 0;
+    return Math.max(0, Math.floor(amount / this.costPerSms));
   }
 
   confirmPurchase(): void {

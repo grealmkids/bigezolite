@@ -59,7 +59,11 @@ export const order = async (req: AuthenticatedRequest, res: Response) => {
             console.error('Failed to persist order (non-fatal):', dbErr);
         }
 
-        const message = `New subscription order:\nSchool: ${schoolName}\nPhone: ${contactPhone}\nPackage: ${selectedPackage}\nSMS: ${numberOfSms}\nPrice: UGX ${price}`;
+    // Format numbers for human-readable notification (commas) but keep raw values in DB
+    const nf = new Intl.NumberFormat('en-UG', { maximumFractionDigits: 0 });
+    const formattedSms = typeof numberOfSms === 'number' ? nf.format(numberOfSms) : String(numberOfSms || '0');
+    const formattedPrice = typeof price === 'number' ? nf.format(price) : String(price || '0');
+    const message = `New subscription order:\nSchool: ${schoolName}\nPhone: ${contactPhone}\nPackage: ${selectedPackage}\nSMS: ${formattedSms}\nPrice: UGX ${formattedPrice}`;
 
         // send SMS to GRealm number (configured in env)
         const to = config.sms.grealmNumber;
@@ -109,7 +113,7 @@ export const order = async (req: AuthenticatedRequest, res: Response) => {
                 await transporter.sendMail({
                     from: fromAddress,
                     to: toAddress,
-                    subject: `New subscription order: ${schoolName}`,
+                    subject: `New subscription order${schoolName ? ': ' + schoolName : ''}`,
                     text: message
                 });
             } catch (mailErr) {

@@ -5,6 +5,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { SubscriptionService } from '../../services/subscription.service';
 import { SchoolService, School } from '../../services/school.service';
 import { CommunicationService } from '../../services/communication.service';
+import { LoadingService } from '../../services/loading.service';
 import { Observable } from 'rxjs';
 import { take } from 'rxjs/operators';
 
@@ -35,6 +36,8 @@ export class SubscriptionComponent implements OnInit {
     private schoolService: SchoolService,
     private snackBar: MatSnackBar,
     private communicationService: CommunicationService
+    ,
+    private loadingService: LoadingService
   ) {
     this.selectedSchool$ = this.schoolService.selectedSchool$;
   }
@@ -119,14 +122,19 @@ export class SubscriptionComponent implements OnInit {
 
   confirmPurchase(): void {
     // send order to backend which will notify via SMS and email
+    // show global loading indicator (if not already shown by interceptor)
+    try { this.loadingService.show(); } catch (e) {}
     this.subscriptionService.order({ ...this.form, price: this.selectedPrice }).subscribe({
       next: (res) => {
         console.log('Order sent', res);
+        // stop any loading spinner and show success
+        try { this.loadingService.hide(); } catch (e) {}
         this.showSuccessMessage();
         this.showPurchase = false;
       },
       error: (err) => {
         console.error('Order failed', err);
+        try { this.loadingService.hide(); } catch (e) {}
         this.snackBar.open('Failed to place order. Please try again.', 'Close', {
           duration: 5000,
           horizontalPosition: 'center',

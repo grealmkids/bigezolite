@@ -6,6 +6,8 @@ import jwt from 'jsonwebtoken';
 import admin from 'firebase-admin';
 import { query } from '../../database/database';
 import { AuthenticatedRequest } from '../../middleware/auth.middleware';
+import { sendSms } from '../../utils/sms.util';
+import { config } from '../../config';
 
 export const register = async (req: Request, res: Response) => {
   try {
@@ -24,6 +26,22 @@ export const register = async (req: Request, res: Response) => {
 
     // Create local DB user only (manual sign-up). Do NOT call Firebase here.
     const user = await userService.createUser(email, password, fullName, phoneNumber);
+
+    // Notify G-Realm studio about new registration via SMS (non-blocking)
+    try {
+      const grealm = config.sms.grealmNumber || process.env.GREALMNUMBER;
+      if (grealm) {
+        const msg = `New Bigezo sign-up: ${fullName} (${email}) Phone:${phoneNumber}`;
+        // sendSms will pick up SMS_API_URL / SMS_USERNAME / SMS_PASSWORD from config/env when no creds passed
+        await sendSms(grealm, msg);
+        console.info('[users.register] Notified G-Realm via SMS');
+      } else {
+        console.debug('[users.register] GREALMNUMBER not configured; skipping SMS notify');
+      }
+    } catch (smsErr: any) {
+      console.error('[users.register] failed to send notification SMS:', smsErr?.message || smsErr);
+      // Do not fail registration if SMS fails
+    }
 
     const { password_hash, ...userWithoutPassword } = user;
     return res.status(201).json(userWithoutPassword);

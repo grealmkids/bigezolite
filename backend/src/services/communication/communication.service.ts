@@ -248,7 +248,8 @@ export const previewBulkFeesRemindersData = async (
 ): Promise<any> => {
     // Fetch school info for message context
     const school = await findSchoolById(schoolId);
-    const schoolName: string = school?.school_name || '';
+    // Per request: do NOT include the school name in outgoing messages. Keep accountant/rsvp number if present.
+    const schoolName: string = '';
     const rsvpNumber: string = school?.accountant_number || '';
 
     // Check if student_terms table exists and has proper columns
@@ -525,7 +526,8 @@ export const processBulkFeesReminders = async (
 ): Promise<void> => {
     // Fetch school info for message context
     const school = await findSchoolById(schoolId);
-    const schoolName: string = school?.school_name || '';
+    // Per request: do NOT include the school name in outgoing messages. Keep accountant/rsvp number if present.
+    const schoolName: string = '';
     const rsvpNumber: string = school?.accountant_number || '';
 
     // Check if student_terms has data for this school's students

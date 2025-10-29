@@ -1,0 +1,17 @@
+DO
+$$
+DECLARE
+  truncate_sql text;
+BEGIN
+  SELECT
+    'TRUNCATE TABLE ' || string_agg(format('%I.%I', schemaname, tablename), ', ') || ' RESTART IDENTITY CASCADE;'
+  INTO truncate_sql
+  FROM pg_tables
+  WHERE schemaname = 'public'
+    AND tablename NOT IN ('my_migration_table', 'another_table_to_keep');
+
+  IF truncate_sql IS NOT NULL THEN
+    EXECUTE truncate_sql;
+  END IF;
+END
+$$;

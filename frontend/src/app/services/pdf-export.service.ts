@@ -68,7 +68,7 @@ export class PdfExportService {
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(col.main[0], col.main[1], col.main[2]);
-    doc.text(`Total Students: ${header.totalStudents}`, rightX, metaY, { align: 'right' });
+    doc.text(`Total Records: ${header.totalStudents}`, rightX, metaY, { align: 'right' });
     if (header.filterInfo) {
       doc.setFontSize(8);
       doc.setTextColor(150, 150, 150);
@@ -232,7 +232,7 @@ export class PdfExportService {
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(0, 89, 179); // Blue color to match header
-    doc.text(`Total Students: ${header.totalStudents}`, rightX, metaY, { align: 'right' });
+    doc.text(`Total Records: ${header.totalStudents}`, rightX, metaY, { align: 'right' });
     
     if (header.filterInfo) {
       doc.setFontSize(8);

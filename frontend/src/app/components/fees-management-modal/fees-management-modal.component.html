@@ -21,19 +21,19 @@
             </div>
             <div class="form-group">
               <label>Year</label>
-              <input type="number" formControlName="year">
+              <input type="number" formControlName="year" />
             </div>
             <div class="form-group">
               <label>Total Fees Due</label>
-              <input type="number" formControlName="total_fees_due">
+              <input type="number" formControlName="total_fees_due" />
             </div>
             <div class="form-group">
               <label>Due Date</label>
-              <input type="date" formControlName="due_date">
+              <input type="date" formControlName="due_date" />
             </div>
             <div class="form-group">
-                <label>RSVP Number</label>
-                <input type="text" formControlName="rsvp_number">
+              <label>RSVP Number</label>
+              <input type="text" formControlName="rsvp_number" />
             </div>
             <div class="form-group-action">
               <button type="submit" [disabled]="feeForm.invalid">+ Add</button>
@@ -50,6 +50,7 @@
             <tr>
               <th>Term/Year</th>
               <th>Fee</th>
+              <th>Total Due</th>
               <th>Amount Paid</th>
               <th>Balance</th>
               <th>Due Date</th>
@@ -60,37 +61,121 @@
             <tr *ngFor="let record of feeRecords">
               <td>
                 Term {{ record.term }}, {{ record.year }}
-                <span class="fees-status-badge" [ngClass]="feesClassFromLabel(deriveFeesStatus(record.total_fees_due, record.amount_paid, record.balance_due))">
-                  {{ deriveFeesStatus(record.total_fees_due, record.amount_paid, record.balance_due) }}
+                <span
+                  class="fees-status-badge"
+                  [ngClass]="
+                    feesClassFromLabel(
+                      deriveFeesStatus(
+                        record.total_fees_due,
+                        record.amount_paid,
+                        record.balance_due
+                      )
+                    )
+                  "
+                >
+                  {{
+                    deriveFeesStatus(
+                      record.total_fees_due,
+                      record.amount_paid,
+                      record.balance_due
+                    )
+                  }}
                 </span>
               </td>
-              <td>{{ (record.fee_id && feeNames[record.fee_id]) || 'School Fees' }}</td>
               <td>
-                <ng-container *ngIf="editingRecordId !== record.fee_record_id; else editAmountPaid">
-                  {{ record.amount_paid | currency:'UGX ':'symbol':'1.0-0' }}
+                {{
+                  (record.fee_id && feeNames[record.fee_id]) || "School Fees"
+                }}
+              </td>
+              <td>
+                {{
+                  record.total_fees_due | currency : "UGX " : "symbol" : "1.0-0"
+                }}
+              </td>
+              <td>
+                <ng-container
+                  *ngIf="
+                    editingRecordId !== record.fee_record_id;
+                    else editAmountPaid
+                  "
+                >
+                  {{
+                    record.amount_paid | currency : "UGX " : "symbol" : "1.0-0"
+                  }}
                 </ng-container>
                 <ng-template #editAmountPaid>
-                    <input type="number" [(ngModel)]="editingAmountPaid">
+                  <input
+                    type="number"
+                    [(ngModel)]="editingAmountPaid"
+                    [max]="record.total_fees_due"
+                  />
+                  <div
+                    *ngIf="
+                      editingAmountPaid != null &&
+                      editingAmountPaid > record.total_fees_due
+                    "
+                    class="validation-error"
+                  >
+                    Amount paid cannot be greater than Total Due ({{
+                      record.total_fees_due
+                        | currency : "UGX " : "symbol" : "1.0-0"
+                    }}).
+                  </div>
                 </ng-template>
               </td>
-              <td [ngClass]="(record.balance_due || 0) > 0 ? 'amount-neg' : 'amount-pos'">
-                {{ record.balance_due | currency:'UGX ':'symbol':'1.0-0' }}
+              <td
+                [ngClass]="
+                  (record.balance_due || 0) > 0 ? 'amount-neg' : 'amount-pos'
+                "
+              >
+                {{
+                  record.balance_due | currency : "UGX " : "symbol" : "1.0-0"
+                }}
               </td>
-              <td>{{ record.due_date | date:'mediumDate' }}</td>
+              <td>{{ record.due_date | date : "mediumDate" }}</td>
               <td class="actions">
-                <ng-container *ngIf="editingRecordId !== record.fee_record_id; else saveCancelButtons">
-                    <button class="action-btn edit" (click)="startEditing(record)">Edit</button>
-                    <button class="action-btn reminder" (click)="openReminderPreview(record)">📧 Send Reminder</button>
-                    <button class="action-btn cancel" (click)="onDeleteRecord(record)">Delete</button>
+                <ng-container
+                  *ngIf="
+                    editingRecordId !== record.fee_record_id;
+                    else saveCancelButtons
+                  "
+                >
+                  <button
+                    class="action-btn edit"
+                    (click)="startEditing(record)"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    class="action-btn reminder"
+                    (click)="openReminderPreview(record)"
+                  >
+                    📧 Send Reminder
+                  </button>
+                  <button
+                    class="action-btn cancel"
+                    (click)="onDeleteRecord(record)"
+                  >
+                    Delete
+                  </button>
                 </ng-container>
                 <ng-template #saveCancelButtons>
-                    <button class="action-btn save" (click)="onUpdateFeeRecord(record.fee_record_id)">Save</button>
-                    <button class="action-btn cancel" (click)="cancelEditing()">Cancel</button>
+                  <button
+                    class="action-btn save"
+                    (click)="onUpdateFeeRecord(record.fee_record_id)"
+                  >
+                    Save
+                  </button>
+                  <button class="action-btn cancel" (click)="cancelEditing()">
+                    Cancel
+                  </button>
                 </ng-template>
               </td>
             </tr>
             <tr *ngIf="feeRecords?.length === 0">
-                <td colspan="6" class="empty-state">No fee records found for this student.</td>
+              <td colspan="6" class="empty-state">
+                No fee records found for this student.
+              </td>
             </tr>
           </tbody>
         </table>
@@ -98,7 +183,9 @@
     </div>
 
     <div class="modal-footer">
-      <button type="button" class="cancel-btn" (click)="close.emit()">Close</button>
+      <button type="button" class="cancel-btn" (click)="close.emit()">
+        Close
+      </button>
     </div>
   </div>
 </div>

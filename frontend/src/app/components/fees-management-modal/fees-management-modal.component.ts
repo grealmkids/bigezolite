@@ -124,6 +124,13 @@ export class FeesManagementModalComponent implements OnInit {
 
   onUpdateFeeRecord(recordId: number): void {
     if (this.editingAmountPaid !== null) {
+        // Ensure editingAmountPaid does not exceed the Total Due for this record
+        const rec = this.feeRecords.find(r => r.fee_record_id === recordId);
+        const maxDue = rec ? Number(rec.total_fees_due || 0) : 0;
+        if (Number(this.editingAmountPaid) > maxDue) {
+            this.snackBar.open(`Amount paid cannot exceed Total Due (UGX ${maxDue.toLocaleString()}).`, 'Close', { duration: 5000, panelClass: ['error-snackbar'], verticalPosition: 'top', horizontalPosition: 'center' });
+            return;
+        }
         console.log('[FeesModal] Updating fee record:', recordId, 'amount:', this.editingAmountPaid);
         this.feesService.updateFeeRecord(recordId, this.editingAmountPaid).subscribe({
           next: (result) => {
@@ -133,7 +140,7 @@ export class FeesManagementModalComponent implements OnInit {
           },
           error: (err) => {
             console.error('[FeesModal] Error updating fee record:', err);
-            alert(`Failed to update fee record: ${err?.error?.message || err?.message || 'Unknown error'}`);
+            this.snackBar.open(`Failed to update fee record: ${err?.error?.message || err?.message || 'Unknown error'}`, 'Close', { duration: 5000, panelClass: ['error-snackbar'], verticalPosition: 'top', horizontalPosition: 'center' });
           }
         });
     }

@@ -19,6 +19,8 @@ export class FeeReminderPreviewModalComponent implements OnInit {
   @Input() student: Student | null = null;
   @Input() feeRecord: FeeRecord | null = null;
   @Input() allFeeRecords: FeeRecord[] = [];
+  @Input() overrideMessage?: string | null = null;
+  @Input() modalTitle?: string | null = null;
   @Output() close = new EventEmitter<void>();
 
   message: string = '';
@@ -27,6 +29,7 @@ export class FeeReminderPreviewModalComponent implements OnInit {
   schoolName: string = '';
   rsvpNumber: string = '';
   feeName: string = '';
+  costPerSms: number = 50; // default fallback
 
   constructor(
     private communicationService: CommunicationService,
@@ -50,6 +53,14 @@ export class FeeReminderPreviewModalComponent implements OnInit {
         }
       }
     } catch {}
+    // If overrideMessage is provided, use it and skip generation
+    if (this.overrideMessage) {
+      this.message = this.overrideMessage;
+      // still fetch costPerSms for estimation
+      this.fetchCostPerSms();
+      return;
+    }
+
     // If a specific fee record is selected and has fee_id, fetch fee name
     const fid = this.feeRecord?.fee_id;
     if (fid) {
@@ -60,6 +71,20 @@ export class FeeReminderPreviewModalComponent implements OnInit {
     } else {
       this.generateMessage();
     }
+    this.fetchCostPerSms();
+  }
+
+  private fetchCostPerSms(): void {
+    try {
+      this.communicationService.previewBulkSms('All Students').subscribe({
+        next: (res: any) => {
+          if (res && res.costPerSms) {
+            this.costPerSms = Number(res.costPerSms) || this.costPerSms;
+          }
+        },
+        error: () => {}
+      });
+    } catch {}
   }
 
   generateMessage(): void {
@@ -112,6 +137,10 @@ export class FeeReminderPreviewModalComponent implements OnInit {
 
   get smsUnits(): number {
     return Math.ceil(this.messageLength / 160);
+  }
+
+  get estimatedCost(): number {
+    return Math.ceil(this.messageLength / 160) * this.costPerSms;
   }
 
   sendReminder(): void {

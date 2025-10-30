@@ -58,7 +58,13 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let record of feeRecords">
+            <tr
+              *ngFor="let record of feeRecords"
+              (click)="selectedFeeRecord = record"
+              [class.selected]="
+                selectedFeeRecord?.fee_record_id === record.fee_record_id
+              "
+            >
               <td>
                 Term {{ record.term }}, {{ record.year }}
                 <span
@@ -142,19 +148,33 @@
                 >
                   <button
                     class="action-btn edit"
-                    (click)="startEditing(record)"
+                    (click)="$event.stopPropagation(); startEditing(record)"
                   >
                     Edit
                   </button>
                   <button
                     class="action-btn reminder"
-                    (click)="openReminderPreview(record)"
+                    (click)="
+                      $event.stopPropagation(); openReminderPreview(record)
+                    "
                   >
-                    📧 Send Reminder
+                    <svg
+                      class="mono-icon"
+                      viewBox="0 0 24 24"
+                      width="16"
+                      height="16"
+                      aria-hidden="true"
+                    >
+                      <path
+                        d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"
+                        fill="currentColor"
+                      />
+                    </svg>
+                    Send Reminder
                   </button>
                   <button
                     class="action-btn cancel"
-                    (click)="onDeleteRecord(record)"
+                    (click)="$event.stopPropagation(); onDeleteRecord(record)"
                   >
                     Delete
                   </button>
@@ -162,11 +182,17 @@
                 <ng-template #saveCancelButtons>
                   <button
                     class="action-btn save"
-                    (click)="onUpdateFeeRecord(record.fee_record_id)"
+                    (click)="
+                      $event.stopPropagation();
+                      onUpdateFeeRecord(record.fee_record_id)
+                    "
                   >
                     Save
                   </button>
-                  <button class="action-btn cancel" (click)="cancelEditing()">
+                  <button
+                    class="action-btn cancel"
+                    (click)="$event.stopPropagation(); cancelEditing()"
+                  >
                     Cancel
                   </button>
                 </ng-template>
@@ -183,9 +209,56 @@
     </div>
 
     <div class="modal-footer">
-      <button type="button" class="cancel-btn" (click)="close.emit()">
-        Close
-      </button>
+      <div class="footer-actions">
+        <div *ngIf="showTermYearPicker" class="term-picker">
+          <label>Term</label>
+          <select [(ngModel)]="pickerTerm">
+            <option [value]="1">1</option>
+            <option [value]="2">2</option>
+            <option [value]="3">3</option>
+          </select>
+          <label>Year</label>
+          <input type="number" [(ngModel)]="pickerYear" />
+          <button
+            class="action-btn save"
+            (click)="confirmPaymentHistoryPicker()"
+          >
+            Confirm
+          </button>
+          <button
+            class="action-btn cancel"
+            (click)="cancelPaymentHistoryPicker()"
+          >
+            Cancel
+          </button>
+        </div>
+
+        <button
+          type="button"
+          class="send-history-btn"
+          (click)="openPaymentHistoryPicker()"
+          [disabled]="isSendingHistory"
+          title="Choose term & year then preview"
+        >
+          <svg
+            class="mono-icon"
+            viewBox="0 0 24 24"
+            width="16"
+            height="16"
+            aria-hidden="true"
+          >
+            <path
+              d="M19 3H5c-1.1 0-2 .9-2 2v14l4-4h12c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
+              fill="currentColor"
+            />
+          </svg>
+          Send Payment History
+        </button>
+
+        <button type="button" class="cancel-btn" (click)="close.emit()">
+          Close
+        </button>
+      </div>
     </div>
   </div>
 </div>
@@ -196,5 +269,7 @@
   [student]="student"
   [feeRecord]="selectedFeeRecord"
   [allFeeRecords]="feeRecords"
+  [overrideMessage]="previewMessage"
+  [modalTitle]="previewModalTitle"
   (close)="closeReminderPreview()"
 ></app-fee-reminder-preview-modal>

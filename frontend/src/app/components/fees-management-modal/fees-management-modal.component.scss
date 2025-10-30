@@ -76,50 +76,63 @@
 
         .action-btn {
             padding: 0.3rem 0.6rem;
-            border: 1px solid;
-            border-radius: 4px;
+            border: none;
+            border-radius: 6px;
             background-color: transparent;
+            color: white;
             font-size: 0.8rem;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.15s ease;
             white-space: nowrap;
 
-            &.edit { 
-                border-color: #6c757d; 
-                color: #6c757d;
-                &:hover {
-                    background-color: #6c757d;
-                    color: white;
-                }
+            &.edit {
+                background-color: #6c757d;
+                color: white;
+                &:hover { background-color: color.adjust(#6c757d, $lightness: -8%); }
             }
-            &.save { 
-                border-color: #28a745; 
-                color: #28a745;
-                &:hover {
-                    background-color: #28a745;
-                    color: white;
-                }
+            &.save {
+                background-color: #28a745;
+                color: white;
+                &:hover { background-color: color.adjust(#28a745, $lightness: -8%); }
             }
-            &.cancel { 
-                border-color: #dc3545; 
-                color: #dc3545;
-                &:hover {
-                    background-color: #dc3545;
-                    color: white;
-                }
+            &.cancel {
+                background-color: #dc3545;
+                color: white;
+                &:hover { background-color: color.adjust(#dc3545, $lightness: -8%); }
             }
-            &.reminder { 
-                border-color: #10b981; 
-                color: #10b981;
-                background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%);
-                font-weight: 500;
+            &.reminder {
+                background-color: #10b981;
+                color: white;
+                font-weight: 600;
                 &:hover {
-                    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-                    color: white;
+                    background-color: color.adjust(#10b981, $lightness: -6%);
                     transform: translateY(-1px);
-                    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+                    box-shadow: 0 4px 12px rgba(16,185,129,0.18);
                 }
             }
+        }
+
+        tr.selected {
+            background-color: #f1f5f9;
+            td { border-left: 4px solid #0d6efd; }
+        }
+
+        .term-picker {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-right: 0.75rem;
+            label { font-weight: 600; font-size: 0.9rem; }
+            select, input[type="number"] { padding: 0.4rem 0.6rem; border-radius: 6px; border: 1px solid #e5e7eb; }
+            .action-btn { padding: 0.45rem 0.75rem; }
+        }
+
+        .mono-icon {
+            width: 1em;
+            height: 1em;
+            vertical-align: middle;
+            margin-right: 0.4rem;
+            fill: currentColor;
         }
 
         .fees-status-badge {
@@ -160,4 +173,19 @@
       background: #e5e7eb;
     }
   }
+
+    .send-history-btn {
+        background: #0b0b0b; /* black */
+        color: #ffffff;
+        border: none;
+        padding: 0.75rem 1.25rem;
+        border-radius: 8px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform 0.12s ease, box-shadow 0.12s ease;
+        margin-right: 0.5rem;
+
+        &:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(11,11,11,0.18); }
+        &:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
+    }
 }

@@ -31,6 +31,15 @@ export class FeesManagementModalComponent implements OnInit {
   // Fee reminder preview modal
   showReminderPreview: boolean = false;
   selectedFeeRecord: FeeRecord | null = null;
+  // Sending state for term-history SMS
+  isSendingHistory: boolean = false;
+  // preview message for sending term history via preview modal
+  previewMessage: string | null = null;
+  previewModalTitle: string | null = null;
+  // picker state for choosing term/year before sending payment history
+  showTermYearPicker: boolean = false;
+  pickerTerm: number = 1;
+  pickerYear: number = new Date().getFullYear();
 
   constructor(
     private fb: FormBuilder,
@@ -49,6 +58,61 @@ export class FeesManagementModalComponent implements OnInit {
     });
   }
 
+  formatCurrency(amount: number): string {
+    const num = Number(amount) || 0;
+    return `UGX ${Math.round(num).toLocaleString()}`;
+  }
+
+  formatDate(dateStr?: string): string {
+    if (!dateStr) return '';
+    try {
+      const d = new Date(dateStr);
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = d.toLocaleDateString('en-US', { month: 'short' });
+      const year = d.getFullYear();
+      return `${day}-${month}-${year}`;
+    } catch { return dateStr; }
+  }
+
+  /**
+   * Send full payment history for the given record's term/year to the student's phone via SMS
+   */
+  sendTermHistory(record?: FeeRecord | null): void {
+    if (!this.student) return;
+    if (!record) {
+      this.snackBar.open('Please select a term row before sending payment history.', 'Close', { duration: 3500, panelClass: ['error-snackbar'], verticalPosition: 'top', horizontalPosition: 'center' });
+      return;
+    }
+    const term = record.term;
+    const year = record.year;
+    const rows = (this.feeRecords || []).filter(r => Number(r.term) === Number(term) && Number(r.year) === Number(year));
+    if (!rows || rows.length === 0) {
+      this.snackBar.open('No payment history found for that Term/Year', 'Close', { duration: 3000, panelClass: ['error-snackbar'], verticalPosition: 'top', horizontalPosition: 'center' });
+      return;
+    }
+    // Build message (rows separated with '------'). Do NOT include amount 'Due UGX' or 'Total Due'. Keep Paid and Balance and Due date only.
+    const school = this.schoolService['selectedSchool']?.value;
+    const schoolName = school ? school.school_name : '';
+    let msg = `Payment history for ${this.student.student_name} - Term ${term}, ${year}${schoolName ? ` - ${schoolName}` : ''}:\n`;
+    let totalPaid = 0;
+    let totalBal = 0;
+    for (let i = 0; i < rows.length; i++) {
+      const r = rows[i];
+      const feeLabel = (r.fee_id && this.feeNames[r.fee_id]) || 'School Fees';
+      const paid = Number(r.amount_paid || 0);
+      const bal = Number(r.balance_due || 0);
+      totalPaid += paid; totalBal += bal;
+      msg += `${feeLabel}: Paid ${this.formatCurrency(paid)}, Balance ${this.formatCurrency(bal)}${r.due_date ? `, Due ${this.formatDate(r.due_date)}` : ''}\n`;
+      if (i < rows.length - 1) msg += `------\n`;
+    }
+    msg += `Total Paid ${this.formatCurrency(totalPaid)}, Total Balance ${this.formatCurrency(totalBal)}`;
+
+    // Show preview modal with composed message and estimated cost. The preview modal will handle sending.
+    this.previewMessage = msg;
+    this.selectedFeeRecord = null; // so preview uses overrideMessage
+    this.showReminderPreview = true;
+  }
+
   ngOnInit(): void {
     if (this.student) {
       this.loadFeeRecords();
@@ -62,6 +126,65 @@ export class FeesManagementModalComponent implements OnInit {
         }
       });
     }
+  }
+
+  openPaymentHistoryPicker(): void {
+    // default to current form values or first fee record's term/year
+    this.pickerTerm = this.feeForm.value.term || 1;
+    this.pickerYear = this.feeForm.value.year || new Date().getFullYear();
+    if (this.feeRecords && this.feeRecords.length > 0) {
+      // prefer most recent record
+      const rec = this.feeRecords[0];
+      if (rec) {
+        this.pickerTerm = Number(rec.term) || this.pickerTerm;
+        this.pickerYear = Number(rec.year) || this.pickerYear;
+      }
+    }
+    this.showTermYearPicker = true;
+  }
+
+  cancelPaymentHistoryPicker(): void {
+    this.showTermYearPicker = false;
+  }
+
+  confirmPaymentHistoryPicker(): void {
+    this.showTermYearPicker = false;
+    this.preparePaymentHistory(this.pickerTerm, this.pickerYear);
+  }
+
+  private preparePaymentHistory(term: number, year: number): void {
+    if (!this.student) return;
+    const rows = (this.feeRecords || []).filter(r => Number(r.term) === Number(term) && Number(r.year) === Number(year));
+    if (!rows || rows.length === 0) {
+      this.snackBar.open('No payment history found for that Term/Year', 'Close', { duration: 3000, panelClass: ['error-snackbar'], verticalPosition: 'top', horizontalPosition: 'center' });
+      return;
+    }
+    const school = this.schoolService['selectedSchool']?.value;
+    const schoolName = school ? school.school_name : '';
+    let msg = `Payment history for ${this.student.student_name} - Term ${term}, ${year}${schoolName ? ` - ${schoolName}` : ''}:\n`;
+    let totalPaid = 0;
+    let totalBal = 0;
+    for (let i = 0; i < rows.length; i++) {
+      const r = rows[i];
+      const feeLabel = (r.fee_id && this.feeNames[r.fee_id]) || 'School Fees';
+      const paid = Number(r.amount_paid || 0);
+      const bal = Number(r.balance_due || 0);
+      totalPaid += paid; totalBal += bal;
+      msg += `${feeLabel}: Paid ${this.formatCurrency(paid)}, Balance ${this.formatCurrency(bal)}${r.due_date ? `, Due ${this.formatDate(r.due_date)}` : ''}\n`;
+      if (i < rows.length - 1) msg += `------\n`;
+    }
+    msg += `Total Paid ${this.formatCurrency(totalPaid)}, Total Balance ${this.formatCurrency(totalBal)}`;
+
+    this.previewMessage = msg;
+    this.previewModalTitle = `Send Payment History to ${this.student.student_name}'s Parent`;
+    this.showReminderPreview = true;
+  }
+
+  closeReminderPreview(): void {
+    this.showReminderPreview = false;
+    this.selectedFeeRecord = null;
+    this.previewMessage = null;
+    this.previewModalTitle = null;
   }
 
   loadFeeRecords(): void {
@@ -175,11 +298,6 @@ export class FeesManagementModalComponent implements OnInit {
 
     this.selectedFeeRecord = record;
     this.showReminderPreview = true;
-  }
-
-  closeReminderPreview(): void {
-    this.showReminderPreview = false;
-    this.selectedFeeRecord = null;
   }
 
   // Helpers for UI coloring and status

@@ -1,4 +1,4 @@
-BigezoLite — SMS and subscription improvements
+Bigezo — SMS and subscription improvements
 ===============================================
 
 This document records the requested design changes, the implementation plan, and a concrete TODO list for adding per-school SMS credentials, SMS account tracking, cost calculations, a "Check Balance" button, and improved subscription handling.

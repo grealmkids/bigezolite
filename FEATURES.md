@@ -1,4 +1,4 @@
-# BigezoLite - Product Features Documentation
+# Bigezo - Product Features Documentation
 
 **Version**: 2.0  
 **Last Updated**: October 2025  
@@ -23,7 +23,7 @@
 
 ## Overview
 
-BigezoLite is a comprehensive school management system designed for educational institutions in Uganda. It provides multi-school support, student and fees tracking, SMS communications with integrated reminders, and subscription-based access control.
+Bigezo is a comprehensive school management system designed for educational institutions in Uganda. It provides multi-school support, student and fees tracking, SMS communications with integrated reminders, and subscription-based access control.
 
 ### Key Highlights
 - **Multi-school architecture** with complete data isolation
@@ -656,4 +656,4 @@ For questions, bug reports, or feature requests:
 
 ---
 
-**Document End** - BigezoLite Features v2.0
+**Document End** - Bigezo Features v2.0

@@ -4,7 +4,7 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
 
 ## Project Overview
 
-BigezoLite is a comprehensive school management system with SMS communications and subscription management. It's a full-stack application with:
+Bigezo is a comprehensive school management system with SMS communications and subscription management. It's a full-stack application with:
 - **Backend**: Node.js/Express/TypeScript API with PostgreSQL database
 - **Frontend**: Angular 19 single-page application with Material UI
 - **Key features**: 

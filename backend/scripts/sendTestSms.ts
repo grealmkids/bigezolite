@@ -14,7 +14,7 @@ async function run() {
   console.log(`Normalized ${raw} -> ${normalized}`);
 
   try {
-    const res = await sendSms(normalized, 'Test SMS from bigezolite backend (integration test)');
+    const res = await sendSms(normalized, 'Test SMS from bigezo backend (integration test)');
     console.log('SMS gateway response:', res);
   } catch (err) {
     console.error('Failed to send SMS:', err);

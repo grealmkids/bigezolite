@@ -400,7 +400,7 @@ export class PdfExportService {
       doc.setFontSize(6.5);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(100, 100, 100);
-      doc.text('Bigezo, a product of G-Realm Studio', 
+      doc.text('Bigezo, a product of G-Realm Studio    --------- support@bigezo.com', 
         pageWidth / 2, summaryY + 14, { align: 'center' });
     }
 
@@ -423,7 +423,7 @@ export class PdfExportService {
       doc.setFontSize(7);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(100, 100, 100);
-      doc.text('Bigezo app, a product of G-Realm Studio', pageWidth / 2, pageHeight - 5, { align: 'center' });
+      doc.text('Bigezo app, a product of G-Realm Studio    --------- support@bigezo.com', pageWidth / 2, pageHeight - 5, { align: 'center' });
       
       // Footer text - right
       doc.setFontSize(8);

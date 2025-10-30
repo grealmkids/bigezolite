@@ -650,8 +650,8 @@ schools (1) ─── (many) sms_transactions
 ## Support & Contact
 
 For questions, bug reports, or feature requests:
-- **Email**: apps@grealm.org
-- **Phone**: +256773913902
+- **Email**: support@bigezo.com
+- **Phone**: 0773913902
 - **Product**: A product of **G-Realm Studio**
 
 ---

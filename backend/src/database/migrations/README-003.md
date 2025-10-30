@@ -205,4 +205,4 @@ If you encounter any problems applying this migration:
 1. Check your PostgreSQL version (requires 9.x+)
 2. Verify you have ALTER TABLE permissions
 3. Check for existing duplicate `reg_number` within same school
-4. Contact: apps@grealm.org
+4. Contact: admin@bigezo.com

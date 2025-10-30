@@ -79,7 +79,7 @@ export async function checkBalance(username?: string, password?: string): Promis
 
 /**
  * Normalize a phone number to Uganda international format without '+' (e.g. 256773913902)
- * Accepts inputs like '0773913902', '773913902', '+256773913902', '256773913902'
+ * Accepts inputs like '0773913902', '773913902', '0773913902', '256773913902'
  */
 export function normalizePhone(input: string): string {
   if (!input) throw new Error('Empty phone number');

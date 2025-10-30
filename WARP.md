@@ -207,7 +207,7 @@ Likely contains API base URL and Firebase config.
 
 ### Phone Number Normalization
 `sms.util.ts` `normalizePhone()` converts Uganda numbers to international format without '+':
-- Input: '0773913902', '773913902', '+256773913902', '256773913902'
+- Input: '0773913902', '773913902', '0773913902', '256773913902'
 - Output: '256773913902'
 
 ### Database Queries

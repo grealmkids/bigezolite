@@ -198,8 +198,12 @@ export const processFeesReminder = async (schoolId: number, studentId: number): 
     const balance = parseFloat(student.balance);
     const amountPaid = parseFloat(student.amount_paid);
     
-    if (balance <= 0) {
-        throw new Error('Student has no outstanding balance');
+    // Do not send reminders for trivially small balances under the threshold (UGX 1,000)
+    if (balance < 1000) {
+        const err: any = new Error('Outstanding balance is less than UGX 1,000 — reminder not sent');
+        err.statusCode = 400;
+        err.details = { balance };
+        throw err;
     }
 
     // Format deadline as DD-MMM-YYYY

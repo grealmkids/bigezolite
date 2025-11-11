@@ -23,28 +23,86 @@ export class CommunicationService {
     });
   }
 
-  previewBulkSms(recipientFilter: string): Observable<any> {
-    const schoolId = this.schoolService.getSelectedSchoolId();
-    const q = schoolId ? `?schoolId=${schoolId}` : '';
-    const url = `${this.apiUrl}/bulk-sms/preview${q}`;
-    const body = { recipientFilter };
-    console.log('[HTTP][POST]', url, body);
-    return this.http.post(url, body);
-  }
-
   sendBulkSms(recipientFilter: string, message: string): Observable<any> {
     const schoolId = this.schoolService.getSelectedSchoolId();
-    const q = schoolId ? `?schoolId=${schoolId}` : '';
-    const url = `${this.apiUrl}/bulk-sms${q}`;
+    const qs = schoolId ? `?schoolId=${schoolId}` : '';
+    const url = `${this.apiUrl}/bulk-sms${qs}`;
     const body = { recipientFilter, message };
     console.log('[HTTP][POST]', url, body);
     return this.http.post(url, body);
   }
 
-  sendSingleSms(studentId: number, message: string): Observable<any> {
+  previewBulkSms(recipientFilter: string): Observable<any> {
     const schoolId = this.schoolService.getSelectedSchoolId();
-    const q = schoolId ? `?schoolId=${schoolId}` : '';
-    return this.http.post(`${this.apiUrl}/single-sms${q}`, { studentId, message });
+    const qs = schoolId ? `?schoolId=${schoolId}` : '';
+    const url = `${this.apiUrl}/bulk-sms/preview${qs}`;
+    const body = { recipientFilter };
+    console.log('[HTTP][POST]', url, body);
+    return this.http.post<any>(url, body);
+  }
+
+  /**
+   * Preview bulk fees reminders. Payload mirrors backend preview endpoint.
+   */
+  previewBulkFeesReminders(
+    thresholdAmount: number,
+    classFilter?: string,
+    statusFilter?: string,
+    customDeadline?: string,
+    year?: string,
+    term?: string,
+    feesStatus?: string,
+    messageType: string = 'detailed',
+    messageTemplate?: string
+  ): Observable<any> {
+    const body: any = { thresholdAmount, messageType };
+    if (classFilter) body.classFilter = classFilter;
+    if (statusFilter) body.statusFilter = statusFilter;
+    if (customDeadline) body.customDeadline = customDeadline;
+    if (year) body.year = year;
+    if (term) body.term = term;
+    if (feesStatus) body.feesStatus = feesStatus;
+    if (messageTemplate != null) body.messageTemplate = messageTemplate;
+
+    const schoolId = this.schoolService.getSelectedSchoolId();
+    const qs = schoolId ? `?schoolId=${schoolId}` : '';
+    const url = `${this.apiUrl}/bulk-fees-reminders/preview${qs}`;
+    console.log('[HTTP][POST]', url, body);
+    return this.http.post<any>(url, body);
+  }
+
+  /**
+   * Send bulk fees reminders using the backend endpoint.
+   */
+  sendBulkFeesReminders(
+    thresholdAmount: number,
+    classFilter?: string,
+    statusFilter?: string,
+    customDeadline?: string,
+    year?: string,
+    term?: string,
+    feesStatus?: string,
+    messageType: string = 'detailed',
+    messageTemplate?: string
+  ): Observable<any> {
+    const body: any = { thresholdAmount, messageType };
+    if (classFilter) body.classFilter = classFilter;
+    if (statusFilter) body.statusFilter = statusFilter;
+    if (customDeadline) body.customDeadline = customDeadline;
+    if (year) body.year = year;
+    if (term) body.term = term;
+    if (feesStatus) body.feesStatus = feesStatus;
+    if (messageTemplate != null) body.messageTemplate = messageTemplate;
+
+    const schoolId = this.schoolService.getSelectedSchoolId();
+    const qs = schoolId ? `?schoolId=${schoolId}` : '';
+    const url = `${this.apiUrl}/bulk-fees-reminders${qs}`;
+    console.log('[HTTP][POST]', url, body);
+    return this.http.post<any>(url, body);
+  }
+
+  sendSingleSms(studentId: number, message: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/single-sms`, { studentId, message });
   }
 
   setSmsCredentials(username: string, password: string, provider?: string): Observable<any> {
@@ -53,63 +111,5 @@ export class CommunicationService {
 
   getSmsCredentials(): Observable<{ username: string; password: string; provider?: string } | null> {
     return this.http.get<{ username: string; password: string; provider?: string }>(`${this.apiUrl}/credentials`);
-  }
-
-  sendFeesReminder(studentId: number): Observable<any> {
-    const schoolId = this.schoolService.getSelectedSchoolId();
-    const q = schoolId ? `?schoolId=${schoolId}` : '';
-    return this.http.post(`${this.apiUrl}/fees-reminder/${studentId}${q}`, {});
-  }
-
-  previewBulkFeesReminders(
-    thresholdAmount: number = 1000,
-    classFilter?: string,
-    statusFilter?: string,
-    customDeadline?: string,
-    year?: string | number,
-    term?: string | number,
-    feesStatus?: string,
-    messageType: 'detailed' | 'sent_home' | 'custom' | 'generic' = 'detailed',
-    messageTemplate?: string
-  ): Observable<any> {
-    const body: any = { thresholdAmount, messageType };
-    if (classFilter) body.classFilter = classFilter;
-    if (statusFilter) body.statusFilter = statusFilter;
-    if (customDeadline) body.customDeadline = customDeadline;
-    if (year) body.year = year;
-    if (term) body.term = term;
-    if (feesStatus) body.feesStatus = feesStatus;
-    if (messageTemplate != null) body.messageTemplate = messageTemplate;
-    const schoolId = this.schoolService.getSelectedSchoolId();
-    const q = schoolId ? `?schoolId=${schoolId}` : '';
-    const url = `${this.apiUrl}/bulk-fees-reminders/preview${q}`;
-    console.log('[HTTP][POST]', url, body);
-    return this.http.post(url, body);
-  }
-
-  sendBulkFeesReminders(
-    thresholdAmount: number = 1000,
-    classFilter?: string,
-    statusFilter?: string,
-    customDeadline?: string,
-    year?: string | number,
-    term?: string | number,
-    feesStatus?: string,
-    messageType: 'detailed' | 'sent_home' | 'custom' | 'generic' = 'detailed',
-    messageTemplate?: string
-  ): Observable<any> {
-    const body: any = { thresholdAmount, messageType };
-    if (classFilter) body.classFilter = classFilter;
-    if (statusFilter) body.statusFilter = statusFilter;
-    if (customDeadline) body.customDeadline = customDeadline;
-    if (year) body.year = year;
-    if (term) body.term = term;
-    if (feesStatus) body.feesStatus = feesStatus;
-    if (messageTemplate != null) body.messageTemplate = messageTemplate;
-    const schoolId = this.schoolService.getSelectedSchoolId();
-    const q = schoolId ? `?schoolId=${schoolId}` : '';
-    const url = `${this.apiUrl}/bulk-fees-reminders${q}`;
-    console.log('[HTTP][POST]', url, body);
-    return this.http.post(url, body);
   }
 }

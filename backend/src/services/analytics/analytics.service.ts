@@ -112,13 +112,13 @@ export const getSchoolAnalytics = async (schoolId: number, year?: number, term?:
         rawBalance = Number(smsData?.provider_balance_bigint || 0);
     }
 
-    // communications.checkBalance multiplies by (10/7) then rounds DOWN to the previous 10
-    const multiplied = rawBalance * (10 / 7);
-    const calculatedBalance = Math.floor(multiplied / 10) * 10;
-
-    // SMS count uses configured costPerSms from config when available
+    // Compute display balance using configured COST_PER_SMS so analytics matches frontend/credits
+    // Formula: display = round(providerRaw * COST_PER_SMS / 35)
     const { config } = await import('../../config');
-    const costPerSms = Number(config.costPerSms || 50);
+    const costPerSms = Number(config.costPerSms || process.env.COST_PER_SMS || 35);
+    const calculatedBalance = Math.round((Number(rawBalance) || 0) * costPerSms / 35);
+
+    // SMS count uses the same configured costPerSms used above
     const smsCount = Math.floor(calculatedBalance / costPerSms);
 
     // Aggregate paid/defaulter info: compute per-student sums then aggregate counts/totals

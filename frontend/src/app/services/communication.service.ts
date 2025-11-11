@@ -24,17 +24,40 @@ export class CommunicationService {
     try {
       this.previewBulkSms('All Students').subscribe({
         next: (resp: any) => {
-          if (resp && typeof resp.currentBalance !== 'undefined') {
-            this.smsCreditBalance.next(Number(resp.currentBalance));
+          // Prefer backend-provided computed display balance when available
+          if (resp && typeof resp.balance !== 'undefined') {
+            this.smsCreditBalance.next(Number(resp.balance));
+            return;
+          }
+          // If preview only returns provider raw and costPerSms, compute here using server-provided costPerSms
+          if (resp && typeof resp.currentBalance !== 'undefined' && typeof resp.costPerSms !== 'undefined') {
+            const providerRaw = Number(resp.currentBalance || 0);
+            const costPerSms = Number(resp.costPerSms || 35);
+            const display = Math.round(providerRaw * costPerSms / 35);
+            this.smsCreditBalance.next(display);
             return;
           }
           // Fallback to credits endpoint if preview response is missing balance
-          this.http.get<number>(`${this.apiUrl}/credits`).subscribe(balance => this.smsCreditBalance.next(balance));
+          this.http.get<any>(`${this.apiUrl}/credits`).subscribe((resp2: any) => {
+            // credits endpoint now returns { providerBalance, balance, costPerSms }
+            if (resp2 && typeof resp2.balance !== 'undefined') {
+              this.smsCreditBalance.next(Number(resp2.balance));
+            } else if (typeof resp2 === 'number') {
+              // older fallback (numeric response)
+              this.smsCreditBalance.next(Number(resp2));
+            }
+          });
         },
         error: () => {
           // If preview fails (permissions etc.), fall back to credits endpoint
-          this.http.get<number>(`${this.apiUrl}/credits`).subscribe({
-            next: balance => this.smsCreditBalance.next(balance),
+          this.http.get<any>(`${this.apiUrl}/credits`).subscribe({
+            next: (resp2: any) => {
+              if (resp2 && typeof resp2.balance !== 'undefined') {
+                this.smsCreditBalance.next(Number(resp2.balance));
+              } else if (typeof resp2 === 'number') {
+                this.smsCreditBalance.next(Number(resp2));
+              }
+            },
             error: (err) => {
               console.error('[CommunicationService][fetchSmsCreditBalance] both preview and credits endpoints failed', err);
             }

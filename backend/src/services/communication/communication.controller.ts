@@ -24,11 +24,12 @@ export const getSmsCreditBalance = async (req: AuthenticatedRequest, res: Respon
         await upsertSmsAccount(schoolId, rawBalance);
         await addSmsTransaction(schoolId, 'check', rawBalance, { raw: rawBalance });
 
-        // Apply algorithm: multiply by (10/7) then round DOWN to the previous 10
-        const multiplied = rawBalance * (10 / 7);
-        const roundedDownTo10 = Math.floor(multiplied / 10) * 10;
+    // Compute display balance using configured COST_PER_SMS to allow reseller margin.
+    // Formula: display = round(providerRaw * COST_PER_SMS / 35)
+    const configuredCostPerSms = Number(config.costPerSms ?? (process.env.COST_PER_SMS ? Number(process.env.COST_PER_SMS) : 35));
+    const displayBalance = Math.round((Number(rawBalance) || 0) * configuredCostPerSms / 35);
 
-        return res.json(roundedDownTo10);
+    return res.json({ providerBalance: rawBalance, balance: displayBalance, costPerSms: configuredCostPerSms });
     } catch (error: any) {
         // Try to include provider/network details if available
         const providerMessage = error?.message || (error?.response && error.response.data) || null;

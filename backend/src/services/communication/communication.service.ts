@@ -32,7 +32,9 @@ export const previewBulkSmsData = async (schoolId: number, recipientFilter: any)
         throw err;
     }
     const providerBalance = await checkBalance(creds.username, creds.password);
-    return { recipientCount, estimatedCost, currentBalance: providerBalance, costPerSms };
+    // Compute display balance using configured COST_PER_SMS (reseller price)
+    const displayBalance = Math.round((Number(providerBalance) || 0) * (config.costPerSms || 35) / 35);
+    return { recipientCount, estimatedCost, currentBalance: providerBalance, costPerSms: costPerSms, balance: displayBalance } as any;
 };
 
 export const processBulkSms = async (schoolId: number, recipientFilter: any, message: string): Promise<{ sentCount: number; failedCount: number; failures: Array<{ phone: string; error: string }> }> => {

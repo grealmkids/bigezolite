@@ -18,9 +18,36 @@ export class CommunicationService {
   }
 
   fetchSmsCreditBalance(): void {
-    this.http.get<number>(`${this.apiUrl}/credits`).subscribe(balance => {
-      this.smsCreditBalance.next(balance);
-    });
+    // Prefer server preview endpoint which validates per-school credentials and
+    // returns provider-backed balance as part of its response. This works for
+    // schools that may be marked 'Dormant' where the /credits endpoint can return 403.
+    try {
+      this.previewBulkSms('All Students').subscribe({
+        next: (resp: any) => {
+          if (resp && typeof resp.currentBalance !== 'undefined') {
+            this.smsCreditBalance.next(Number(resp.currentBalance));
+            return;
+          }
+          // Fallback to credits endpoint if preview response is missing balance
+          this.http.get<number>(`${this.apiUrl}/credits`).subscribe(balance => this.smsCreditBalance.next(balance));
+        },
+        error: () => {
+          // If preview fails (permissions etc.), fall back to credits endpoint
+          this.http.get<number>(`${this.apiUrl}/credits`).subscribe({
+            next: balance => this.smsCreditBalance.next(balance),
+            error: (err) => {
+              console.error('[CommunicationService][fetchSmsCreditBalance] both preview and credits endpoints failed', err);
+            }
+          });
+        }
+      });
+    } catch (e) {
+      // Ensure any unexpected errors fall back to the credits endpoint
+      this.http.get<number>(`${this.apiUrl}/credits`).subscribe({
+        next: balance => this.smsCreditBalance.next(balance),
+        error: (err) => console.error('[CommunicationService][fetchSmsCreditBalance] credits endpoint failed', err)
+      });
+    }
   }
 
   sendBulkSms(recipientFilter: string, message: string): Observable<any> {

@@ -63,7 +63,7 @@ export class CommunicationsComponent implements OnInit {
         this.isPreview = true;
         this.communicationService.fetchSmsCreditBalance();
       },
-      error: (err) => {
+      error: (err:any) => {
         console.error('[BulkSMS][calc][error]', err);
         this.snack.open(err?.error?.message || 'Failed to calculate bulk SMS', 'Close', { duration: 4000, panelClass: ['error-snackbar'], verticalPosition: 'top', horizontalPosition: 'center' });
       }

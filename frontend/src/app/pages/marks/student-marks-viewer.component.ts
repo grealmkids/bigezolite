@@ -48,11 +48,15 @@ export class StudentMarksViewerComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    const storedSchoolId = localStorage.getItem('currentSchoolId');
-    if (storedSchoolId) {
-      this.schoolId = parseInt(storedSchoolId);
-      this.loadExamSets();
-    }
+    this.schoolService.getMySchool().subscribe({
+      next: (school) => {
+        if (school) {
+          this.schoolId = school.school_id;
+          this.loadExamSets();
+        }
+      },
+      error: (err) => console.error('Error loading school:', err)
+    });
   }
 
   loadExamSets(): void {

@@ -1,41 +1,109 @@
 <div class="bulk-upload">
   <div class="header">
-    <h1>Bulk Upload Marks</h1>
+    <h1>Bulk Upload Marks by Subject</h1>
     <button (click)="goBack()" class="btn-secondary">Back to Dashboard</button>
   </div>
 
   <div class="upload-section">
+    <!-- Step 1: Select Class Level -->
     <div class="step">
-      <h2>Step 1: Select Exam Set</h2>
-      <select [(ngModel)]="selectedExamSet" class="exam-select">
+      <h2>Step 1: Select Class Level</h2>
+      <select
+        [(ngModel)]="selectedClass"
+        (change)="onClassChange()"
+        name="classLevel"
+      >
+        <option value="" disabled>Select Class Level</option>
+        <option *ngFor="let cls of classes" [value]="cls">{{ cls }}</option>
+      </select>
+      <div *ngIf="classes.length === 0" class="info-message">
+        No classes available
+      </div>
+    </div>
+
+    <!-- Step 2: Select Exam Set -->
+    <div class="step" *ngIf="selectedClass">
+      <h2>Step 2: Select Exam Set</h2>
+      <select
+        [(ngModel)]="selectedExamSetId"
+        (change)="onExamSetChange()"
+        name="examSetId"
+        [disabled]="loading"
+      >
         <option [value]="null">-- Select an Exam Set --</option>
         <option *ngFor="let examSet of examSets" [value]="examSet.exam_set_id">
-          {{ examSet.set_name }} - {{ examSet.class_level }} (Term
-          {{ examSet.term }}, {{ examSet.year }})
+          {{ examSet.set_name }} (Term {{ examSet.term }}, {{ examSet.year }})
         </option>
       </select>
+      <div *ngIf="examSets.length === 0 && !loading" class="warning-message">
+        No exam sets available for {{ selectedClass }}. Please create one first.
+      </div>
     </div>
 
-    <div class="step" *ngIf="selectedExamSet">
-      <h2>Step 2: Download Template</h2>
-      <p>Download the template with the correct format for this exam set</p>
-      <button (click)="downloadTemplate()" class="btn-primary">
+    <!-- Step 3: Select Subject -->
+    <div class="step" *ngIf="selectedExamSetId">
+      <h2>Step 3: Select Subject</h2>
+      <select
+        [(ngModel)]="selectedSubjectId"
+        (change)="onSubjectChange()"
+        name="subjectId"
+        [disabled]="loading"
+      >
+        <option [value]="null">-- Select a Subject --</option>
+        <option *ngFor="let subject of subjects" [value]="subject.subject_id">
+          {{ subject.subject_name }}
+        </option>
+      </select>
+      <div *ngIf="subjects.length === 0 && !loading" class="info-message">
+        No subjects found for this exam set.
+      </div>
+    </div>
+
+    <!-- Step 4: Download Template -->
+    <div
+      class="step"
+      *ngIf="selectedSubjectId && assessmentElements.length > 0"
+    >
+      <h2>Step 4: Download Template</h2>
+      <p>Download the template for {{ getSelectedSubjectName() }}</p>
+      <div *ngIf="loadingElements" class="info-message">
+        Loading assessment elements...
+      </div>
+      <button
+        *ngIf="!loadingElements"
+        (click)="downloadTemplate()"
+        class="btn-primary"
+      >
         Download Excel Template
       </button>
+      <div class="elements-preview">
+        <h3>Assessment Elements:</h3>
+        <ul>
+          <li *ngFor="let element of assessmentElements">
+            {{ element.element_name }} (Max: {{ element.max_score }})
+          </li>
+        </ul>
+      </div>
     </div>
 
-    <div class="step" *ngIf="selectedExamSet">
-      <h2>Step 3: Upload Completed File</h2>
-      <p>Fill in the template and upload it here</p>
+    <!-- Step 5: Upload File -->
+    <div
+      class="step"
+      *ngIf="selectedSubjectId && assessmentElements.length > 0"
+    >
+      <h2>Step 5: Upload Completed File</h2>
+      <p>Fill in the template with student marks and upload it here</p>
       <input
         type="file"
         (change)="onFileSelect($event)"
         accept=".xlsx,.xls,.csv"
         class="file-input"
+        [disabled]="loading"
       />
       <div *ngIf="loading" class="loading">Processing upload...</div>
     </div>
 
+    <!-- Upload Results -->
     <div class="results" *ngIf="uploadResult">
       <h2>Upload Results</h2>
       <div class="success-count">
@@ -51,6 +119,7 @@
     </div>
   </div>
 
+  <!-- Instructions -->
   <div class="instructions">
     <h3>Instructions</h3>
     <ol>

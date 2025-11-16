@@ -103,6 +103,12 @@ export class CalculationService {
     exam_set_id: number,
     subject_id: number
   ): Promise<any> {
+    console.log('[CalculationService.calculateStudentSubjectMarks] Starting', {
+      student_id,
+      exam_set_id,
+      subject_id
+    });
+
     // Get all assessment elements for this subject/exam set
     const elementsQuery = `
       SELECT element_id, element_name, max_score, contributing_weight_percent
@@ -110,10 +116,13 @@ export class CalculationService {
       WHERE exam_set_id = $1 AND subject_id = $2
       ORDER BY element_id
     `;
+    console.log('[CalculationService.calculateStudentSubjectMarks] Fetching elements');
     const elementsResult = await pool.query(elementsQuery, [exam_set_id, subject_id]);
     const elements = elementsResult.rows;
+    console.log('[CalculationService.calculateStudentSubjectMarks] Elements found:', elements.length);
 
     if (elements.length === 0) {
+      console.log('[CalculationService.calculateStudentSubjectMarks] No elements found, returning null');
       return null;
     }
 
@@ -132,10 +141,13 @@ export class CalculationService {
         AND cae.subject_id = $3
       ORDER BY re.element_id
     `;
+    console.log('[CalculationService.calculateStudentSubjectMarks] Fetching marks');
     const marksResult = await pool.query(marksQuery, [student_id, exam_set_id, subject_id]);
     const marks = marksResult.rows;
+    console.log('[CalculationService.calculateStudentSubjectMarks] Marks found:', marks.length);
 
     if (marks.length === 0) {
+      console.log('[CalculationService.calculateStudentSubjectMarks] No marks found for student in this subject');
       return {
         student_id,
         exam_set_id,
@@ -168,7 +180,7 @@ export class CalculationService {
 
     const percentage = total_max_marks > 0 ? (total_marks / total_max_marks) * 100 : 0;
 
-    return {
+    const result = {
       student_id,
       exam_set_id,
       subject_id,
@@ -177,6 +189,15 @@ export class CalculationService {
       percentage: Math.round(percentage * 100) / 100,
       elements_data
     };
+
+    console.log('[CalculationService.calculateStudentSubjectMarks] Calculation complete', {
+      student_id,
+      subject_id,
+      total_marks,
+      percentage: result.percentage
+    });
+
+    return result;
   }
 
   /**
@@ -192,6 +213,13 @@ export class CalculationService {
     exam_set_id: number,
     school_id: number
   ): Promise<any> {
+    console.log('[CalculationService] Starting student report calculation', {
+      student_id,
+      exam_set_id,
+      school_id,
+      timestamp: new Date().toISOString()
+    });
+
     // Get exam set details
     const examSetQuery = `
       SELECT es.*, css.curriculum_type
@@ -199,11 +227,19 @@ export class CalculationService {
       LEFT JOIN config_school_settings css ON es.school_id = css.school_id
       WHERE es.exam_set_id = $1
     `;
+    console.log('[CalculationService] Fetching exam set:', exam_set_id);
     const examSetResult = await pool.query(examSetQuery, [exam_set_id]);
     if (examSetResult.rows.length === 0) {
+      console.log('[CalculationService] Exam set not found:', exam_set_id);
       throw new Error('Exam set not found');
     }
     const examSet = examSetResult.rows[0];
+    console.log('[CalculationService] Exam set found:', {
+      exam_set_id,
+      term: examSet.term,
+      year: examSet.year,
+      curriculum_type: examSet.curriculum_type
+    });
 
     // Get all subjects for this exam set
     const subjectsQuery = `
@@ -211,12 +247,19 @@ export class CalculationService {
       FROM config_assessment_elements
       WHERE exam_set_id = $1
     `;
+    console.log('[CalculationService] Fetching subjects for exam set:', exam_set_id);
     const subjectsResult = await pool.query(subjectsQuery, [exam_set_id]);
     const subjects = subjectsResult.rows;
+    console.log('[CalculationService] Subjects found:', subjects.length);
 
     // Calculate marks for each subject
     const subjectMarks = [];
     for (const subject of subjects) {
+      console.log('[CalculationService] Calculating marks for subject:', {
+        student_id,
+        exam_set_id,
+        subject_id: subject.subject_id
+      });
       const marks = await this.calculateStudentSubjectMarks(
         student_id,
         exam_set_id,
@@ -224,11 +267,21 @@ export class CalculationService {
       );
       if (marks) {
         subjectMarks.push(marks);
+        console.log('[CalculationService] Subject marks calculated:', {
+          subject_id: subject.subject_id,
+          total_marks: marks.total_marks_obtained,
+          percentage: marks.percentage
+        });
+      } else {
+        console.log('[CalculationService] No marks found for subject:', subject.subject_id);
       }
     }
 
+    console.log('[CalculationService] Total subjects with marks:', subjectMarks.length);
+
     // Get assessment weights for the school
     const weightConfig = await this.getGradingConfig(school_id);
+    console.log('[CalculationService] Weight config retrieved:', weightConfig);
     
     // Determine weights based on curriculum type
     let formativeWeight = 20; // Default LSC
@@ -242,10 +295,16 @@ export class CalculationService {
       summativeWeight = 60;
     }
 
+    console.log('[CalculationService] Using weights:', {
+      formativeWeight,
+      summativeWeight
+    });
+
     // Get grading scales
     const scales = await this.getGradingScales(school_id);
+    console.log('[CalculationService] Grading scales retrieved:', scales.length);
 
-    return {
+    const result = {
       student_id,
       exam_set_id,
       school_id,
@@ -261,6 +320,15 @@ export class CalculationService {
       grading_scales: scales,
       generated_at: new Date()
     };
+
+    console.log('[CalculationService] Report calculation complete', {
+      student_id,
+      exam_set_id,
+      subjectCount: subjectMarks.length,
+      scaleCount: scales.length
+    });
+
+    return result;
   }
 
   /**

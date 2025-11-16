@@ -20,12 +20,25 @@ export class PdfGenerationService {
     res: Response
   ): Promise<void> {
     try {
+      console.log('[PdfGenerationService] Starting PDF generation', { 
+        student_id, 
+        exam_set_id, 
+        school_id,
+        timestamp: new Date().toISOString()
+      });
+
       // Get calculation data
+      console.log('[PdfGenerationService] Calculating student report');
       const reportData = await calculationService.calculateStudentReport(
         student_id,
         exam_set_id,
         school_id
       );
+      console.log('[PdfGenerationService] Report calculation complete', {
+        subjectCount: reportData.subjects?.length || 0,
+        hasGradingScales: !!reportData.grading_scales,
+        hasHolisticFeedback: !!reportData.holistic_feedback
+      });
 
       // Get student details
       const studentQuery = `
@@ -34,24 +47,41 @@ export class PdfGenerationService {
         JOIN schools sch ON s.school_id = sch.school_id
         WHERE s.student_id = $1
       `;
+      console.log('[PdfGenerationService] Fetching student details for ID:', student_id);
       const studentResult = await pool.query(studentQuery, [student_id]);
       if (studentResult.rows.length === 0) {
+        console.log('[PdfGenerationService] Student not found:', student_id);
         throw new Error('Student not found');
       }
       const student = studentResult.rows[0];
+      console.log('[PdfGenerationService] Student found:', { 
+        student_id: student.student_id,
+        name: student.full_name,
+        school: student.school_name
+      });
 
       // Get exam set details
       const examSetQuery = `
         SELECT * FROM config_exam_sets WHERE exam_set_id = $1
       `;
+      console.log('[PdfGenerationService] Fetching exam set details for ID:', exam_set_id);
       const examSetResult = await pool.query(examSetQuery, [exam_set_id]);
       if (examSetResult.rows.length === 0) {
+        console.log('[PdfGenerationService] Exam set not found:', exam_set_id);
         throw new Error('Exam set not found');
       }
       const examSet = examSetResult.rows[0];
+      console.log('[PdfGenerationService] Exam set found:', { 
+        exam_set_id: examSet.exam_set_id,
+        name: examSet.set_name,
+        term: examSet.term,
+        year: examSet.year
+      });
 
       // Generate HTML content (will be converted to PDF by frontend)
+      console.log('[PdfGenerationService] Generating HTML content');
       const htmlContent = this.generateReportHtml(student, examSet, reportData);
+      console.log('[PdfGenerationService] HTML generated, length:', htmlContent.length);
 
       // Set response headers for PDF
       res.setHeader('Content-Type', 'application/pdf');
@@ -60,11 +90,20 @@ export class PdfGenerationService {
         `attachment; filename="Report_${student.full_name}_${examSet.set_name}.pdf"`
       );
 
+      console.log('[PdfGenerationService] Sending PDF response');
       // Send HTML as response (frontend will handle conversion)
       // In production, use Puppeteer to convert HTML to PDF
       res.send(htmlContent);
+      console.log('[PdfGenerationService] PDF sent successfully');
     } catch (error) {
-      console.error('Error generating PDF:', error);
+      console.error('[PdfGenerationService] Error generating PDF:', {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        student_id,
+        exam_set_id,
+        school_id,
+        timestamp: new Date().toISOString()
+      });
       res.status(500).json({
         error: 'Failed to generate report',
         message: error instanceof Error ? error.message : 'Unknown error'

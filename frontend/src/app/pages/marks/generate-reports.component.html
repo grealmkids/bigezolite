@@ -1,31 +1,93 @@
 <div class="generate-reports">
   <div class="header">
-    <h1>Generate Reports</h1>
+    <h1>Generate Student Reports</h1>
     <button (click)="goBack()" class="btn-secondary">Back to Dashboard</button>
   </div>
 
-  <div class="report-form">
-    <div class="form-group">
-      <label>Select Exam Set *</label>
-      <select [(ngModel)]="selectedExamSetId" name="examSetId">
-        <option [value]="null" disabled>Choose an exam set</option>
-        <option *ngFor="let examSet of examSets" [value]="examSet.exam_set_id">
-          {{ examSet.set_name }} ({{ examSet.class_level }} - Term
-          {{ examSet.term }}, {{ examSet.year }})
-        </option>
-      </select>
+  <!-- Filters Section -->
+  <div class="filters-section">
+    <h2>Filter by Class & Year</h2>
+    <div class="filters-grid">
+      <div class="form-group">
+        <label>Class Level *</label>
+        <select
+          [(ngModel)]="selectedClass"
+          (change)="onClassChange()"
+          name="classLevel"
+        >
+          <option value="" disabled>Select Class Level</option>
+          <option *ngFor="let cls of classes" [value]="cls">{{ cls }}</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Year *</label>
+        <select
+          [(ngModel)]="selectedYear"
+          (change)="onYearChange()"
+          name="year"
+        >
+          <option *ngFor="let year of years" [value]="year">{{ year }}</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Exam Set (Optional)</label>
+        <select [(ngModel)]="selectedExamSetId" name="examSetId">
+          <option [value]="null">All Exams</option>
+          <option
+            *ngFor="let examSet of examSets"
+            [value]="examSet.exam_set_id"
+          >
+            {{ examSet.set_name }} (Term {{ examSet.term }})
+          </option>
+        </select>
+      </div>
     </div>
 
-    <button
-      (click)="generateReport()"
-      [disabled]="generatingReport || !selectedExamSetId"
-      class="btn-primary"
-    >
-      {{ generatingReport ? "Generating..." : "Generate Report" }}
-    </button>
+    <div *ngIf="examSets.length === 0 && !loading" class="warning-message">
+      ⚠ No exam sets available for {{ selectedClass }} in {{ selectedYear }}.
+      Please create an exam set first.
+    </div>
   </div>
 
-  <div *ngIf="examSets.length === 0 && !loading" class="empty-state">
-    <p>No exam sets available. Please create an exam set first.</p>
+  <!-- Students List Section -->
+  <div class="students-section" *ngIf="selectedClass">
+    <h2>Students in {{ selectedClass }}</h2>
+
+    <div *ngIf="loadingStudents" class="info-message">Loading students...</div>
+
+    <div *ngIf="!loadingStudents && students.length === 0" class="info-message">
+      No students found for {{ selectedClass }}.
+    </div>
+
+    <div *ngIf="!loadingStudents && students.length > 0" class="students-table">
+      <table>
+        <thead>
+          <tr>
+            <th>Student Name</th>
+            <th>Registration Number</th>
+            <th>Class</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let student of students">
+            <td>{{ student.student_name }}</td>
+            <td>{{ student.reg_number }}</td>
+            <td>{{ student.class_name }}</td>
+            <td>
+              <button
+                (click)="createStudentReport(student)"
+                [disabled]="generatingReport || !selectedExamSetId"
+                class="btn-create-report"
+              >
+                {{ generatingReport ? "Generating..." : "Create Report" }}
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>

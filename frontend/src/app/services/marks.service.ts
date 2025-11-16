@@ -31,6 +31,7 @@ export interface AssessmentElement {
   element_id: number;
   school_id: number;
   subject_id: number;
+  subject_name?: string;
   exam_set_id: number;
   element_name: string;
   max_score: number;

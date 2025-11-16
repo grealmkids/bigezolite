@@ -47,7 +47,7 @@ export class ExamSetService {
 
       const studentsQuery = `
         SELECT student_id FROM students
-        WHERE school_id = $1 AND class = $2
+        WHERE school_id = $1 AND class_name = $2
       `;
       
       const studentsResult = await client.query(studentsQuery, [request.school_id, request.class_level]);

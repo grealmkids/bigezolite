@@ -1,0 +1,71 @@
+<div class="student-report">
+  <div class="header">
+    <button class="back-btn" (click)="goBack()">← Back to Marks Viewer</button>
+    <h2>Student Report Card</h2>
+  </div>
+
+  <div *ngIf="loading" class="loading">Loading student report...</div>
+
+  <div *ngIf="!loading && student && result && examSet" class="report-content">
+    <div class="student-info">
+      <div class="info-block">
+        <label>Student Name:</label>
+        <p>{{ student.student_name }}</p>
+      </div>
+      <div class="info-block">
+        <label>Registration Number:</label>
+        <p>{{ student.reg_number }}</p>
+      </div>
+      <div class="info-block">
+        <label>Exam Set:</label>
+        <p>{{ examSet.set_name }}</p>
+      </div>
+      <div class="info-block">
+        <label>Class Level:</label>
+        <p>{{ examSet.class_level }}</p>
+      </div>
+    </div>
+
+    <div class="results-section">
+      <h3>Assessment Results</h3>
+
+      <div class="results-grid">
+        <div class="result-card">
+          <label>Formative (CA)</label>
+          <p class="score">{{ result.formative_score | number : "1.1-1" }}</p>
+        </div>
+        <div class="result-card">
+          <label>Summative</label>
+          <p class="score">{{ result.summative_score | number : "1.1-1" }}</p>
+        </div>
+        <div class="result-card highlight">
+          <label>Final Grade</label>
+          <p class="grade">{{ result.final_grade }}</p>
+        </div>
+      </div>
+
+      <div class="feedback-section">
+        <h4>Holistic Feedback</h4>
+        <div class="feedback-text">
+          {{ result.holistic_feedback || "No feedback provided yet." }}
+        </div>
+      </div>
+    </div>
+
+    <div class="report-actions">
+      <button
+        class="btn-download"
+        (click)="generatePDF()"
+        [disabled]="generating"
+      >
+        {{ generating ? "Generating..." : "📄 Download PDF Report" }}
+      </button>
+      <button class="btn-back" (click)="goBack()">Back</button>
+    </div>
+  </div>
+
+  <div *ngIf="!loading && (!student || !result || !examSet)" class="no-data">
+    <p>Unable to load student report data.</p>
+    <button (click)="goBack()">Back to Marks Viewer</button>
+  </div>
+</div>

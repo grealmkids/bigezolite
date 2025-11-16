@@ -1,0 +1,31 @@
+<div class="generate-reports">
+  <div class="header">
+    <h1>Generate Reports</h1>
+    <button (click)="goBack()" class="btn-secondary">Back to Dashboard</button>
+  </div>
+
+  <div class="report-form">
+    <div class="form-group">
+      <label>Select Exam Set *</label>
+      <select [(ngModel)]="selectedExamSetId" name="examSetId">
+        <option [value]="null" disabled>Choose an exam set</option>
+        <option *ngFor="let examSet of examSets" [value]="examSet.exam_set_id">
+          {{ examSet.set_name }} ({{ examSet.class_level }} - Term
+          {{ examSet.term }}, {{ examSet.year }})
+        </option>
+      </select>
+    </div>
+
+    <button
+      (click)="generateReport()"
+      [disabled]="generatingReport || !selectedExamSetId"
+      class="btn-primary"
+    >
+      {{ generatingReport ? "Generating..." : "Generate Report" }}
+    </button>
+  </div>
+
+  <div *ngIf="examSets.length === 0 && !loading" class="empty-state">
+    <p>No exam sets available. Please create an exam set first.</p>
+  </div>
+</div>

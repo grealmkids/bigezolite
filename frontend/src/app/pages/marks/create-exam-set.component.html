@@ -1,0 +1,172 @@
+<div class="create-exam-set">
+  <div class="header">
+    <h1>Create New Exam Set</h1>
+    <button (click)="goBack()" class="btn-secondary">Back to Dashboard</button>
+  </div>
+
+  <form class="exam-set-form">
+    <div class="form-section">
+      <h2>Basic Information</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Exam Set Name *</label>
+          <input
+            type="text"
+            [(ngModel)]="setName"
+            name="setName"
+            placeholder="e.g., Mid Term Exams"
+            required
+          />
+        </div>
+        <div class="form-group">
+          <label>Class Level *</label>
+          <select
+            [(ngModel)]="classLevel"
+            name="classLevel"
+            (change)="onClassLevelChange()"
+            required
+            [disabled]="loadingClasses"
+          >
+            <option value="" disabled>Select Class Level</option>
+            <option *ngFor="let cls of classes" [value]="cls">{{ cls }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Term *</label>
+          <select [(ngModel)]="term" name="term">
+            <option [value]="1">Term 1</option>
+            <option [value]="2">Term 2</option>
+            <option [value]="3">Term 3</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Year *</label>
+          <select [(ngModel)]="year" name="year" required>
+            <option *ngFor="let y of availableYears" [value]="y">
+              {{ y }}
+            </option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Assessment Type *</label>
+          <select [(ngModel)]="assessmentType" name="assessmentType">
+            <option value="Formative">Formative</option>
+            <option value="Summative">Summative</option>
+            <option value="Mixed">Mixed</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h2>Select Subjects</h2>
+      <div *ngIf="!classLevel" class="info-message">
+        👆 Please select a class level above to load available subjects
+      </div>
+      <div *ngIf="classLevel && loadingSubjects" class="info-message">
+        Loading subjects...
+      </div>
+      <div
+        *ngIf="classLevel && !loadingSubjects && availableSubjects.length === 0"
+        class="warning-message"
+      >
+        ⚠ No subjects found for this class level. Please check the database or
+        try a different class.
+      </div>
+      <div *ngIf="availableSubjects.length > 0" class="subjects-list">
+        <div *ngFor="let subject of availableSubjects" class="subject-item">
+          <span>{{ subject.subject_name }} ({{ subject.subject_type }})</span>
+          <button type="button" (click)="addSubject(subject)" class="btn-add">
+            Add
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section" *ngIf="selectedSubjects.length > 0">
+      <h2>Configure Assessment Elements</h2>
+      <div *ngFor="let subject of selectedSubjects" class="subject-config">
+        <div class="subject-header">
+          <h3>{{ subject.subject_name }}</h3>
+          <button
+            type="button"
+            (click)="removeSubject(subject.subject_id)"
+            class="btn-remove"
+          >
+            Remove Subject
+          </button>
+        </div>
+
+        <div
+          *ngFor="let element of subject.elements; let i = index"
+          class="element-row"
+        >
+          <input
+            type="text"
+            [(ngModel)]="element.element_name"
+            [name]="'element_name_' + subject.subject_id + '_' + i"
+            placeholder="Element Name (e.g., Paper 1)"
+            required
+          />
+          <input
+            type="number"
+            [(ngModel)]="element.max_score"
+            [name]="'max_score_' + subject.subject_id + '_' + i"
+            placeholder="Max Score"
+            min="1"
+            required
+          />
+          <input
+            type="number"
+            [(ngModel)]="element.contributing_weight_percent"
+            [name]="'weight_' + subject.subject_id + '_' + i"
+            placeholder="Weight %"
+            min="0"
+            max="100"
+            step="0.01"
+            required
+          />
+          <button
+            type="button"
+            (click)="removeElement(subject, i)"
+            class="btn-icon"
+          >
+            ✕
+          </button>
+        </div>
+
+        <button
+          type="button"
+          (click)="addElement(subject)"
+          class="btn-secondary"
+        >
+          + Add Element
+        </button>
+
+        <div class="weight-total">
+          Total Weight: {{ totalWeight(subject) | number : "1.2-2" }}%
+          <span *ngIf="weightWarning(subject)" class="warning"
+            >⚠ Must equal 100%</span
+          >
+        </div>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button
+        type="button"
+        (click)="createExamSet()"
+        [disabled]="loading"
+        class="btn-primary"
+      >
+        {{ loading ? "Creating..." : "Create Exam Set" }}
+      </button>
+      <button type="button" (click)="goBack()" class="btn-secondary">
+        Cancel
+      </button>
+    </div>
+  </form>
+</div>

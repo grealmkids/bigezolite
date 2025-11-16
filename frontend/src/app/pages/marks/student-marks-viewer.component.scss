@@ -1,0 +1,267 @@
+.student-marks-viewer {
+  padding: 24px;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+
+  .back-btn {
+    padding: 8px 16px;
+    background: #f0f0f0;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.2s;
+
+    &:hover {
+      background: #e0e0e0;
+    }
+  }
+
+  h2 {
+    margin: 0;
+    font-size: 24px;
+    color: #333;
+  }
+}
+
+.controls {
+  margin-bottom: 24px;
+  background: #f9f9f9;
+  padding: 16px;
+  border-radius: 4px;
+
+  .exam-selector {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    label {
+      font-weight: 600;
+      color: #333;
+      min-width: 150px;
+    }
+
+    .select-field {
+      flex: 1;
+      max-width: 400px;
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+      cursor: pointer;
+
+      &:focus {
+        outline: none;
+        border-color: #1976d2;
+        box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.1);
+      }
+    }
+  }
+}
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  font-size: 16px;
+  color: #666;
+}
+
+.marks-section {
+  .marks-info {
+    background: #f5f5f5;
+    padding: 12px 16px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+    display: flex;
+    gap: 24px;
+    align-items: center;
+    font-size: 14px;
+
+    p {
+      margin: 0;
+      color: #333;
+
+      strong {
+        display: inline-block;
+        min-width: 130px;
+      }
+
+      &.changes-indicator {
+        color: #d32f2f;
+        font-weight: 600;
+      }
+    }
+  }
+
+  .table-wrapper {
+    overflow-x: auto;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 24px;
+
+    .marks-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+
+      thead {
+        background: #f5f5f5;
+        border-bottom: 2px solid #ddd;
+        position: sticky;
+        top: 0;
+
+        tr {
+          th {
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            font-size: 13px;
+            white-space: nowrap;
+          }
+        }
+      }
+
+      tbody {
+        tr {
+          border-bottom: 1px solid #eee;
+          transition: background 0.2s;
+
+          &:hover {
+            background: #f9f9f9;
+          }
+
+          td {
+            padding: 12px;
+            color: #333;
+
+            &.col-student {
+              font-weight: 500;
+              min-width: 200px;
+            }
+
+            &.col-reg {
+              font-family: monospace;
+              min-width: 120px;
+              color: #666;
+            }
+
+            &.col-subject {
+              min-width: 100px;
+
+              .mark-input {
+                width: 90px;
+                padding: 6px 8px;
+                border: 1px solid #ddd;
+                border-radius: 3px;
+                font-size: 14px;
+                text-align: center;
+                transition: border-color 0.2s, box-shadow 0.2s;
+
+                &:focus {
+                  outline: none;
+                  border-color: #1976d2;
+                  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.1);
+                }
+
+                &.dirty {
+                  background: #fffde7;
+                  border-color: #fbc02d;
+                }
+              }
+            }
+
+            &.col-action {
+              min-width: 110px;
+
+              .btn-report {
+                padding: 6px 12px;
+                background: #1976d2;
+                color: white;
+                border: none;
+                border-radius: 3px;
+                font-size: 12px;
+                cursor: pointer;
+                transition: background 0.2s;
+
+                &:hover {
+                  background: #1565c0;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .form-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.2s;
+
+      &.save-btn {
+        background: #388e3c;
+        color: white;
+
+        &:hover:not(:disabled) {
+          background: #2e7d32;
+        }
+
+        &:disabled {
+          background: #ccc;
+          cursor: not-allowed;
+        }
+      }
+
+      &.cancel-btn {
+        background: #f0f0f0;
+        color: #333;
+
+        &:hover {
+          background: #e0e0e0;
+        }
+      }
+    }
+  }
+}
+
+.empty-state,
+.no-data {
+  text-align: center;
+  padding: 60px 20px;
+  color: #666;
+
+  p {
+    margin-bottom: 20px;
+    font-size: 16px;
+  }
+
+  button {
+    padding: 10px 20px;
+    background: #1976d2;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+
+    &:hover {
+      background: #1565c0;
+    }
+  }
+}

@@ -1,0 +1,223 @@
+.create-exam-set {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      color: #333;
+    }
+  }
+
+  .exam-set-form {
+    .form-section {
+      background: white;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      margin-bottom: 2rem;
+
+      h2 {
+        font-size: 1.5rem;
+        margin-bottom: 1.5rem;
+        color: #333;
+      }
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+
+      label {
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        color: #555;
+      }
+
+      input, select {
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 1rem;
+
+        &:focus {
+          outline: none;
+          border-color: #4A90E2;
+        }
+      }
+    }
+
+    .info-message {
+      padding: 1rem;
+      background: #F0F8FF;
+      border-left: 4px solid #4A90E2;
+      color: #333;
+    }
+
+    .warning-message {
+      padding: 1rem;
+      background: #FFF8E1;
+      border-left: 4px solid #FF9800;
+      color: #FF6F00;
+      font-weight: 500;
+    }
+
+    .subjects-list {
+      display: grid;
+      gap: 0.75rem;
+
+      .subject-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        background: #f9f9f9;
+        border-radius: 6px;
+
+        span {
+          font-weight: 500;
+        }
+
+        .btn-add {
+          padding: 0.5rem 1rem;
+          background: #4A90E2;
+          color: white;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+
+          &:hover {
+            background: #357ABD;
+          }
+        }
+      }
+    }
+
+    .subject-config {
+      background: #f9f9f9;
+      padding: 1.5rem;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+
+      .subject-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+
+        h3 {
+          font-size: 1.2rem;
+          color: #333;
+        }
+
+        .btn-remove {
+          padding: 0.5rem 1rem;
+          background: #dc3545;
+          color: white;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+
+          &:hover {
+            background: #c82333;
+          }
+        }
+      }
+
+      .element-row {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr auto;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+
+        input {
+          padding: 0.6rem;
+          border: 1px solid #ddd;
+          border-radius: 4px;
+
+          &:focus {
+            outline: none;
+            border-color: #4A90E2;
+          }
+        }
+
+        .btn-icon {
+          padding: 0.6rem 1rem;
+          background: #dc3545;
+          color: white;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+
+          &:hover {
+            background: #c82333;
+          }
+        }
+      }
+
+      .weight-total {
+        margin-top: 1rem;
+        font-weight: 500;
+        color: #333;
+
+        .warning {
+          margin-left: 1rem;
+          color: #dc3545;
+        }
+      }
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: flex-end;
+      margin-top: 2rem;
+    }
+  }
+
+  .btn-primary, .btn-secondary {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+
+  .btn-primary {
+    background-color: #4A90E2;
+    color: white;
+
+    &:hover:not(:disabled) {
+      background-color: #357ABD;
+    }
+  }
+
+  .btn-secondary {
+    background-color: #E8E8E8;
+    color: #333;
+
+    &:hover {
+      background-color: #D0D0D0;
+    }
+  }
+}

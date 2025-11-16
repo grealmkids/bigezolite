@@ -1,0 +1,65 @@
+<div class="marks-dashboard">
+  <div class="header">
+    <h1>Assessment & Marks Management</h1>
+    <button routerLink="/marks/create-exam-set" class="btn-primary">
+      Create New Exam Set
+    </button>
+  </div>
+
+  <div class="quick-actions">
+    <a routerLink="/marks/subjects" class="action-card">
+      <h3>Manage Subjects</h3>
+      <p>Configure subjects for different class levels</p>
+    </a>
+    <a routerLink="/marks/grading" class="action-card">
+      <h3>Grading Configuration</h3>
+      <p>Set up grading scales and school settings</p>
+    </a>
+    <a routerLink="/marks/bulk-upload" class="action-card">
+      <h3>Bulk Upload Marks</h3>
+      <p>Upload marks via Excel/CSV</p>
+    </a>
+    <a routerLink="/marks/reports" class="action-card">
+      <h3>Generate Reports</h3>
+      <p>Create student report cards</p>
+    </a>
+    <a routerLink="/marks/view-marks" class="action-card">
+      <h3>View & Edit Marks</h3>
+      <p>Editable table with all student marks</p>
+    </a>
+    <a routerLink="/marks/quick-entry" class="action-card">
+      <h3>Quick Mark Entry</h3>
+      <p>Enter single marks quickly</p>
+    </a>
+  </div>
+
+  <div class="exam-sets-section">
+    <h2>Recent Exam Sets</h2>
+    <div *ngIf="loading" class="loading">Loading...</div>
+    <div *ngIf="!loading && examSets.length === 0" class="empty-state">
+      No exam sets created yet. Create your first exam set to get started.
+    </div>
+    <div *ngIf="!loading && examSets.length > 0" class="exam-sets-grid">
+      <div *ngFor="let examSet of examSets" class="exam-set-card">
+        <h3>{{ examSet.set_name }}</h3>
+        <p>Class: {{ examSet.class_level }}</p>
+        <p>Term {{ examSet.term }}, {{ examSet.year }}</p>
+        <p>Type: {{ examSet.assessment_type }}</p>
+        <div class="card-actions">
+          <button
+            [routerLink]="['/marks/exam-set', examSet.exam_set_id]"
+            class="btn-secondary"
+          >
+            View Details
+          </button>
+          <button
+            [routerLink]="['/marks/enter-marks', examSet.exam_set_id]"
+            class="btn-primary"
+          >
+            Enter Marks
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

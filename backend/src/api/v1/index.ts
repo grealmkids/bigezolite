@@ -9,6 +9,7 @@ import subscriptionRoutes from './subscription.routes';
 import authRoutes from './auth.routes';
 import analyticsRoutes from './analytics.routes';
 import feesToTrackRoutes from './fees-to-track.routes';
+import marksRoutes from './marks.routes';
 
 const router = Router();
 
@@ -21,5 +22,6 @@ router.use('/communications', communicationRoutes);
 router.use('/subscription', subscriptionRoutes);
 router.use('/auth', authRoutes);
 router.use('/analytics', analyticsRoutes);
+router.use('/marks', marksRoutes);
 
 export default router;

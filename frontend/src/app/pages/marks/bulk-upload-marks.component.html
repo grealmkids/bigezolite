@@ -1,0 +1,66 @@
+<div class="bulk-upload">
+  <div class="header">
+    <h1>Bulk Upload Marks</h1>
+    <button (click)="goBack()" class="btn-secondary">Back to Dashboard</button>
+  </div>
+
+  <div class="upload-section">
+    <div class="step">
+      <h2>Step 1: Select Exam Set</h2>
+      <select [(ngModel)]="selectedExamSet" class="exam-select">
+        <option [value]="null">-- Select an Exam Set --</option>
+        <option *ngFor="let examSet of examSets" [value]="examSet.exam_set_id">
+          {{ examSet.set_name }} - {{ examSet.class_level }} (Term
+          {{ examSet.term }}, {{ examSet.year }})
+        </option>
+      </select>
+    </div>
+
+    <div class="step" *ngIf="selectedExamSet">
+      <h2>Step 2: Download Template</h2>
+      <p>Download the template with the correct format for this exam set</p>
+      <button (click)="downloadTemplate()" class="btn-primary">
+        Download Excel Template
+      </button>
+    </div>
+
+    <div class="step" *ngIf="selectedExamSet">
+      <h2>Step 3: Upload Completed File</h2>
+      <p>Fill in the template and upload it here</p>
+      <input
+        type="file"
+        (change)="onFileSelect($event)"
+        accept=".xlsx,.xls,.csv"
+        class="file-input"
+      />
+      <div *ngIf="loading" class="loading">Processing upload...</div>
+    </div>
+
+    <div class="results" *ngIf="uploadResult">
+      <h2>Upload Results</h2>
+      <div class="success-count">
+        ✓ Successfully processed {{ uploadResult.success }} students
+      </div>
+      <div *ngIf="uploadResult.errors.length > 0" class="errors">
+        <h3>Errors ({{ uploadResult.errors.length }})</h3>
+        <div *ngFor="let error of uploadResult.errors" class="error-item">
+          <strong>{{ error.identifier }}</strong
+          >: {{ error.error }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="instructions">
+    <h3>Instructions</h3>
+    <ol>
+      <li>Select the exam set you want to upload marks for</li>
+      <li>Download the Excel template which includes the correct columns</li>
+      <li>
+        Fill in the student marks in the template (use either Reg Number or LIN)
+      </li>
+      <li>Upload the completed file</li>
+      <li>Review any errors and re-upload if necessary</li>
+    </ol>
+  </div>
+</div>

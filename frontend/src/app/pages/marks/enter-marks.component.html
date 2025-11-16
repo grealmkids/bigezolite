@@ -1,0 +1,68 @@
+<div class="enter-marks-container">
+  <div class="header">
+    <button class="back-btn" (click)="goBack()">← Back to Dashboard</button>
+    <h2>Enter Marks for {{ examSet?.set_name }}</h2>
+  </div>
+
+  <div *ngIf="loading" class="loading">Loading exam set and students...</div>
+
+  <div
+    *ngIf="!loading && examSet && assessmentElements.length > 0"
+    class="marks-form"
+  >
+    <div class="exam-info">
+      <p><strong>Class Level:</strong> {{ examSet.class_level }}</p>
+      <p><strong>Exam Set:</strong> {{ examSet.set_name }}</p>
+      <p><strong>Total Students:</strong> {{ students.length }}</p>
+    </div>
+
+    <div class="marks-table-wrapper">
+      <table class="marks-table">
+        <thead>
+          <tr>
+            <th>Student Name</th>
+            <th>Reg Number</th>
+            <ng-container *ngFor="let element of assessmentElements">
+              <th>
+                {{ element.element_name }} <br />(Max: {{ element.max_score }})
+              </th>
+            </ng-container>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let student of students">
+            <td class="student-name">{{ student.student_name }}</td>
+            <td class="reg-number">{{ student.reg_number }}</td>
+            <ng-container *ngFor="let element of assessmentElements">
+              <td class="mark-input">
+                <input
+                  type="number"
+                  [(ngModel)]="student.marks[element.element_id]"
+                  [min]="0"
+                  [max]="element.max_score"
+                  placeholder="0"
+                  class="mark-field"
+                />
+              </td>
+            </ng-container>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="form-actions">
+      <button class="save-btn" (click)="saveMarks()" [disabled]="saving">
+        {{ saving ? "Saving..." : "Save All Marks" }}
+      </button>
+      <button class="cancel-btn" (click)="goBack()">Cancel</button>
+    </div>
+  </div>
+
+  <div
+    *ngIf="!loading && (!examSet || assessmentElements.length === 0)"
+    class="no-data"
+  >
+    <p>No exam set or assessment elements found.</p>
+    <button (click)="goBack()">Back to Dashboard</button>
+  </div>
+</div>

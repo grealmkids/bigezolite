@@ -1,0 +1,130 @@
+<div class="holistic-feedback">
+  <div class="header">
+    <h1>Holistic Feedback</h1>
+    <div class="button-group">
+      <button
+        (click)="exportAsCSV()"
+        class="btn-secondary"
+        [disabled]="loading || saving"
+      >
+        Export as CSV
+      </button>
+      <button (click)="goBack()" class="btn-secondary">
+        Back to Dashboard
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="loading-message">
+    <p>Loading students and metrics...</p>
+  </div>
+
+  <div *ngIf="!loading && students.length === 0" class="info-message">
+    <p>
+      No students found for this exam set. Please create the exam set first.
+    </p>
+  </div>
+
+  <div *ngIf="!loading && students.length > 0" class="feedback-container">
+    <!-- Filter by Metric Type -->
+    <div class="filter-section">
+      <label>Filter by Metric Type:</label>
+      <select
+        [(ngModel)]="selectedMetricType"
+        name="metricType"
+        class="filter-select"
+      >
+        <option value="all">All Types</option>
+        <option *ngFor="let type of metricTypes" [value]="type">
+          {{ type }}
+        </option>
+      </select>
+    </div>
+
+    <!-- Metrics by Type -->
+    <div
+      *ngFor="let metricType of metricTypes"
+      class="metric-group"
+      [hidden]="
+        selectedMetricType !== 'all' && selectedMetricType !== metricType
+      "
+    >
+      <div class="metric-group-header">
+        <h2>{{ metricType }}</h2>
+        <p class="metric-description">
+          Provide feedback on {{ metricType | lowercase }} for each student
+        </p>
+      </div>
+
+      <div class="metrics-grid">
+        <div
+          *ngFor="let metric of getMetricsForType(metricType)"
+          class="metric-card"
+        >
+          <div class="metric-name">{{ metric.metric_name }}</div>
+
+          <div class="students-table">
+            <div class="table-header">
+              <div class="col-student">Student</div>
+              <div class="col-rating">Rating</div>
+            </div>
+
+            <div *ngFor="let student of students" class="table-row">
+              <div class="col-student">
+                <div class="student-name">{{ student.student_name }}</div>
+                <div class="student-reg">{{ student.reg_number }}</div>
+              </div>
+              <div class="col-rating">
+                <select
+                  [value]="getStudentMetricRating(student, metric.metric_id)"
+                  (change)="
+                    updateRating(student, metric, $any($event).target.value)
+                  "
+                  class="rating-select"
+                >
+                  <option value="">Select Rating</option>
+                  <option value="Excellent">Excellent</option>
+                  <option value="Very Good">Very Good</option>
+                  <option value="Good">Good</option>
+                  <option value="Satisfactory">Satisfactory</option>
+                  <option value="Needs Improvement">Needs Improvement</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary Section -->
+    <div class="summary-section">
+      <h3>Feedback Summary</h3>
+      <div class="summary-stats">
+        <div class="stat">
+          <span class="stat-label">Total Students:</span>
+          <span class="stat-value">{{ students.length }}</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Total Metrics:</span>
+          <span class="stat-value">{{ metrics.length }}</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Metric Types:</span>
+          <span class="stat-value">{{ metricTypes.length }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Save Button -->
+    <div class="action-buttons">
+      <button
+        (click)="saveAllFeedback()"
+        [disabled]="saving"
+        class="btn-primary"
+      >
+        {{ saving ? "Saving..." : "Save All Feedback" }}
+      </button>
+      <button (click)="goBack()" class="btn-secondary">Cancel</button>
+    </div>
+  </div>
+</div>

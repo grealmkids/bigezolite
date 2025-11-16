@@ -1,0 +1,90 @@
+.generate-reports {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+
+    h1 {
+      margin: 0;
+      font-size: 28px;
+      color: #333;
+    }
+  }
+
+  .report-form {
+    background: #f5f5f5;
+    padding: 24px;
+    border-radius: 8px;
+    max-width: 500px;
+    margin-bottom: 32px;
+
+    .form-group {
+      margin-bottom: 16px;
+
+      label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: #333;
+      }
+
+      select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+      }
+    }
+  }
+
+  .empty-state {
+    background: #fff3cd;
+    border-left: 4px solid #ffc107;
+    padding: 16px;
+    border-radius: 4px;
+    color: #856404;
+
+    p {
+      margin: 0;
+    }
+  }
+}
+
+.btn-secondary {
+  padding: 10px 16px;
+  background: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+
+  &:hover {
+    background: #5a6268;
+  }
+}
+
+.btn-primary {
+  padding: 10px 20px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+
+  &:hover:not(:disabled) {
+    background: #0056b3;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}

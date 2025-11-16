@@ -1,0 +1,116 @@
+<div class="student-marks-viewer">
+  <div class="header">
+    <button class="back-btn" (click)="goBack()">← Back to Dashboard</button>
+    <h2>Student Marks Viewer & Editor</h2>
+  </div>
+
+  <div class="controls">
+    <div class="exam-selector">
+      <label for="examSetSelect">Select Exam Set:</label>
+      <select
+        id="examSetSelect"
+        [ngModel]="selectedExamSetId"
+        (change)="onExamSetChange($any($event.target).value)"
+        class="select-field"
+      >
+        <option [value]="" disabled>-- Choose Exam Set --</option>
+        <option *ngFor="let set of examSets" [value]="set.exam_set_id">
+          {{ set.set_name }} - {{ set.class_level }} (Term {{ set.term }},
+          {{ set.year }})
+        </option>
+      </select>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="loading">Loading marks and students...</div>
+
+  <div
+    *ngIf="
+      !loading &&
+      selectedExamSetId &&
+      subjects.length > 0 &&
+      students.length > 0
+    "
+    class="marks-section"
+  >
+    <div class="marks-info">
+      <p><strong>Total Students:</strong> {{ students.length }}</p>
+      <p><strong>Total Subjects:</strong> {{ subjects.length }}</p>
+      <p *ngIf="hasChanges" class="changes-indicator">
+        ⚠️ You have unsaved changes
+      </p>
+    </div>
+
+    <div class="table-wrapper">
+      <table class="marks-table">
+        <thead>
+          <tr>
+            <th class="col-student">Student Name</th>
+            <th class="col-reg">Reg Number</th>
+            <ng-container *ngFor="let subject of subjects">
+              <th class="col-subject">{{ subject.subject_name }}</th>
+            </ng-container>
+            <th class="col-action">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let student of students">
+            <td class="col-student">{{ student.student_name }}</td>
+            <td class="col-reg">{{ student.reg_number }}</td>
+            <ng-container *ngFor="let subject of subjects">
+              <td class="col-subject">
+                <input
+                  type="number"
+                  [(ngModel)]="student.marks[subject.subject_id]"
+                  (change)="
+                    onMarkChange(student.student_id, subject.subject_id)
+                  "
+                  [class.dirty]="student.marksDirty[subject.subject_id]"
+                  class="mark-input"
+                  placeholder="-"
+                  min="0"
+                />
+              </td>
+            </ng-container>
+            <td class="col-action">
+              <button
+                class="btn-report"
+                (click)="generateStudentReport(student.student_id)"
+                title="Generate individual report for this student"
+              >
+                📄 Report
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="form-actions">
+      <button
+        class="save-btn"
+        (click)="saveAllMarks()"
+        [disabled]="!hasChanges || saving"
+      >
+        {{ saving ? "Saving..." : "Save All Changes" }}
+      </button>
+      <button class="cancel-btn" (click)="goBack()">Back</button>
+    </div>
+  </div>
+
+  <div
+    *ngIf="
+      !loading &&
+      selectedExamSetId &&
+      (subjects.length === 0 || students.length === 0)
+    "
+    class="no-data"
+  >
+    <p>No subjects or students found for this exam set.</p>
+    <button (click)="goBack()">Back to Dashboard</button>
+  </div>
+
+  <div *ngIf="!loading && !selectedExamSetId" class="empty-state">
+    <p>Select an exam set to view and edit student marks.</p>
+  </div>
+</div>

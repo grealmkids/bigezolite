@@ -1,0 +1,92 @@
+<div class="manage-subjects">
+  <div class="header">
+    <h1>Manage Subjects</h1>
+    <button (click)="goBack()" class="btn-secondary">Back to Dashboard</button>
+  </div>
+
+  <div class="class-selector">
+    <label>Select Class Level *</label>
+    <select
+      [(ngModel)]="selectedClass"
+      (change)="onClassChange()"
+      [disabled]="loadingClasses"
+    >
+      <option value="">Choose a class level</option>
+      <option *ngFor="let cls of classes" [value]="cls">{{ cls }}</option>
+    </select>
+  </div>
+
+  <div *ngIf="selectedClass" class="add-subject-form">
+    <h3>Add New Subject</h3>
+    <div class="form-row">
+      <input
+        type="text"
+        [(ngModel)]="newSubject.subject_name"
+        placeholder="Subject Name"
+        required
+      />
+      <select [(ngModel)]="newSubject.subject_type">
+        <option value="Compulsory">Compulsory</option>
+        <option value="Elective">Elective</option>
+        <option value="International-Custom">International-Custom</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <input
+        type="text"
+        [(ngModel)]="newSubject.ncdc_reference_name"
+        placeholder="NCDC Reference (Optional)"
+      />
+      <input
+        type="number"
+        [(ngModel)]="newSubject.max_selections_allowed"
+        placeholder="Max Selections"
+        min="1"
+      />
+    </div>
+    <button
+      (click)="addSubject()"
+      [disabled]="isAddingSubject"
+      class="btn-primary"
+    >
+      Add Subject
+    </button>
+  </div>
+
+  <div *ngIf="selectedClass" class="subjects-list">
+    <h3>Subjects for {{ selectedClass }}</h3>
+    <div *ngIf="loading" class="loading">Loading...</div>
+    <div *ngIf="!loading && subjects.length === 0" class="empty">
+      No subjects configured yet.
+    </div>
+    <div *ngIf="!loading && subjects.length > 0" class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Subject Name</th>
+            <th>Type</th>
+            <th>NCDC Reference</th>
+            <th>Max Selections</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let subject of subjects">
+            <td>{{ subject.subject_name }}</td>
+            <td>{{ subject.subject_type }}</td>
+            <td>{{ subject.ncdc_reference_name || "-" }}</td>
+            <td>{{ subject.max_selections_allowed }}</td>
+            <td>
+              <button
+                (click)="deleteSubject(subject.subject_id)"
+                class="btn-danger"
+              >
+                Delete
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

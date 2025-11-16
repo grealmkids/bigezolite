@@ -12,6 +12,17 @@ import { AnalyticsComponent } from './pages/analytics/analytics.component';
 import { authGuard } from './guards/auth.guard';
 import { FeesToTrackComponent } from './pages/fees-to-track/fees-to-track.component';
 import { TermsComponent } from './pages/terms/terms.component';
+import { MarksDashboardComponent } from './pages/marks/marks-dashboard.component';
+import { CreateExamSetComponent } from './pages/marks/create-exam-set.component';
+import { BulkUploadMarksComponent } from './pages/marks/bulk-upload-marks.component';
+import { ManageSubjectsComponent } from './pages/marks/manage-subjects.component';
+import { GradingConfigComponent } from './pages/marks/grading-config.component';
+import { GenerateReportsComponent } from './pages/marks/generate-reports.component';
+import { EnterMarksComponent } from './pages/marks/enter-marks.component';
+import { StudentMarksViewerComponent } from './pages/marks/student-marks-viewer.component';
+import { QuickMarkEntryComponent } from './pages/marks/quick-mark-entry.component';
+import { StudentReportComponent } from './pages/marks/student-report.component';
+import { HolisticFeedbackComponent } from './pages/marks/holistic-feedback.component';
 
 export const routes: Routes = [
     { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -60,6 +71,61 @@ export const routes: Routes = [
     {
         path: 'fees-to-track',
         component: FeesToTrackComponent,
+        canActivate: [authGuard]
+    },
+    {
+        path: 'marks',
+        component: MarksDashboardComponent,
+        canActivate: [authGuard]
+    },
+    {
+        path: 'marks/create-exam-set',
+        component: CreateExamSetComponent,
+        canActivate: [authGuard]
+    },
+    {
+        path: 'marks/bulk-upload',
+        component: BulkUploadMarksComponent,
+        canActivate: [authGuard]
+    },
+    {
+        path: 'marks/subjects',
+        component: ManageSubjectsComponent,
+        canActivate: [authGuard]
+    },
+    {
+        path: 'marks/grading',
+        component: GradingConfigComponent,
+        canActivate: [authGuard]
+    },
+    {
+        path: 'marks/reports',
+        component: GenerateReportsComponent,
+        canActivate: [authGuard]
+    },
+    {
+        path: 'marks/enter-marks/:examSetId',
+        component: EnterMarksComponent,
+        canActivate: [authGuard]
+    },
+    {
+        path: 'marks/view-marks',
+        component: StudentMarksViewerComponent,
+        canActivate: [authGuard]
+    },
+    {
+        path: 'marks/quick-entry',
+        component: QuickMarkEntryComponent,
+        canActivate: [authGuard]
+    },
+    {
+        path: 'marks/student-report/:examSetId/:studentId',
+        component: StudentReportComponent,
+        canActivate: [authGuard]
+    },
+    {
+        path: 'marks/holistic-feedback/:examSetId',
+        component: HolisticFeedbackComponent,
         canActivate: [authGuard]
     },
     { path: 'terms', component: TermsComponent },

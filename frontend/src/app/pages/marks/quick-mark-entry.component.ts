@@ -127,7 +127,7 @@ export class QuickMarkEntryComponent implements OnInit {
     this.loadExamSets();
   }
 
-  onExamSetChange(examSetId: number): void {
+  onExamSetChange(examSetId: number | null): void {
     this.selectedExamSetId = examSetId;
   }
 
@@ -209,15 +209,15 @@ export class QuickMarkEntryComponent implements OnInit {
     });
   }
 
-  onSubjectChange(subjectId: number): void {
+  onSubjectChange(subjectId: number | null): void {
     this.selectedSubjectId = subjectId;
     this.selectedElementId = null;
     this.markValue = null;
   }
 
-  onElementChange(elementId: number): void {
+  onElementChange(elementId: number | null): void {
     this.selectedElementId = elementId;
-    this.selectedElement = this.assessmentElements.find(e => e.element_id === elementId) || null;
+    this.selectedElement = elementId ? this.assessmentElements.find(e => e.element_id === elementId) || null : null;
     this.markValue = null;
   }
 

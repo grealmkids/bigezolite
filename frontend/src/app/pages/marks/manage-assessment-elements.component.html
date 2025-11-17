@@ -1,0 +1,283 @@
+<div class="manage-assessment-elements">
+  <div class="header">
+    <h1>Manage Assessment Elements</h1>
+    <button (click)="goBack()" class="btn-secondary">
+      Back to Marks Dashboard
+    </button>
+  </div>
+
+  <div class="content">
+    <!-- Step 1: Select Exam Set -->
+    <div class="step-section">
+      <h2>Step 1: Select Exam Set</h2>
+      <div class="form-group">
+        <label for="examSetSelect">Choose Exam Set:</label>
+        <select
+          id="examSetSelect"
+          [(ngModel)]="selectedExamSetId"
+          name="examSetSelect"
+          (change)="onExamSetChange(selectedExamSetId)"
+          [disabled]="loading"
+        >
+          <option [value]="null" disabled>-- Select an exam set --</option>
+          <option
+            *ngFor="let examSet of examSets"
+            [value]="examSet.exam_set_id"
+          >
+            {{ examSet.set_name }} ({{ examSet.class_level }}, Term
+            {{ examSet.term }}, {{ examSet.year }})
+          </option>
+        </select>
+      </div>
+      <div *ngIf="examSets.length === 0 && !loading" class="warning-message">
+        ⚠️ No exam sets found. Please create an exam set first.
+      </div>
+    </div>
+
+    <!-- Step 2: Select Subject -->
+    <div class="step-section" [class.disabled]="!selectedExamSetId">
+      <h2>Step 2: Select Subject</h2>
+      <div class="form-group">
+        <label for="subjectSelect">Choose Subject:</label>
+        <select
+          id="subjectSelect"
+          [(ngModel)]="selectedSubjectId"
+          name="subjectSelect"
+          (change)="onSubjectChange(selectedSubjectId)"
+          [disabled]="!selectedExamSetId || loading"
+        >
+          <option [value]="null" disabled>-- Select a subject --</option>
+          <option *ngFor="let subject of subjects" [value]="subject.subject_id">
+            {{ subject.subject_name }}
+          </option>
+        </select>
+      </div>
+      <div
+        *ngIf="selectedExamSetId && subjects.length === 0 && !loading"
+        class="info-message"
+      >
+        ℹ️ No subjects found for this exam set. Please select a different exam
+        set.
+      </div>
+    </div>
+
+    <!-- Step 3: Manage Elements -->
+    <div class="step-section" [class.disabled]="!selectedSubjectId">
+      <div class="section-header">
+        <h2>
+          Step 3: Assessment Elements for {{ selectedExamSet?.set_name }} -
+          {{ getSelectedSubjectName() }}
+        </h2>
+        <button
+          (click)="openAddForm()"
+          [disabled]="!selectedSubjectId || saving"
+          class="btn-primary"
+        >
+          + Add New Element
+        </button>
+      </div>
+
+      <!-- Elements List -->
+      <div
+        *ngIf="selectedSubjectId && elements.length === 0 && !loading"
+        class="empty-state"
+      >
+        <p>No assessment elements found for this subject.</p>
+        <p>Click "Add New Element" to create one.</p>
+      </div>
+
+      <div
+        *ngIf="selectedSubjectId && elements.length > 0"
+        class="elements-table"
+      >
+        <table>
+          <thead>
+            <tr>
+              <th>Element Name</th>
+              <th>Max Score</th>
+              <th>Weight %</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <ng-container *ngFor="let element of elements">
+              <!-- View Mode -->
+              <tr
+                *ngIf="editingElementId !== element.element_id"
+                class="element-row"
+              >
+                <td>{{ element.element_name }}</td>
+                <td>{{ element.max_score }}</td>
+                <td>
+                  {{ element.contributing_weight_percent | number : "1.2-2" }}%
+                </td>
+                <td class="actions">
+                  <button
+                    (click)="startEditElement(element)"
+                    [disabled]="saving"
+                    class="btn-icon btn-edit"
+                    title="Edit element"
+                  >
+                    ✎
+                  </button>
+                  <button
+                    (click)="deleteElement(element)"
+                    [disabled]="saving"
+                    class="btn-icon btn-delete"
+                    title="Delete element"
+                  >
+                    ✕
+                  </button>
+                </td>
+              </tr>
+
+              <!-- Edit Mode -->
+              <tr
+                *ngIf="editingElementId === element.element_id"
+                class="element-row edit-mode"
+              >
+                <td>
+                  <input
+                    type="text"
+                    [(ngModel)]="editingElement.element_name"
+                    name="edit_element_name"
+                    placeholder="Element name"
+                    class="inline-input"
+                  />
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    [(ngModel)]="editingElement.max_score"
+                    name="edit_max_score"
+                    placeholder="Max score"
+                    min="1"
+                    class="inline-input"
+                  />
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    [(ngModel)]="editingElement.contributing_weight_percent"
+                    name="edit_weight"
+                    placeholder="Weight %"
+                    min="0"
+                    max="100"
+                    step="0.01"
+                    class="inline-input"
+                  />
+                </td>
+                <td class="actions">
+                  <button
+                    (click)="saveEditElement(element)"
+                    [disabled]="saving"
+                    class="btn-icon btn-save"
+                    title="Save changes"
+                  >
+                    ✓
+                  </button>
+                  <button
+                    (click)="cancelEditElement()"
+                    [disabled]="saving"
+                    class="btn-icon btn-cancel"
+                    title="Cancel"
+                  >
+                    ✕
+                  </button>
+                </td>
+              </tr>
+            </ng-container>
+          </tbody>
+          <tfoot *ngIf="elements.length > 0">
+            <tr class="weight-summary">
+              <td colspan="1"></td>
+              <td></td>
+              <td>
+                <strong
+                  >Total: {{ getTotalWeight() | number : "1.2-2" }}%</strong
+                >
+              </td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+        <div *ngIf="getTotalWeight() > 0" class="weight-note">
+          <small>
+            <strong>Note:</strong>
+            <span *ngIf="getTotalWeight() === 100" class="success"
+              >✓ Weight distribution is correct (100%)</span
+            >
+            <span *ngIf="getTotalWeight() !== 100" class="warning"
+              >⚠️ Weight distribution is
+              {{ getTotalWeight() | number : "1.2-2" }}% (should be 100%)</span
+            >
+          </small>
+        </div>
+      </div>
+
+      <!-- Add New Element Form -->
+      <div *ngIf="showAddForm" class="add-form">
+        <h3>Add New Assessment Element</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="newElementName">Element Name *</label>
+            <input
+              id="newElementName"
+              type="text"
+              [(ngModel)]="newElement.element_name"
+              name="newElementName"
+              placeholder="e.g., Paper 1, Reading Comprehension, Multiple Choice"
+              class="form-input"
+            />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="newMaxScore">Max Score *</label>
+            <input
+              id="newMaxScore"
+              type="number"
+              [(ngModel)]="newElement.max_score"
+              name="newMaxScore"
+              placeholder="e.g., 50"
+              min="1"
+              class="form-input"
+            />
+          </div>
+          <div class="form-group">
+            <label for="newWeight">Weight % *</label>
+            <input
+              id="newWeight"
+              type="number"
+              [(ngModel)]="newElement.contributing_weight_percent"
+              name="newWeight"
+              placeholder="e.g., 30"
+              min="0"
+              max="100"
+              step="0.01"
+              class="form-input"
+            />
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button
+            (click)="saveNewElement()"
+            [disabled]="saving"
+            class="btn-primary"
+          >
+            {{ saving ? "Adding..." : "Add Element" }}
+          </button>
+          <button
+            (click)="closeAddForm()"
+            [disabled]="saving"
+            class="btn-secondary"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

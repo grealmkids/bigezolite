@@ -86,8 +86,15 @@
       </div>
     </div>
 
-    <div class="form-section" *ngIf="selectedSubjects.length > 0">
+    <div class="form-section">
       <h2>Configure Assessment Elements</h2>
+      <div class="section-info">
+        <p>
+          <strong>Note:</strong> Assessment elements are the topics or skills
+          you will assess in each subject exam. You must define at least one
+          element per subject.
+        </p>
+      </div>
       <div *ngFor="let subject of selectedSubjects" class="subject-config">
         <div class="subject-header">
           <h3>{{ subject.subject_name }}</h3>
@@ -100,9 +107,23 @@
           </button>
         </div>
 
+        <!-- Empty Elements Warning -->
+        <div
+          *ngIf="!subject.elements || subject.elements.length === 0"
+          class="error-message"
+        >
+          ⚠️ This subject has no assessment elements. You must add at least one
+          before saving the exam set.
+        </div>
+
         <div
           *ngFor="let element of subject.elements; let i = index"
           class="element-row"
+          [class.invalid]="
+            !element.element_name ||
+            !element.max_score ||
+            element.contributing_weight_percent === null
+          "
         >
           <input
             type="text"
@@ -148,8 +169,23 @@
 
         <div class="weight-total">
           Total Weight: {{ totalWeight(subject) | number : "1.2-2" }}%
-          <span *ngIf="weightWarning(subject)" class="warning"
-            >⚠ Must equal 100%</span
+          <span
+            *ngIf="
+              subject.elements &&
+              subject.elements.length > 0 &&
+              weightWarning(subject)
+            "
+            class="warning"
+            >⚠️ Must equal 100%</span
+          >
+          <span
+            *ngIf="
+              subject.elements &&
+              subject.elements.length > 0 &&
+              !weightWarning(subject)
+            "
+            class="success"
+            >✓ Correct</span
           >
         </div>
       </div>

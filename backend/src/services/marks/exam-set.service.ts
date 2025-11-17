@@ -123,6 +123,61 @@ export class ExamSetService {
   async deleteExamSet(exam_set_id: number): Promise<void> {
     await pool.query('DELETE FROM config_exam_sets WHERE exam_set_id = $1', [exam_set_id]);
   }
+
+  async createAssessmentElement(element: AssessmentElement): Promise<AssessmentElement> {
+    const query = `
+      INSERT INTO config_assessment_elements (
+        school_id, subject_id, exam_set_id, element_name, max_score, contributing_weight_percent
+      )
+      VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING *
+    `;
+    
+    const result = await pool.query(query, [
+      element.school_id,
+      element.subject_id,
+      element.exam_set_id,
+      element.element_name,
+      element.max_score,
+      element.contributing_weight_percent
+    ]);
+    
+    return result.rows[0];
+  }
+
+  async updateAssessmentElement(element: AssessmentElement): Promise<AssessmentElement> {
+    const query = `
+      UPDATE config_assessment_elements
+      SET element_name = $1, max_score = $2, contributing_weight_percent = $3
+      WHERE element_id = $4
+      RETURNING *
+    `;
+    
+    const result = await pool.query(query, [
+      element.element_name,
+      element.max_score,
+      element.contributing_weight_percent,
+      element.element_id
+    ]);
+    
+    return result.rows[0];
+  }
+
+  async deleteAssessmentElement(element_id: number): Promise<void> {
+    await pool.query('DELETE FROM config_assessment_elements WHERE element_id = $1', [element_id]);
+  }
+
+  async getAssessmentElementById(element_id: number): Promise<AssessmentElement | null> {
+    const query = `
+      SELECT ae.*, cs.subject_name
+      FROM config_assessment_elements ae
+      LEFT JOIN config_subjects cs ON ae.subject_id = cs.subject_id
+      WHERE ae.element_id = $1
+    `;
+    
+    const result = await pool.query(query, [element_id]);
+    return result.rows[0] || null;
+  }
 }
 
 export default new ExamSetService();

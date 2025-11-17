@@ -78,8 +78,16 @@
             <td>{{ subject.max_selections_allowed }}</td>
             <td>
               <button
+                (click)="startEdit(subject)"
+                class="btn-primary"
+                [disabled]="editingSubjectId !== null"
+              >
+                Edit
+              </button>
+              <button
                 (click)="deleteSubject(subject.subject_id)"
                 class="btn-danger"
+                [disabled]="editingSubjectId !== null"
               >
                 Delete
               </button>
@@ -87,6 +95,54 @@
           </tr>
         </tbody>
       </table>
+    </div>
+  </div>
+
+  <div *ngIf="editingSubjectId !== null" class="edit-modal-overlay">
+    <div class="edit-modal">
+      <h3>Edit Subject</h3>
+      <div class="form-row">
+        <input
+          type="text"
+          [(ngModel)]="editingSubject.subject_name"
+          placeholder="Subject Name"
+          required
+        />
+        <select [(ngModel)]="editingSubject.subject_type">
+          <option value="Compulsory">Compulsory</option>
+          <option value="Elective">Elective</option>
+          <option value="International-Custom">International-Custom</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <input
+          type="text"
+          [(ngModel)]="editingSubject.ncdc_reference_name"
+          placeholder="NCDC Reference (Optional)"
+        />
+        <input
+          type="number"
+          [(ngModel)]="editingSubject.max_selections_allowed"
+          placeholder="Max Selections"
+          min="1"
+        />
+      </div>
+      <div class="form-actions">
+        <button
+          (click)="saveEdit()"
+          [disabled]="isSavingEdit"
+          class="btn-primary"
+        >
+          {{ isSavingEdit ? "Saving..." : "Save Changes" }}
+        </button>
+        <button
+          (click)="cancelEdit()"
+          [disabled]="isSavingEdit"
+          class="btn-secondary"
+        >
+          Cancel
+        </button>
+      </div>
     </div>
   </div>
 </div>

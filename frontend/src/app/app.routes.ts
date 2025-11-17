@@ -23,6 +23,7 @@ import { StudentMarksViewerComponent } from './pages/marks/student-marks-viewer.
 import { QuickMarkEntryComponent } from './pages/marks/quick-mark-entry.component';
 import { StudentReportComponent } from './pages/marks/student-report.component';
 import { HolisticFeedbackComponent } from './pages/marks/holistic-feedback.component';
+import { ManageAssessmentElementsComponent } from './pages/marks/manage-assessment-elements.component';
 
 export const routes: Routes = [
     { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -91,6 +92,11 @@ export const routes: Routes = [
     {
         path: 'marks/subjects',
         component: ManageSubjectsComponent,
+        canActivate: [authGuard]
+    },
+    {
+        path: 'marks/assessment-elements',
+        component: ManageAssessmentElementsComponent,
         canActivate: [authGuard]
     },
     {

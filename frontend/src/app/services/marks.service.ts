@@ -36,6 +36,7 @@ export interface AssessmentElement {
   element_name: string;
   max_score: number;
   contributing_weight_percent: number;
+  created_at?: string;
 }
 
 export interface GradingScale {
@@ -134,6 +135,18 @@ export class MarksService {
 
   getAssessmentElements(examSetId: number): Observable<AssessmentElement[]> {
     return this.http.get<AssessmentElement[]>(`${this.apiUrl}/exam-sets/${examSetId}/elements`);
+  }
+
+  createAssessmentElement(element: Omit<AssessmentElement, 'element_id'>): Observable<AssessmentElement> {
+    return this.http.post<AssessmentElement>(`${this.apiUrl}/assessment-elements`, element);
+  }
+
+  updateAssessmentElement(element: AssessmentElement): Observable<AssessmentElement> {
+    return this.http.put<AssessmentElement>(`${this.apiUrl}/assessment-elements/${element.element_id}`, element);
+  }
+
+  deleteAssessmentElement(elementId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/assessment-elements/${elementId}`);
   }
 
   deleteExamSet(examSetId: number): Observable<void> {

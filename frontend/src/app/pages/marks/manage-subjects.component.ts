@@ -30,6 +30,11 @@ export class ManageSubjectsComponent implements OnInit {
   };
   isAddingSubject = false;
 
+  // Edit mode state
+  editingSubjectId: number | null = null;
+  editingSubject: Partial<Subject> = {};
+  isSavingEdit = false;
+
   constructor(
     private marksService: MarksService,
     private schoolService: SchoolService,
@@ -129,6 +134,47 @@ export class ManageSubjectsComponent implements OnInit {
       error: (err) => {
         console.error('Error deleting subject:', err);
         alert('Failed to delete subject');
+      }
+    });
+  }
+
+  startEdit(subject: Subject): void {
+    this.editingSubjectId = subject.subject_id;
+    this.editingSubject = {
+      subject_name: subject.subject_name,
+      subject_type: subject.subject_type,
+      ncdc_reference_name: subject.ncdc_reference_name,
+      max_selections_allowed: subject.max_selections_allowed
+    };
+  }
+
+  cancelEdit(): void {
+    this.editingSubjectId = null;
+    this.editingSubject = {};
+  }
+
+  saveEdit(): void {
+    if (!this.editingSubjectId) return;
+    if (!this.editingSubject.subject_name) {
+      alert('Please fill in the subject name');
+      return;
+    }
+
+    this.isSavingEdit = true;
+    this.marksService.updateSubject(this.editingSubjectId, this.editingSubject).subscribe({
+      next: (updatedSubject) => {
+        const index = this.subjects.findIndex(s => s.subject_id === this.editingSubjectId);
+        if (index >= 0) {
+          this.subjects[index] = updatedSubject;
+        }
+        this.cancelEdit();
+        this.isSavingEdit = false;
+        alert('Subject updated successfully');
+      },
+      error: (err) => {
+        console.error('Error updating subject:', err);
+        alert('Failed to update subject');
+        this.isSavingEdit = false;
       }
     });
   }

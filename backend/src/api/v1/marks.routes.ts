@@ -133,6 +133,47 @@ router.delete('/exam-sets/:examSetId', async (req: Request, res: Response) => {
   }
 });
 
+// Assessment Elements CRUD Routes
+router.post('/assessment-elements', async (req: Request, res: Response) => {
+  try {
+    const element = await ExamSetService.createAssessmentElement(req.body);
+    res.status(201).json(element);
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+router.get('/assessment-elements/:elementId', async (req: Request, res: Response) => {
+  try {
+    const element = await ExamSetService.getAssessmentElementById(Number(req.params.elementId));
+    if (!element) return res.status(404).json({ message: 'Assessment element not found' });
+    res.json(element);
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+router.put('/assessment-elements/:elementId', async (req: Request, res: Response) => {
+  try {
+    const element = await ExamSetService.updateAssessmentElement({
+      ...req.body,
+      element_id: Number(req.params.elementId)
+    });
+    res.json(element);
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+router.delete('/assessment-elements/:elementId', async (req: Request, res: Response) => {
+  try {
+    await ExamSetService.deleteAssessmentElement(Number(req.params.elementId));
+    res.status(204).send();
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 router.post('/marks/bulk-upload', async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user?.userId;

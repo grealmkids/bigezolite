@@ -11,11 +11,7 @@
     <div class="filters-grid">
       <div class="form-group">
         <label>Class Level *</label>
-        <select
-          [(ngModel)]="selectedClass"
-          (change)="onClassChange()"
-          name="classLevel"
-        >
+        <select [(ngModel)]="selectedClass" (change)="onClassChange()" name="classLevel">
           <option value="" disabled>Select Class Level</option>
           <option *ngFor="let cls of classes" [value]="cls">{{ cls }}</option>
         </select>
@@ -23,27 +19,16 @@
 
       <div class="form-group">
         <label>Year *</label>
-        <select
-          [(ngModel)]="selectedYear"
-          (change)="onYearChange()"
-          name="year"
-        >
+        <select [(ngModel)]="selectedYear" (change)="onYearChange()" name="year">
           <option *ngFor="let year of years" [value]="year">{{ year }}</option>
         </select>
       </div>
 
       <div class="form-group">
         <label>Exam Set (Optional)</label>
-        <select
-          [(ngModel)]="selectedExamSetId"
-          (change)="onExamSetChange(selectedExamSetId)"
-          name="examSetId"
-        >
+        <select [(ngModel)]="selectedExamSetId" (change)="onExamSetChange(selectedExamSetId)" name="examSetId">
           <option [value]="null">All Exams</option>
-          <option
-            *ngFor="let examSet of examSets"
-            [value]="examSet.exam_set_id"
-          >
+          <option *ngFor="let examSet of examSets" [value]="examSet.exam_set_id">
             {{ examSet.set_name }} (Term {{ examSet.term }})
           </option>
         </select>
@@ -82,11 +67,7 @@
             <td>{{ student.reg_number }}</td>
             <td>{{ student.class_name }}</td>
             <td>
-              <button
-                (click)="openMarkEntryForm(student)"
-                [disabled]="!selectedExamSetId"
-                class="btn-enter-marks"
-              >
+              <button (click)="openMarkEntryForm(student)" [disabled]="!selectedExamSetId" class="btn-enter-marks">
                 Enter Marks
               </button>
             </td>
@@ -110,17 +91,10 @@
           <div class="step-number">1</div>
           <div class="step-content">
             <label for="subjectSelect">Select Subject:</label>
-            <select
-              id="subjectSelect"
-              [(ngModel)]="selectedSubjectId"
-              (change)="onSubjectChange(selectedSubjectId)"
-              class="select-field"
-            >
+            <select id="subjectSelect" [(ngModel)]="selectedSubjectId" (change)="onSubjectChange(selectedSubjectId)"
+              class="select-field">
               <option [ngValue]="null" disabled>-- Choose a Subject --</option>
-              <option
-                *ngFor="let subject of subjects"
-                [ngValue]="subject.subject_id"
-              >
+              <option *ngFor="let subject of subjects" [ngValue]="subject.subject_id">
                 {{ subject.subject_name }}
               </option>
             </select>
@@ -135,27 +109,16 @@
           <div class="step-number">2</div>
           <div class="step-content">
             <label for="elementSelect">Select Assessment Element:</label>
-            <select
-              id="elementSelect"
-              [(ngModel)]="selectedElementId"
-              (change)="onElementChange(selectedElementId)"
-              [disabled]="!selectedSubjectId"
-              class="select-field"
-            >
-              <option [value]="null" disabled>-- Choose an Element --</option>
+            <select id="elementSelect" [(ngModel)]="selectedElementId" (change)="onElementChange(selectedElementId)"
+              [disabled]="!selectedSubjectId" class="select-field">
+              <option [ngValue]="null" disabled>-- Choose an Element --</option>
               <ng-container *ngIf="selectedSubjectId">
-                <option
-                  *ngFor="let element of getFilteredElements()"
-                  [value]="element.element_id"
-                >
+                <option *ngFor="let element of getFilteredElements()" [ngValue]="element.element_id">
                   {{ element.element_name }} (Max: {{ element.max_score }} pts)
                 </option>
               </ng-container>
             </select>
-            <small
-              *ngIf="getFilteredElements().length === 0 && selectedSubjectId"
-              class="help-text error"
-            >
+            <small *ngIf="getFilteredElements().length === 0 && selectedSubjectId" class="help-text error">
               No assessment elements for this subject.
             </small>
             <small *ngIf="!selectedSubjectId" class="help-text">
@@ -170,16 +133,9 @@
           <div class="step-content">
             <label for="markInput">Enter Mark Obtained:</label>
             <div class="mark-input-group">
-              <input
-                id="markInput"
-                type="number"
-                [(ngModel)]="markValue"
-                [min]="0"
-                [max]="selectedElement?.max_score || 100"
-                class="input-field"
-                placeholder="Enter mark value"
-                [disabled]="!selectedElement"
-              />
+              <input id="markInput" type="number" [(ngModel)]="markValue" [min]="0"
+                [max]="selectedElement?.max_score || 100" class="input-field" placeholder="Enter mark value"
+                [disabled]="!selectedElement" />
               <span *ngIf="selectedElement" class="mark-limit">
                 / {{ selectedElement.max_score }}
               </span>
@@ -195,15 +151,12 @@
         </div>
 
         <!-- Summary -->
-        <div
-          class="selection-summary"
-          *ngIf="
+        <div class="selection-summary" *ngIf="
             selectedElementId &&
             selectedSubjectId &&
             markValue !== null &&
             markValue !== undefined
-          "
-        >
+          ">
           <h4>Ready to Save</h4>
           <div class="summary-item">
             <strong>Student:</strong>
@@ -224,19 +177,11 @@
       </div>
 
       <div class="form-actions">
-        <button
-          class="btn-primary"
-          (click)="saveMark()"
-          [disabled]="!validateForm() || saving"
-        >
+        <button class="btn-primary" (click)="saveMark()" [disabled]="!validateForm() || saving">
           <span *ngIf="saving">⏳ Saving...</span>
           <span *ngIf="!saving">✓ Save Mark</span>
         </button>
-        <button
-          class="btn-secondary"
-          (click)="closeMarkForm()"
-          [disabled]="saving"
-        >
+        <button class="btn-secondary" (click)="closeMarkForm()" [disabled]="saving">
           Cancel
         </button>
       </div>

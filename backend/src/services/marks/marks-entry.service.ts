@@ -20,9 +20,9 @@ export class MarksEntryService {
           const studentQuery = entry.identifier_type === 'lin_number'
             ? 'SELECT student_id FROM students WHERE lin_number = $1 AND school_id = $2'
             : 'SELECT student_id FROM students WHERE reg_number = $1 AND school_id = $2';
-          
+
           const studentResult = await client.query(studentQuery, [entry.student_identifier, school_id]);
-          
+
           if (studentResult.rows.length === 0) {
             errors.push({
               identifier: entry.student_identifier,
@@ -40,9 +40,9 @@ export class MarksEntryService {
               JOIN results_exam_entries ree ON ree.subject_id = ae.subject_id AND ree.exam_set_id = ae.exam_set_id
               WHERE ae.element_id = $1 AND ree.student_id = $2 AND ree.exam_set_id = $3
             `;
-            
+
             const elementResult = await client.query(elementQuery, [mark.element_id, student_id, exam_set_id]);
-            
+
             if (elementResult.rows.length === 0) {
               errors.push({
                 identifier: entry.student_identifier,
@@ -69,7 +69,7 @@ export class MarksEntryService {
               ON CONFLICT (exam_entry_id, element_id) 
               DO UPDATE SET score_obtained = $3, max_score_at_entry = $4, entered_by_user_id = $5, created_at = NOW()
             `;
-            
+
             await client.query(insertQuery, [
               element.exam_entry_id,
               mark.element_id,
@@ -84,7 +84,7 @@ export class MarksEntryService {
             SET status = 'Completed'
             WHERE student_id = $1 AND exam_set_id = $2
           `;
-          
+
           await client.query(updateStatusQuery, [student_id, exam_set_id]);
           successCount++;
         } catch (error: any) {
@@ -113,7 +113,7 @@ export class MarksEntryService {
       WHERE re.exam_entry_id = $1
       ORDER BY ae.element_name
     `;
-    
+
     const result = await pool.query(query, [exam_entry_id]);
     return result.rows;
   }
@@ -136,8 +136,23 @@ export class MarksEntryService {
       WHERE ree.student_id = $1 AND ree.exam_set_id = $2
       ORDER BY cs.subject_name, ae.element_name
     `;
-    
+
     const result = await pool.query(query, [student_id, exam_set_id]);
+    return result.rows;
+  }
+
+  async getExamSetResults(exam_set_id: number): Promise<any[]> {
+    const query = `
+      SELECT 
+        ree.student_id,
+        re.element_id,
+        re.score_obtained
+      FROM results_exam_entries ree
+      JOIN results_entry re ON re.exam_entry_id = ree.exam_entry_id
+      WHERE ree.exam_set_id = $1
+    `;
+
+    const result = await pool.query(query, [exam_set_id]);
     return result.rows;
   }
 

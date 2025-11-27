@@ -99,6 +99,14 @@ export class QuickMarkEntryComponent implements OnInit {
   loadExamSets(): void {
     this.loading = true;
     const filters: any = {};
+
+    // Only load if class is selected (as per user request)
+    if (!this.selectedClass) {
+      this.examSets = [];
+      this.loading = false;
+      return;
+    }
+
     if (this.selectedYear) {
       filters.year = this.selectedYear;
     }

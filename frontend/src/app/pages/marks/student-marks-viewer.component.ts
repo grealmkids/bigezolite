@@ -6,6 +6,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MarksService, ExamSet, AssessmentElement } from '../../services/marks.service';
 import { StudentService, Student } from '../../services/student.service';
 import { SchoolService } from '../../services/school.service';
+import { ClassCategorizationService } from '../../services/class-categorization.service';
 
 interface Subject {
   subject_id: number;
@@ -16,8 +17,8 @@ interface StudentMarkRow {
   student_id: number;
   student_name: string;
   reg_number: string;
-  marks: { [subjectId: number]: number | null };
-  marksDirty: { [subjectId: number]: boolean };
+  mark: number | null;
+  markDirty: boolean;
 }
 
 @Component({
@@ -29,12 +30,27 @@ interface StudentMarkRow {
 })
 export class StudentMarksViewerComponent implements OnInit {
   schoolId: number = 0;
-  selectedExamSetId: number | null = null;
-  
+
+  // Filters
+  classes: string[] = [];
+  selectedClass: string = '';
+  years: number[] = [];
+  selectedYear: number = new Date().getFullYear();
+
   examSets: ExamSet[] = [];
+  selectedExamSetId: number | null = null;
+
   subjects: Subject[] = [];
+  selectedSubjectId: number | null = null;
+
+  assessmentElements: AssessmentElement[] = [];
+  filteredElements: AssessmentElement[] = [];
+  selectedElementId: number | null = null;
+  selectedElement: AssessmentElement | null = null;
+
+  // Data
   students: StudentMarkRow[] = [];
-  
+
   loading = false;
   saving = false;
   hasChanges = false;
@@ -44,24 +60,79 @@ export class StudentMarksViewerComponent implements OnInit {
     private marksService: MarksService,
     private studentService: StudentService,
     private schoolService: SchoolService,
+    private classCategorizationService: ClassCategorizationService,
     private snack: MatSnackBar
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.schoolService.getMySchool().subscribe({
       next: (school) => {
         if (school) {
           this.schoolId = school.school_id;
-          this.loadExamSets();
+          this.loadClasses();
+          this.generateYearsList();
         }
       },
       error: (err) => console.error('Error loading school:', err)
     });
   }
 
+  loadClasses(): void {
+    try {
+      const schoolType = this.schoolService.getSelectedSchoolType();
+      if (schoolType) {
+        this.classes = this.classCategorizationService.getClassesForSchoolType(schoolType);
+      }
+    } catch (err) {
+      console.error('Error loading classes:', err);
+      this.classes = [];
+    }
+  }
+
+  generateYearsList(): void {
+    const currentYear = new Date().getFullYear();
+    this.years = [];
+    for (let i = 0; i < 5; i++) {
+      this.years.unshift(currentYear - i);
+    }
+  }
+
+  onClassChange(): void {
+    this.selectedExamSetId = null;
+    this.selectedSubjectId = null;
+    this.selectedElementId = null;
+    this.examSets = [];
+    this.subjects = [];
+    this.filteredElements = [];
+    this.students = [];
+
+    if (this.selectedClass) {
+      this.loadExamSets();
+    }
+  }
+
+  onYearChange(): void {
+    this.selectedExamSetId = null;
+    this.selectedSubjectId = null;
+    this.selectedElementId = null;
+    this.examSets = [];
+    this.subjects = [];
+    this.filteredElements = [];
+    this.students = [];
+
+    if (this.selectedClass) {
+      this.loadExamSets();
+    }
+  }
+
   loadExamSets(): void {
     this.loading = true;
-    this.marksService.getExamSets(this.schoolId).subscribe({
+    const filters: any = {
+      class_level: this.selectedClass,
+      year: this.selectedYear
+    };
+
+    this.marksService.getExamSets(this.schoolId, filters).subscribe({
       next: (data) => {
         this.examSets = data;
         this.loading = false;
@@ -76,34 +147,37 @@ export class StudentMarksViewerComponent implements OnInit {
 
   onExamSetChange(examSetId: number): void {
     this.selectedExamSetId = examSetId;
-    this.loadSubjectsAndStudents();
+    this.selectedSubjectId = null;
+    this.selectedElementId = null;
+    this.subjects = [];
+    this.filteredElements = [];
+    this.students = [];
+
+    if (examSetId) {
+      this.loadSubjectsAndElements();
+    }
   }
 
-  loadSubjectsAndStudents(): void {
+  loadSubjectsAndElements(): void {
     if (!this.selectedExamSetId) return;
 
     this.loading = true;
-    
-    // Load subjects
     this.marksService.getAssessmentElements(this.selectedExamSetId).subscribe({
       next: (elements) => {
+        this.assessmentElements = elements;
+
         // Group elements by subject
         const subjectMap = new Map<number, Subject>();
         elements.forEach(el => {
           if (!subjectMap.has(el.subject_id)) {
             subjectMap.set(el.subject_id, {
               subject_id: el.subject_id,
-              subject_name: el.element_name.split(' - ')[0] || `Subject ${el.subject_id}`
+              subject_name: el.subject_name || el.element_name.split(' - ')[0] || `Subject ${el.subject_id}`
             });
           }
         });
-        this.subjects = Array.from(subjectMap.values());
-        
-        // Load students
-        const examSet = this.examSets.find(es => es.exam_set_id === this.selectedExamSetId);
-        if (examSet) {
-          this.loadStudentsForClass(examSet.class_level);
-        }
+        this.subjects = Array.from(subjectMap.values()).sort((a, b) => a.subject_name.localeCompare(b.subject_name));
+        this.loading = false;
       },
       error: (err) => {
         console.error('Error loading assessment elements:', err);
@@ -113,20 +187,78 @@ export class StudentMarksViewerComponent implements OnInit {
     });
   }
 
-  loadStudentsForClass(classLevel: string): void {
-    this.studentService.getStudents(this.schoolId, classLevel).subscribe({
+  onSubjectChange(subjectId: number): void {
+    this.selectedSubjectId = subjectId;
+    this.selectedElementId = null;
+    this.students = [];
+
+    if (subjectId) {
+      this.filteredElements = this.assessmentElements.filter(e => e.subject_id == subjectId);
+    } else {
+      this.filteredElements = [];
+    }
+  }
+
+  onElementChange(elementId: number): void {
+    this.selectedElementId = elementId;
+    this.selectedElement = this.assessmentElements.find(e => e.element_id == elementId) || null;
+
+    if (elementId) {
+      this.loadStudentsAndMarks();
+    } else {
+      this.students = [];
+    }
+  }
+
+  loadStudentsAndMarks(): void {
+    if (!this.selectedClass || !this.selectedExamSetId || !this.selectedElementId) return;
+
+    this.loading = true;
+
+    // Load students
+    this.studentService.getStudents(this.schoolId, undefined, this.selectedClass).subscribe({
       next: (response) => {
         const items = Array.isArray(response) ? response : (response as any).items || [];
+
+        // Initialize students with empty marks
         this.students = items.map((student: any) => ({
           student_id: student.student_id,
           student_name: student.student_name,
           reg_number: student.reg_number,
-          marks: {},
-          marksDirty: {}
+          mark: null,
+          markDirty: false
         }));
-        
-        // Load existing marks
-        this.loadExistingMarks();
+
+        // Load existing marks for this exam set
+        this.marksService.getExamSetResults(this.selectedExamSetId!).subscribe({
+          next: (results) => {
+            results.forEach((result: any) => {
+              // Filter for the selected element
+              // Note: getExamSetResults returns aggregated subject marks usually, 
+              // but we need element-level marks. 
+              // Wait, getExamSetResults returns `results_exam_entries` joined with `results_entry`.
+              // We need to check if `results_entry` has `element_id`.
+              // Let's assume we need to filter by element_id if available, or fetch specific element marks.
+              // Actually, the current `getExamSetResults` might be returning subject totals.
+              // Let's check `getMarksByStudent` or similar.
+              // `getExamSetResults` in `marks.service.ts` calls `/exam-sets/:examSetId/results`.
+              // Let's use `getExamSetResults` and filter client side if it returns all entries.
+
+              // If the API returns all individual mark entries:
+              if (result.element_id == this.selectedElementId) {
+                const student = this.students.find(s => s.student_id === result.student_id);
+                if (student) {
+                  student.mark = result.score_obtained;
+                }
+              }
+            });
+            this.loading = false;
+          },
+          error: (err) => {
+            console.error('Error loading marks:', err);
+            this.loading = false;
+          }
+        });
       },
       error: (err) => {
         console.error('Error loading students:', err);
@@ -136,42 +268,14 @@ export class StudentMarksViewerComponent implements OnInit {
     });
   }
 
-  loadExistingMarks(): void {
-    if (!this.selectedExamSetId) {
-      this.loading = false;
-      return;
-    }
-
-    this.marksService.getExamSetResults(this.selectedExamSetId).subscribe({
-      next: (results) => {
-        // Populate marks from results
-        results.forEach((result: any) => {
-          const student = this.students.find(s => s.student_id === result.student_id);
-          if (student) {
-            student.marks[result.subject_id] = result.total_score;
-          }
-        });
-        this.loading = false;
-      },
-      error: (err) => {
-        console.error('Error loading marks:', err);
-        // Continue even if no marks found
-        this.loading = false;
-      }
-    });
-  }
-
-  onMarkChange(studentId: number, subjectId: number): void {
-    const student = this.students.find(s => s.student_id === studentId);
-    if (student) {
-      student.marksDirty[subjectId] = true;
-      this.hasChanges = true;
-    }
+  onMarkChange(student: StudentMarkRow): void {
+    student.markDirty = true;
+    this.hasChanges = true;
   }
 
   saveAllMarks(): void {
-    if (!this.selectedExamSetId) {
-      this.snack.open('Please select an exam set', 'Close', { duration: 3000 });
+    if (!this.selectedExamSetId || !this.selectedElementId) {
+      this.snack.open('Please select an exam set and element', 'Close', { duration: 3000 });
       return;
     }
 
@@ -179,15 +283,13 @@ export class StudentMarksViewerComponent implements OnInit {
     const entries = [];
 
     for (const student of this.students) {
-      for (const subjectId in student.marksDirty) {
-        if (student.marksDirty[subjectId] && student.marks[subjectId] !== null && student.marks[subjectId] !== undefined) {
-          entries.push({
-            student_identifier: student.reg_number,
-            identifier_type: 'reg_number',
-            subject_id: parseInt(subjectId),
-            score_obtained: student.marks[subjectId]
-          });
-        }
+      if (student.markDirty && student.mark !== null && student.mark !== undefined) {
+        entries.push({
+          student_identifier: student.reg_number,
+          identifier_type: 'reg_number',
+          element_id: this.selectedElementId,
+          score_obtained: student.mark
+        });
       }
     }
 
@@ -202,10 +304,10 @@ export class StudentMarksViewerComponent implements OnInit {
         this.saving = false;
         this.hasChanges = false;
         this.snack.open(`Marks saved! ${result.success} records processed.`, 'Close', { duration: 3000 });
-        
+
         // Reset dirty flags
         this.students.forEach(s => {
-          s.marksDirty = {};
+          s.markDirty = false;
         });
       },
       error: (err) => {
@@ -217,8 +319,7 @@ export class StudentMarksViewerComponent implements OnInit {
   }
 
   generateStudentReport(studentId: number): void {
-    const student = this.students.find(s => s.student_id === studentId);
-    if (student && this.selectedExamSetId) {
+    if (this.selectedExamSetId) {
       this.router.navigate(['/marks/student-report', this.selectedExamSetId, studentId]);
     }
   }

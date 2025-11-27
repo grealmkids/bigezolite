@@ -28,7 +28,7 @@ router.post('/subjects', async (req: Request, res: Response) => {
 router.get('/subjects', async (req: Request, res: Response) => {
   try {
     const { school_id, school_level } = req.query;
-    
+
     if (!school_id || !school_level) {
       return res.status(400).json({ message: 'school_id and school_level are required' });
     }
@@ -37,7 +37,7 @@ router.get('/subjects', async (req: Request, res: Response) => {
       school_id: Number(school_id),
       school_level: String(school_level)
     });
-    
+
     res.json(subjects);
   } catch (error: any) {
     res.status(500).json({ message: error.message });
@@ -87,7 +87,7 @@ router.post('/exam-sets', async (req: Request, res: Response) => {
 router.get('/exam-sets', async (req: Request, res: Response) => {
   try {
     const { school_id, term, year, class_level } = req.query;
-    
+
     if (!school_id) {
       return res.status(400).json({ message: 'school_id is required' });
     }
@@ -222,6 +222,15 @@ router.delete('/marks/:entryId', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/exam-sets/:examSetId/results', async (req: Request, res: Response) => {
+  try {
+    const results = await MarksEntryService.getExamSetResults(Number(req.params.examSetId));
+    res.json(results);
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 router.post('/reports/generate', async (req: Request, res: Response) => {
   try {
     const report = await ReportService.generateReport(req.body);
@@ -252,7 +261,7 @@ router.post('/reports/holistic-feedback', async (req: Request, res: Response) =>
 router.get('/reports/summary/:studentId', async (req: Request, res: Response) => {
   try {
     const { term, year } = req.query;
-    
+
     if (!term || !year) {
       return res.status(400).json({ message: 'term and year are required' });
     }
@@ -276,10 +285,10 @@ router.get('/reports/:examSetId/student/:studentId/pdf', async (req: Request, re
     const userId = (req as any).user?.userId;
     const schoolId = (req as any).user?.schoolId;
 
-    console.log('[PDF Report] Request received', { 
-      studentId, 
-      examSetId, 
-      userId, 
+    console.log('[PDF Report] Request received', {
+      studentId,
+      examSetId,
+      userId,
       schoolId,
       timestamp: new Date().toISOString()
     });
@@ -287,7 +296,7 @@ router.get('/reports/:examSetId/student/:studentId/pdf', async (req: Request, re
     // Validate inputs
     if (!studentId || !examSetId) {
       console.log('[PDF Report] Invalid parameters', { studentId, examSetId });
-      return res.status(400).json({ 
+      return res.status(400).json({
         message: 'studentId and examSetId are required',
         received: { studentId, examSetId }
       });
@@ -307,10 +316,10 @@ router.get('/reports/:examSetId/student/:studentId/pdf', async (req: Request, re
       WHERE exam_set_id = $1 AND school_id = $2
     `;
     const examSetResult = await (require('../../database/database').pool).query(examSetQuery, [examSetId, schoolId]);
-    
+
     if (examSetResult.rows.length === 0) {
       console.log('[PDF Report] Exam set not found', { examSetId, schoolId });
-      return res.status(404).json({ 
+      return res.status(404).json({
         message: 'Exam set not found',
         details: { examSetId, schoolId }
       });
@@ -326,10 +335,10 @@ router.get('/reports/:examSetId/student/:studentId/pdf', async (req: Request, re
       WHERE student_id = $1 AND school_id = $2
     `;
     const studentResult = await (require('../../database/database').pool).query(studentQuery, [studentId, schoolId]);
-    
+
     if (studentResult.rows.length === 0) {
       console.log('[PDF Report] Student not found', { studentId, schoolId });
-      return res.status(404).json({ 
+      return res.status(404).json({
         message: 'Student not found',
         details: { studentId, schoolId }
       });
@@ -347,17 +356,17 @@ router.get('/reports/:examSetId/student/:studentId/pdf', async (req: Request, re
     `;
     const marksCheckResult = await (require('../../database/database').pool).query(marksCheckQuery, [studentId, examSetId]);
     const markCount = parseInt(marksCheckResult.rows[0].mark_count);
-    
+
     console.log('[PDF Report] Student marks check', { studentId, examSetId, markCount });
 
     if (markCount === 0) {
-      console.log('[PDF Report] No marks found for student', { 
-        studentId, 
+      console.log('[PDF Report] No marks found for student', {
+        studentId,
         examSetId,
         term: examSet.term,
-        year: examSet.year 
+        year: examSet.year
       });
-      return res.status(404).json({ 
+      return res.status(404).json({
         message: 'No marks found for this student in the selected exam set',
         details: {
           studentId,
@@ -404,7 +413,7 @@ router.post('/config/grading-scales', async (req: Request, res: Response) => {
 router.post('/config/grading-scales/bulk', async (req: Request, res: Response) => {
   try {
     const { school_id, scales } = req.body;
-    
+
     if (!school_id || !scales) {
       return res.status(400).json({ message: 'school_id and scales are required' });
     }

@@ -1,131 +1,138 @@
 <div class="student-marks-viewer">
-  <div class="header">
-    <button class="back-btn" (click)="goBack()">← Back to Dashboard</button>
-    <h2>Student Marks Viewer & Editor</h2>
-  </div>
-
-  <div class="controls-section">
-    <div class="filters-grid">
-      <!-- Class Filter -->
-      <div class="form-group">
-        <label>Class Level</label>
-        <select [(ngModel)]="selectedClass" (change)="onClassChange()">
-          <option value="" disabled>Select Class</option>
-          <option *ngFor="let cls of classes" [value]="cls">{{ cls }}</option>
-        </select>
-      </div>
-
-      <!-- Year Filter -->
-      <div class="form-group">
-        <label>Year</label>
-        <select [(ngModel)]="selectedYear" (change)="onYearChange()">
-          <option *ngFor="let year of years" [value]="year">{{ year }}</option>
-        </select>
-      </div>
-
-      <!-- Exam Set Filter -->
-      <div class="form-group">
-        <label>Exam Set</label>
-        <select [(ngModel)]="selectedExamSetId" (change)="onExamSetChange(selectedExamSetId!)"
-          [disabled]="!selectedClass">
-          <option [ngValue]="null" disabled>Select Exam Set</option>
-          <option *ngFor="let set of examSets" [ngValue]="set.exam_set_id">
-            {{ set.set_name }} (Term {{ set.term }})
-          </option>
-        </select>
-      </div>
-
-      <!-- Subject Filter -->
-      <div class="form-group">
-        <label>Subject</label>
-        <select [(ngModel)]="selectedSubjectId" (change)="onSubjectChange(selectedSubjectId!)"
-          [disabled]="!selectedExamSetId">
-          <option [ngValue]="null" disabled>Select Subject</option>
-          <option *ngFor="let subject of subjects" [ngValue]="subject.subject_id">
-            {{ subject.subject_name }}
-          </option>
-        </select>
-      </div>
-
-      <!-- Element Filter -->
-      <div class="form-group">
-        <label>Assessment Element</label>
-        <select [(ngModel)]="selectedElementId" (change)="onElementChange(selectedElementId!)"
-          [disabled]="!selectedSubjectId">
-          <option [ngValue]="null" disabled>Select Element</option>
-          <option *ngFor="let element of filteredElements" [ngValue]="element.element_id">
-            {{ element.element_name }} (Max: {{ element.max_score }})
-          </option>
-        </select>
-      </div>
+    <div class="header">
+        <button class="back-btn" (click)="goBack()">← Back to Dashboard</button>
+        <h2>Student Marks Viewer & Editor</h2>
     </div>
-  </div>
 
-  <div *ngIf="loading" class="loading">Loading data...</div>
+    <div class="controls-section">
+        <div class="filters-grid">
+            <!-- Class Filter -->
+            <div class="form-group">
+                <label>Class Level</label>
+                <select [(ngModel)]="selectedClass" (change)="onClassChange()">
+                    <option value="" disabled>Select Class</option>
+                    <option *ngFor="let cls of classes" [value]="cls">{{ cls }}</option>
+                </select>
+            </div>
 
-  <div *ngIf="
+            <!-- Year Filter -->
+            <div class="form-group">
+                <label>Year</label>
+                <select [(ngModel)]="selectedYear" (change)="onYearChange()">
+                    <option *ngFor="let year of years" [value]="year">{{ year }}</option>
+                </select>
+            </div>
+
+            <!-- Exam Set Filter -->
+            <div class="form-group">
+                <label>Exam Set</label>
+                <select [(ngModel)]="selectedExamSetId" (change)="onExamSetChange(selectedExamSetId!)"
+                    [disabled]="!selectedClass">
+                    <option [ngValue]="null" disabled>Select Exam Set</option>
+                    <option *ngFor="let set of examSets" [ngValue]="set.exam_set_id">
+                        {{ set.set_name }} (Term {{ set.term }})
+                    </option>
+                </select>
+            </div>
+
+            <!-- Subject Filter -->
+            <div class="form-group">
+                <label>Subject</label>
+                <select [(ngModel)]="selectedSubjectId" (change)="onSubjectChange(selectedSubjectId!)"
+                    [disabled]="!selectedExamSetId">
+                    <option [ngValue]="null" disabled>Select Subject</option>
+                    <option *ngFor="let subject of subjects" [ngValue]="subject.subject_id">
+                        {{ subject.subject_name }}
+                    </option>
+                </select>
+            </div>
+
+            <!-- Element Filter -->
+            <div class="form-group">
+                <label>Assessment Element</label>
+                <select [(ngModel)]="selectedElementId" (change)="onElementChange(selectedElementId!)"
+                    [disabled]="!selectedSubjectId">
+                    <option [ngValue]="null" disabled>Select Element</option>
+                    <option *ngFor="let element of filteredElements" [ngValue]="element.element_id">
+                        {{ element.element_name }} (Max: {{ element.max_score }})
+                    </option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div *ngIf="loading" class="loading">Loading data...</div>
+
+    <div *ngIf="
       !loading &&
       selectedElementId &&
-      students.length > 0
+      allStudents.length > 0
     " class="marks-section">
-    <div class="marks-info">
-      <p><strong>Total Students:</strong> {{ students.length }}</p>
-      <p><strong>Element:</strong> {{ selectedElement?.element_name }} (Max: {{ selectedElement?.max_score }})</p>
-      <p *ngIf="hasChanges" class="changes-indicator">
-        ⚠️ You have unsaved changes
-      </p>
+        <div class="marks-info">
+            <div class="info-left">
+                <p><strong>Total Students:</strong> {{ allStudents.length }}</p>
+                <p><strong>Element:</strong> {{ selectedElement?.element_name }} (Max: {{ selectedElement?.max_score }})
+                </p>
+            </div>
+            <div class="search-box">
+                <input type="text" placeholder="Search by Name or Reg No..." [(ngModel)]="searchTerm"
+                    (ngModelChange)="filterStudents()">
+            </div>
+            <p *ngIf="hasChanges" class="changes-indicator">
+                ⚠️ You have unsaved changes
+            </p>
+        </div>
+
+        <div class="table-wrapper">
+            <table class="marks-table">
+                <thead>
+                    <tr>
+                        <th class="col-student">Student Name</th>
+                        <th class="col-reg">Reg Number</th>
+                        <th class="col-mark">Mark Obtained</th>
+                        <th class="col-action">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let student of students">
+                        <td class="col-student">{{ student.student_name }}</td>
+                        <td class="col-reg">{{ student.reg_number }}</td>
+                        <td class="col-mark">
+                            <div class="input-wrapper">
+                                <input type="number" [(ngModel)]="student.mark" (change)="onMarkChange(student)"
+                                    [class.dirty]="student.markDirty" class="mark-input" placeholder="-" min="0"
+                                    [max]="selectedElement?.max_score || 100" />
+                                <span class="max-score">/ {{ selectedElement?.max_score }}</span>
+                            </div>
+                        </td>
+                        <td class="col-action">
+                            <button class="btn-save-row" (click)="saveSingleMark(student)" [disabled]="saving"
+                                title="Save this mark">
+                                💾 Save
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="form-actions">
+            <button class="save-btn" (click)="saveAllMarks()" [disabled]="!hasChanges || saving">
+                {{ saving ? "Saving..." : "Save All Changes" }}
+            </button>
+            <button class="cancel-btn" (click)="goBack()">Back</button>
+        </div>
     </div>
 
-    <div class="table-wrapper">
-      <table class="marks-table">
-        <thead>
-          <tr>
-            <th class="col-student">Student Name</th>
-            <th class="col-reg">Reg Number</th>
-            <th class="col-mark">Mark Obtained</th>
-            <th class="col-action">Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let student of students">
-            <td class="col-student">{{ student.student_name }}</td>
-            <td class="col-reg">{{ student.reg_number }}</td>
-            <td class="col-mark">
-              <div class="input-wrapper">
-                <input type="number" [(ngModel)]="student.mark" (change)="onMarkChange(student)"
-                  [class.dirty]="student.markDirty" class="mark-input" placeholder="-" min="0"
-                  [max]="selectedElement?.max_score || 100" />
-                <span class="max-score">/ {{ selectedElement?.max_score }}</span>
-              </div>
-            </td>
-            <td class="col-action">
-              <button class="btn-report" (click)="generateStudentReport(student.student_id)"
-                title="Generate individual report">
-                📄 Report
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="form-actions">
-      <button class="save-btn" (click)="saveAllMarks()" [disabled]="!hasChanges || saving">
-        {{ saving ? "Saving..." : "Save All Changes" }}
-      </button>
-      <button class="cancel-btn" (click)="goBack()">Back</button>
-    </div>
-  </div>
-
-  <div *ngIf="
+    <div *ngIf="
       !loading &&
       selectedElementId &&
-      students.length === 0
+      allStudents.length === 0
     " class="no-data">
-    <p>No students found for this class.</p>
-  </div>
+        <p>No students found for this class.</p>
+    </div>
 
-  <div *ngIf="!loading && !selectedElementId" class="empty-state">
-    <p>Please select all filters to view and edit marks.</p>
-  </div>
+    <div *ngIf="!loading && !selectedElementId" class="empty-state">
+        <p>Please select all filters to view and edit marks.</p>
+    </div>
 </div>

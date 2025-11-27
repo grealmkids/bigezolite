@@ -44,6 +44,7 @@ export class MarksEntryService {
             const elementResult = await client.query(elementQuery, [mark.element_id, student_id, exam_set_id]);
 
             if (elementResult.rows.length === 0) {
+              console.log(`[BulkUpload] Element or entry not found for student ${student_id}, element ${mark.element_id}, examSet ${exam_set_id}`);
               errors.push({
                 identifier: entry.student_identifier,
                 element_id: mark.element_id,
@@ -142,6 +143,7 @@ export class MarksEntryService {
   }
 
   async getExamSetResults(exam_set_id: number): Promise<any[]> {
+    console.log(`[MarksEntry] getExamSetResults called for exam_set_id: ${exam_set_id}`);
     const query = `
       SELECT 
         ree.student_id,
@@ -153,6 +155,10 @@ export class MarksEntryService {
     `;
 
     const result = await pool.query(query, [exam_set_id]);
+    console.log(`[MarksEntry] Found ${result.rows.length} mark entries for exam_set_id: ${exam_set_id}`);
+    if (result.rows.length > 0) {
+      console.log('[MarksEntry] Sample row:', result.rows[0]);
+    }
     return result.rows;
   }
 

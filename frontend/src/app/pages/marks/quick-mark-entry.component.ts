@@ -33,21 +33,21 @@ export class QuickMarkEntryComponent implements OnInit {
   selectedClass: string = '';
   years: number[] = [];
   selectedYear: number = new Date().getFullYear();
-  
+
   examSets: ExamSet[] = [];
   selectedExamSetId: number | null = null;
-  
+
   subjects: Subject[] = [];
   students: StudentReport[] = [];
   assessmentElements: AssessmentElement[] = [];
-  
+
   // For mark entry form
   selectedStudentForEntry: StudentReport | null = null;
   selectedSubjectId: number | null = null;
   selectedElementId: number | null = null;
   markValue: number | null = null;
   selectedElement: AssessmentElement | null = null;
-  
+
   saving = false;
   loading = false;
   loadingStudents = false;
@@ -60,7 +60,7 @@ export class QuickMarkEntryComponent implements OnInit {
     private schoolService: SchoolService,
     private classCategorizationService: ClassCategorizationService,
     private snack: MatSnackBar
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.schoolService.getMySchool().subscribe({
@@ -105,7 +105,7 @@ export class QuickMarkEntryComponent implements OnInit {
     if (this.selectedClass) {
       filters.class_level = this.selectedClass;
     }
-    
+
     this.marksService.getExamSets(this.schoolId, filters).subscribe({
       next: (data) => {
         this.examSets = data;
@@ -133,7 +133,7 @@ export class QuickMarkEntryComponent implements OnInit {
 
   loadStudents(): void {
     if (!this.selectedClass) return;
-    
+
     this.loadingStudents = true;
     this.studentService.getStudents(this.schoolId, undefined, this.selectedClass).subscribe({
       next: (result: any) => {
@@ -153,14 +153,14 @@ export class QuickMarkEntryComponent implements OnInit {
       this.snack.open('Please select an exam set first', 'Close', { duration: 3000 });
       return;
     }
-    
+
     this.selectedStudentForEntry = student;
     this.showMarkForm = true;
     this.selectedSubjectId = null;
     this.selectedElementId = null;
     this.markValue = null;
     this.selectedElement = null;
-    
+
     // Load subjects and assessment elements for this exam set
     this.loadSubjectsAndElements();
   }
@@ -184,12 +184,12 @@ export class QuickMarkEntryComponent implements OnInit {
     if (this.selectedClass) {
       filters.class_level = this.selectedClass;
     }
-    
+
     // Load assessment elements
     this.marksService.getAssessmentElements(this.selectedExamSetId).subscribe({
       next: (elements) => {
         this.assessmentElements = elements;
-        
+
         // Extract unique subjects with proper mapping
         const subjectMap = new Map<number, Subject>();
         elements.forEach(el => {
@@ -225,7 +225,10 @@ export class QuickMarkEntryComponent implements OnInit {
     if (!this.selectedSubjectId) {
       return [];
     }
-    return this.assessmentElements.filter(e => e.subject_id === this.selectedSubjectId);
+    console.log('[QuickMarkEntry] Filtering elements for subjectId:', this.selectedSubjectId, 'Type:', typeof this.selectedSubjectId);
+    const filtered = this.assessmentElements.filter(e => e.subject_id == this.selectedSubjectId);
+    console.log('[QuickMarkEntry] Filtered count:', filtered.length);
+    return filtered;
   }
 
   getSelectedSubjectName(): string {
@@ -256,7 +259,7 @@ export class QuickMarkEntryComponent implements OnInit {
       next: (result) => {
         this.saving = false;
         this.snack.open('Mark saved successfully!', 'Close', { duration: 3000 });
-        
+
         // Close form and reload students to refresh display
         this.closeMarkForm();
       },

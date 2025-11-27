@@ -4,7 +4,7 @@ import { ExamSet, CreateExamSetRequest, AssessmentElement, ExamEntry } from '../
 export class ExamSetService {
   async createExamSet(request: CreateExamSetRequest, user_id: number): Promise<ExamSet> {
     const client = await pool.connect();
-    
+
     try {
       await client.query('BEGIN');
 
@@ -13,7 +13,7 @@ export class ExamSetService {
         VALUES ($1, $2, $3, $4, $5, $6)
         RETURNING *
       `;
-      
+
       const examSetResult = await client.query(examSetQuery, [
         request.school_id,
         request.set_name,
@@ -22,7 +22,7 @@ export class ExamSetService {
         request.year,
         request.assessment_type
       ]);
-      
+
       const examSet = examSetResult.rows[0];
 
       for (const subject of request.subjects) {
@@ -33,7 +33,7 @@ export class ExamSetService {
             )
             VALUES ($1, $2, $3, $4, $5, $6)
           `;
-          
+
           await client.query(elementQuery, [
             request.school_id,
             subject.subject_id,
@@ -49,9 +49,9 @@ export class ExamSetService {
         SELECT student_id FROM students
         WHERE school_id = $1 AND class_name = $2
       `;
-      
+
       const studentsResult = await client.query(studentsQuery, [request.school_id, request.class_level]);
-      
+
       for (const student of studentsResult.rows) {
         for (const subject of request.subjects) {
           const entryQuery = `
@@ -59,7 +59,7 @@ export class ExamSetService {
             VALUES ($1, $2, $3, 'Pending Entry')
             ON CONFLICT (student_id, subject_id, exam_set_id) DO NOTHING
           `;
-          
+
           await client.query(entryQuery, [student.student_id, subject.subject_id, examSet.exam_set_id]);
         }
       }
@@ -111,12 +111,16 @@ export class ExamSetService {
     const query = `
       SELECT ae.*, cs.subject_name
       FROM config_assessment_elements ae
-      JOIN config_subjects cs ON ae.subject_id = cs.subject_id
+      LEFT JOIN config_subjects cs ON ae.subject_id = cs.subject_id
       WHERE ae.exam_set_id = $1
       ORDER BY cs.subject_name, ae.element_name
     `;
-    
+
     const result = await pool.query(query, [exam_set_id]);
+    console.log(`[ExamSetService] getAssessmentElementsByExamSet for examSetId ${exam_set_id}: Found ${result.rows.length} elements`);
+    if (result.rows.length === 0) {
+      console.log('[ExamSetService] Query was:', query);
+    }
     return result.rows;
   }
 
@@ -132,7 +136,7 @@ export class ExamSetService {
       VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *
     `;
-    
+
     const result = await pool.query(query, [
       element.school_id,
       element.subject_id,
@@ -141,7 +145,7 @@ export class ExamSetService {
       element.max_score,
       element.contributing_weight_percent
     ]);
-    
+
     return result.rows[0];
   }
 
@@ -152,14 +156,14 @@ export class ExamSetService {
       WHERE element_id = $4
       RETURNING *
     `;
-    
+
     const result = await pool.query(query, [
       element.element_name,
       element.max_score,
       element.contributing_weight_percent,
       element.element_id
     ]);
-    
+
     return result.rows[0];
   }
 
@@ -174,7 +178,7 @@ export class ExamSetService {
       LEFT JOIN config_subjects cs ON ae.subject_id = cs.subject_id
       WHERE ae.element_id = $1
     `;
-    
+
     const result = await pool.query(query, [element_id]);
     return result.rows[0] || null;
   }

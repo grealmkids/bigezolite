@@ -29,22 +29,22 @@ export class ManageAssessmentElementsComponent implements OnInit {
   examSets: ExamSet[] = [];
   selectedExamSetId: number | null = null;
   selectedExamSet: ExamSet | null = null;
-  
+
   subjects: Subject[] = [];
   selectedSubjectId: number | null = null;
   elements: AssessmentElement[] = [];
-  
+
   loading = false;
   saving = false;
   showAddForm = false;
   editingElementId: number | null = null;
-  
+
   newElement: ElementForm = {
     element_name: '',
     max_score: null,
     contributing_weight_percent: null
   };
-  
+
   editingElement: ElementForm = {
     element_name: '',
     max_score: null,
@@ -56,7 +56,7 @@ export class ManageAssessmentElementsComponent implements OnInit {
     private marksService: MarksService,
     private schoolService: SchoolService,
     private snack: MatSnackBar
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.schoolService.getMySchool().subscribe({
@@ -74,7 +74,7 @@ export class ManageAssessmentElementsComponent implements OnInit {
     this.loading = true;
     this.marksService.getExamSets(this.schoolId).subscribe({
       next: (data) => {
-        this.examSets = data.sort((a, b) => 
+        this.examSets = data.sort((a, b) =>
           `${b.year}${b.term}`.localeCompare(`${a.year}${a.term}`)
         );
         this.loading = false;
@@ -100,7 +100,7 @@ export class ManageAssessmentElementsComponent implements OnInit {
 
   loadSubjectsForExamSet(): void {
     if (!this.selectedExamSetId) return;
-    
+
     this.loading = true;
     this.marksService.getAssessmentElements(this.selectedExamSetId).subscribe({
       next: (elements) => {
@@ -113,7 +113,7 @@ export class ManageAssessmentElementsComponent implements OnInit {
             });
           }
         });
-        this.subjects = Array.from(subjectMap.values()).sort((a, b) => 
+        this.subjects = Array.from(subjectMap.values()).sort((a, b) =>
           a.subject_name.localeCompare(b.subject_name)
         );
         this.loading = false;
@@ -135,11 +135,14 @@ export class ManageAssessmentElementsComponent implements OnInit {
 
   loadElementsForSubject(): void {
     if (!this.selectedExamSetId || !this.selectedSubjectId) return;
-    
+
     this.loading = true;
     this.marksService.getAssessmentElements(this.selectedExamSetId).subscribe({
       next: (allElements) => {
-        this.elements = allElements.filter(e => e.subject_id === this.selectedSubjectId);
+        console.log('[ManageAssessmentElements] Received elements:', allElements);
+        console.log('[ManageAssessmentElements] Filtering for subjectId:', this.selectedSubjectId);
+        this.elements = allElements.filter(e => e.subject_id == this.selectedSubjectId); // Using == for loose equality check just in case
+        console.log('[ManageAssessmentElements] Filtered elements:', this.elements);
         this.loading = false;
       },
       error: (err) => {

@@ -69,19 +69,25 @@ export const authenticateToken = async (req: AuthenticatedRequest, res: Response
     // Attach the user ID from the token to the request
     req.user = { userId: payload.userId };
 
-    // Prioritize schoolId from session if available (for school switching)
-    const sess: any = (req as any).session;
-    if (sess && typeof sess.schoolId !== 'undefined') {
-        req.user.schoolId = sess.schoolId as number;
+    // Prioritize schoolId from header (explicit selection)
+    const headerSchoolId = req.headers['x-school-id'];
+    if (headerSchoolId) {
+      req.user.schoolId = parseInt(headerSchoolId as string, 10);
     } else {
+      // Fallback to session or DB defaults
+      const sess: any = (req as any).session;
+      if (sess && typeof sess.schoolId !== 'undefined') {
+        req.user.schoolId = sess.schoolId as number;
+      } else {
         // Fallback to fetching the user's most recent school_id for data isolation.
         // When a user has multiple schools, we pick the most recently created one.
         const schoolQuery = 'SELECT school_id FROM schools WHERE user_id = $1 ORDER BY created_at DESC LIMIT 1';
         const schoolResult = await query(schoolQuery, [payload.userId]);
 
         if (schoolResult.rows.length > 0) {
-            req.user.schoolId = schoolResult.rows[0].school_id;
+          req.user.schoolId = schoolResult.rows[0].school_id;
         }
+      }
     }
 
     console.log('[auth.middleware] token:', token);

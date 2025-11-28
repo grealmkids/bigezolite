@@ -23,13 +23,13 @@ export class BulkUploadMarksComponent implements OnInit {
   schoolId: number = 0;
   classes: string[] = [];
   selectedClass: string = '';
-  
+
   examSets: ExamSet[] = [];
   selectedExamSetId: number | null = null;
-  
+
   subjects: Subject[] = [];
   selectedSubjectId: number | null = null;
-  
+
   assessmentElements: AssessmentElement[] = [];
   loading = false;
   loadingElements = false;
@@ -40,7 +40,7 @@ export class BulkUploadMarksComponent implements OnInit {
     private router: Router,
     private schoolService: SchoolService,
     private classCategorizationService: ClassCategorizationService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.schoolService.getMySchool().subscribe({
@@ -95,7 +95,7 @@ export class BulkUploadMarksComponent implements OnInit {
 
   loadSubjects(): void {
     if (!this.selectedExamSetId) return;
-    
+
     this.loading = true;
     // Get assessment elements to find unique subjects
     this.marksService.getAssessmentElements(this.selectedExamSetId).subscribe({
@@ -135,7 +135,7 @@ export class BulkUploadMarksComponent implements OnInit {
 
   loadAssessmentElements(): void {
     if (!this.selectedExamSetId) return;
-    
+
     this.loadingElements = true;
     this.marksService.getAssessmentElements(this.selectedExamSetId).subscribe({
       next: (elements) => {
@@ -212,7 +212,7 @@ export class BulkUploadMarksComponent implements OnInit {
         for (const row of data) {
           const regNumber = row['Student Reg Number'];
           const linNumber = row['Student LIN (Optional)'];
-          
+
           if (!regNumber && !linNumber) continue;
 
           const marks: { element_id: number; score_obtained: number }[] = [];
@@ -220,7 +220,7 @@ export class BulkUploadMarksComponent implements OnInit {
           for (const element of elements) {
             const columnPattern = new RegExp(`^${element.element_name}\\s*\\(Max:\\s*\\d+\\)$`, 'i');
             const matchingColumn = Object.keys(row).find(key => columnPattern.test(key));
-            
+
             if (matchingColumn && row[matchingColumn] !== undefined && row[matchingColumn] !== '') {
               marks.push({
                 element_id: element.element_id,
@@ -267,5 +267,9 @@ export class BulkUploadMarksComponent implements OnInit {
 
   goBack(): void {
     this.router.navigate(['/marks']);
+  }
+
+  goToCreateExamSet(): void {
+    this.router.navigate(['/marks/exam-sets']);
   }
 }

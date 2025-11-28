@@ -129,7 +129,6 @@ export class SchoolService {
   }
 
   selectSchool(school: School | null) {
-    this.selectedSchool.next(school);
     try {
       if (school) {
         localStorage.setItem(this.STORAGE_KEY, JSON.stringify(school));
@@ -146,6 +145,9 @@ export class SchoolService {
     } catch (e) {
       // ignore storage errors
     }
+    // Emit selectedSchool AFTER updating schoolType so subscribers (like StudentMarksViewer)
+    // can access the correct schoolType immediately.
+    this.selectedSchool.next(school);
   }
 
   switchSchool(schoolId: number): Observable<any> {

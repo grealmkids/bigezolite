@@ -30,6 +30,7 @@ interface StudentMarkRow {
 })
 export class StudentMarksViewerComponent implements OnInit {
   schoolId: number = 0;
+  schoolName: string = '';
 
   // Filters
   classes: string[] = [];
@@ -71,6 +72,7 @@ export class StudentMarksViewerComponent implements OnInit {
       next: (school) => {
         if (school) {
           this.schoolId = school.school_id;
+          this.schoolName = school.school_name;
           this.loadClasses();
           this.generateYearsList();
         }
@@ -436,7 +438,7 @@ export class StudentMarksViewerComponent implements OnInit {
         doc.setTextColor(0);
         doc.setFontSize(22);
         doc.setFont('helvetica', 'bold');
-        doc.text('SCHOOL NAME HERE', 105, 25, { align: 'center' }); // Placeholder for dynamic school name if available
+        doc.text(this.schoolName || 'SCHOOL NAME HERE', 105, 25, { align: 'center' });
 
         doc.setFontSize(16);
         doc.setFont('helvetica', 'normal');

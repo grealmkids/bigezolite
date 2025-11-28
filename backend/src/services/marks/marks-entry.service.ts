@@ -8,6 +8,7 @@ export class MarksEntryService {
     entries: BulkMarkEntry[],
     entered_by_user_id: number
   ): Promise<{ success: number; errors: any[] }> {
+    console.log(`[BulkUpload] Starting upload for examSet: ${exam_set_id}, school: ${school_id}, entries: ${entries.length}`);
     const client = await pool.connect();
     const errors: any[] = [];
     let successCount = 0;
@@ -24,6 +25,7 @@ export class MarksEntryService {
           const studentResult = await client.query(studentQuery, [entry.student_identifier, school_id]);
 
           if (studentResult.rows.length === 0) {
+            console.warn(`[BulkUpload] Student not found: ${entry.student_identifier}`);
             errors.push({
               identifier: entry.student_identifier,
               error: 'Student not found'
@@ -34,26 +36,47 @@ export class MarksEntryService {
           const student_id = studentResult.rows[0].student_id;
 
           for (const mark of entry.marks) {
-            const elementQuery = `
-              SELECT ae.*, ree.exam_entry_id
-              FROM config_assessment_elements ae
-              JOIN results_exam_entries ree ON ree.subject_id = ae.subject_id AND ree.exam_set_id = ae.exam_set_id
-              WHERE ae.element_id = $1 AND ree.student_id = $2 AND ree.exam_set_id = $3
+            // 1. Get Element details
+            const elementInfoQuery = `
+                SELECT ae.* 
+                FROM config_assessment_elements ae
+                WHERE ae.element_id = $1 AND ae.exam_set_id = $2
             `;
+            const elementInfoResult = await client.query(elementInfoQuery, [mark.element_id, exam_set_id]);
 
-            const elementResult = await client.query(elementQuery, [mark.element_id, student_id, exam_set_id]);
-
-            if (elementResult.rows.length === 0) {
-              console.log(`[BulkUpload] Element or entry not found for student ${student_id}, element ${mark.element_id}, examSet ${exam_set_id}`);
+            if (elementInfoResult.rows.length === 0) {
+              console.log(`[BulkUpload] Element not found or mismatch: element ${mark.element_id}, examSet ${exam_set_id}`);
               errors.push({
                 identifier: entry.student_identifier,
                 element_id: mark.element_id,
-                error: 'Element or exam entry not found'
+                error: 'Element not found or does not belong to this exam set'
               });
               continue;
             }
 
-            const element = elementResult.rows[0];
+            const element = elementInfoResult.rows[0];
+
+            // 2. Ensure Exam Entry exists (Auto-register if missing)
+            let examEntryId;
+            const insertEntryQuery = `
+                INSERT INTO results_exam_entries (student_id, subject_id, exam_set_id, status)
+                VALUES ($1, $2, $3, 'Pending Entry')
+                ON CONFLICT (student_id, subject_id, exam_set_id) 
+                DO UPDATE SET status = results_exam_entries.status
+                RETURNING exam_entry_id
+            `;
+
+            try {
+              const insertEntryResult = await client.query(insertEntryQuery, [student_id, element.subject_id, exam_set_id]);
+              examEntryId = insertEntryResult.rows[0].exam_entry_id;
+            } catch (err) {
+              console.error(`[BulkUpload] Failed to ensure exam entry for student ${student_id}:`, err);
+              errors.push({
+                identifier: entry.student_identifier,
+                error: 'Failed to register student for exam'
+              });
+              continue;
+            }
 
             if (mark.score_obtained > element.max_score) {
               errors.push({
@@ -72,7 +95,7 @@ export class MarksEntryService {
             `;
 
             await client.query(insertQuery, [
-              element.exam_entry_id,
+              examEntryId,
               mark.element_id,
               mark.score_obtained,
               element.max_score,
@@ -89,6 +112,7 @@ export class MarksEntryService {
           await client.query(updateStatusQuery, [student_id, exam_set_id]);
           successCount++;
         } catch (error: any) {
+          console.error(`[BulkUpload] Error processing entry for student ${entry.student_identifier}:`, error);
           errors.push({
             identifier: entry.student_identifier,
             error: error.message
@@ -97,9 +121,11 @@ export class MarksEntryService {
       }
 
       await client.query('COMMIT');
+      console.log(`[BulkUpload] Completed. Success: ${successCount}, Errors: ${errors.length}`);
       return { success: successCount, errors };
     } catch (error) {
       await client.query('ROLLBACK');
+      console.error('[BulkUpload] Transaction failed:', error);
       throw error;
     } finally {
       client.release();
@@ -154,10 +180,16 @@ export class MarksEntryService {
       WHERE ree.exam_set_id = $1
     `;
 
+    console.log(`[MarksEntry] Executing query for exam_set_id: ${exam_set_id}`);
     const result = await pool.query(query, [exam_set_id]);
     console.log(`[MarksEntry] Found ${result.rows.length} mark entries for exam_set_id: ${exam_set_id}`);
     if (result.rows.length > 0) {
       console.log('[MarksEntry] Sample row:', result.rows[0]);
+    } else {
+      console.log('[MarksEntry] No rows found. Checking if any results exist in results_entry table generally...');
+      const checkQuery = 'SELECT count(*) FROM results_entry';
+      const checkResult = await pool.query(checkQuery);
+      console.log(`[MarksEntry] Total rows in results_entry table: ${checkResult.rows[0].count}`);
     }
     return result.rows;
   }

@@ -31,10 +31,7 @@
       <h3>View & Edit Marks</h3>
       <p>Editable table with all student marks</p>
     </a>
-    <a routerLink="/marks/quick-entry" class="action-card">
-      <h3>Quick Mark Entry</h3>
-      <p>Enter single marks quickly</p>
-    </a>
+
   </div>
 
   <div class="exam-sets-section">
@@ -50,16 +47,10 @@
         <p>Term {{ examSet.term }}, {{ examSet.year }}</p>
         <p>Type: {{ examSet.assessment_type }}</p>
         <div class="card-actions">
-          <button
-            [routerLink]="['/marks/exam-set', examSet.exam_set_id]"
-            class="btn-secondary"
-          >
+          <button [routerLink]="['/marks/exam-set', examSet.exam_set_id]" class="btn-secondary">
             View Details
           </button>
-          <button
-            [routerLink]="['/marks/enter-marks', examSet.exam_set_id]"
-            class="btn-primary"
-          >
+          <button [routerLink]="['/marks/enter-marks', examSet.exam_set_id]" class="btn-primary">
             Enter Marks
           </button>
         </div>

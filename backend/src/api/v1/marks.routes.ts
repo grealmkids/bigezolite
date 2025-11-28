@@ -182,8 +182,11 @@ router.post('/marks/bulk-upload', async (req: Request, res: Response) => {
     const { exam_set_id, school_id, entries } = req.body;
 
     if (!exam_set_id || !school_id || !entries) {
+      console.warn('[BulkUpload] Missing required fields:', { exam_set_id, school_id, entriesCount: entries?.length });
       return res.status(400).json({ message: 'exam_set_id, school_id, and entries are required' });
     }
+
+    console.log(`[BulkUpload] Request received. ExamSet: ${exam_set_id}, School: ${school_id}, Entries: ${entries.length}`);
 
     const result = await MarksEntryService.bulkUploadMarks(exam_set_id, school_id, entries, userId);
     res.json(result);
@@ -224,6 +227,7 @@ router.delete('/marks/:entryId', async (req: Request, res: Response) => {
 
 router.get('/exam-sets/:examSetId/results', async (req: Request, res: Response) => {
   try {
+    console.log(`[API] Fetching results for examSet: ${req.params.examSetId}`);
     const results = await MarksEntryService.getExamSetResults(Number(req.params.examSetId));
     res.json(results);
   } catch (error: any) {

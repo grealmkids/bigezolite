@@ -250,25 +250,33 @@ export class StudentMarksViewerComponent implements OnInit {
         console.log(`[ViewMarks] Fetching marks for examSet: ${this.selectedExamSetId}`);
         this.marksService.getExamSetResults(this.selectedExamSetId!).subscribe({
           next: (results) => {
-            console.log(`[ViewMarks] Received ${results.length} mark entries`);
+            console.log(`[ViewMarks] Received ${results.length} mark entries from backend`);
             let matchedCount = 0;
+
+            if (results.length > 0) {
+              console.log('[ViewMarks] First result sample:', results[0]);
+              console.log(`[ViewMarks] Current selectedElementId: ${this.selectedElementId} (Type: ${typeof this.selectedElementId})`);
+            }
 
             results.forEach((result: any) => {
               // Debug log for first few results to check types
-              if (matchedCount < 3) {
-                console.log(`[ViewMarks] Checking result: student_id=${result.student_id}, element_id=${result.element_id}, score=${result.score_obtained}`);
-                console.log(`[ViewMarks] Target element_id=${this.selectedElementId}`);
+              if (matchedCount < 3 && result.element_id == this.selectedElementId) {
+                console.log(`[ViewMarks] Match found! student_id=${result.student_id}, score=${result.score_obtained}`);
               }
 
+              // Ensure loose equality or correct type conversion
               if (result.element_id == this.selectedElementId) {
                 const student = this.allStudents.find(s => s.student_id === result.student_id);
                 if (student) {
                   student.mark = result.score_obtained;
                   matchedCount++;
+                } else {
+                  // Log if we have a mark for a student not in the current list (might happen if filtering classes differently)
+                  // console.warn(`[ViewMarks] Found mark for student_id ${result.student_id} but student not in current list`);
                 }
               }
             });
-            console.log(`[ViewMarks] Matched ${matchedCount} marks for current element`);
+            console.log(`[ViewMarks] Matched ${matchedCount} marks for current element out of ${results.length} total results`);
             this.loading = false;
           },
           error: (err) => {
@@ -314,19 +322,26 @@ export class StudentMarksViewerComponent implements OnInit {
     const entry = {
       student_identifier: student.reg_number,
       identifier_type: 'reg_number',
-      element_id: this.selectedElementId,
-      score_obtained: student.mark
+      marks: [{
+        element_id: this.selectedElementId,
+        score_obtained: student.mark
+      }]
     };
 
     this.marksService.bulkUploadMarks(this.selectedExamSetId, this.schoolId, [entry as any]).subscribe({
       next: (result) => {
         this.saving = false;
-        student.markDirty = false;
 
-        // Check if any other students are dirty
-        this.hasChanges = this.allStudents.some(s => s.markDirty);
-
-        this.snack.open('Mark saved successfully', 'Close', { duration: 2000 });
+        if (result.success > 0) {
+          student.markDirty = false;
+          // Check if any other students are dirty
+          this.hasChanges = this.allStudents.some(s => s.markDirty);
+          this.snack.open('Mark saved successfully', 'Close', { duration: 2000 });
+        } else {
+          console.error('Save failed:', result.errors);
+          const errorMsg = result.errors.length > 0 ? result.errors[0].error : 'Unknown error';
+          this.snack.open(`Failed to save: ${errorMsg}`, 'Close', { duration: 5000 });
+        }
       },
       error: (err) => {
         console.error('Error saving mark:', err);
@@ -350,8 +365,10 @@ export class StudentMarksViewerComponent implements OnInit {
         entries.push({
           student_identifier: student.reg_number,
           identifier_type: 'reg_number',
-          element_id: this.selectedElementId,
-          score_obtained: student.mark
+          marks: [{
+            element_id: this.selectedElementId,
+            score_obtained: student.mark
+          }]
         });
       }
     }

@@ -20,7 +20,7 @@ import { GradingConfigComponent } from './pages/marks/grading-config.component';
 import { GenerateReportsComponent } from './pages/marks/generate-reports.component';
 import { EnterMarksComponent } from './pages/marks/enter-marks.component';
 import { StudentMarksViewerComponent } from './pages/marks/student-marks-viewer.component';
-import { QuickMarkEntryComponent } from './pages/marks/quick-mark-entry.component';
+
 import { StudentReportComponent } from './pages/marks/student-report.component';
 import { HolisticFeedbackComponent } from './pages/marks/holistic-feedback.component';
 import { ManageAssessmentElementsComponent } from './pages/marks/manage-assessment-elements.component';
@@ -119,11 +119,7 @@ export const routes: Routes = [
         component: StudentMarksViewerComponent,
         canActivate: [authGuard]
     },
-    {
-        path: 'marks/quick-entry',
-        component: QuickMarkEntryComponent,
-        canActivate: [authGuard]
-    },
+
     {
         path: 'marks/student-report/:examSetId/:studentId',
         component: StudentReportComponent,

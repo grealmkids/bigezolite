@@ -1,7 +1,15 @@
 <div class="student-marks-viewer">
-    <div class="header">
-        <button class="back-btn" (click)="goBack()">← Back to Dashboard</button>
-        <h2>Student Marks Viewer & Editor</h2>
+    <div class="page-header">
+        <div class="header-content">
+            <h1>Student Marks Viewer</h1>
+            <div class="actions">
+                <button mat-raised-button color="primary" (click)="downloadPdf()"
+                    [disabled]="!selectedElementId || students.length === 0">
+                    <i class="fas fa-file-pdf"></i> Download PDF
+                </button>
+                <button mat-stroked-button (click)="goBack()">Back to Dashboard</button>
+            </div>
+        </div>
     </div>
 
     <div class="controls-section">

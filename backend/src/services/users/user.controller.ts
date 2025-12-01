@@ -45,8 +45,15 @@ export const register = async (req: Request, res: Response) => {
 
     const { password_hash, ...userWithoutPassword } = user;
     return res.status(201).json(userWithoutPassword);
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
+    if (error.code === '23505') {
+      if (error.constraint === 'users_phone_number_key') {
+        return res.status(409).json({ message: 'Phone number already in use' });
+      } else if (error.constraint === 'users_email_key') {
+        return res.status(409).json({ message: 'Email already in use' });
+      }
+    }
     res.status(500).json({ message: 'Internal server error' });
   }
 };

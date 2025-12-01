@@ -14,6 +14,7 @@ export interface School {
   school_type: string;
   accountant_number?: string; // RSVP/Mobile Money number
   account_status: 'Dormant' | 'Active' | 'Suspended';
+  badge_url?: string;
 }
 
 @Injectable({

@@ -44,8 +44,10 @@ CREATE TABLE IF NOT EXISTS schools (
     student_count_range VARCHAR(50),
     school_type VARCHAR(100),
     account_status account_status DEFAULT 'Dormant',
+    badge_url VARCHAR(500),
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
 
 -- ===========================================================
 -- STUDENTS TABLE

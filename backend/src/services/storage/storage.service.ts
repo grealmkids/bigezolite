@@ -1,15 +1,15 @@
 import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { randomUUID } from 'crypto';
 
-// Credentials from BIGEZO RENDER reference
+// Credentials from .env
 const B2_CONFIG = {
-    region: 'us-east-005',
-    endpoint: 'https://s3.us-east-005.backblazeb2.com',
+    region: process.env.B2_REGION || 'us-east-005',
+    endpoint: process.env.B2_ENDPOINT || 'https://s3.us-east-005.backblazeb2.com',
     credentials: {
-        accessKeyId: '0053b1621543bb80000000002',
-        secretAccessKey: 'K005ZFANaAKSilCNzNZsXHy2dkWIVHo'
+        accessKeyId: process.env.B2_ACCESS_KEY_ID || '',
+        secretAccessKey: process.env.B2_SECRET_ACCESS_KEY || ''
     },
-    bucketName: 'bigezo'
+    bucketName: process.env.B2_BUCKET_NAME || 'bigezo'
 };
 
 const s3Client = new S3Client({

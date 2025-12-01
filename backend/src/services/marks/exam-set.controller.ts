@@ -19,14 +19,22 @@ class ExamSetController {
   async getExamSets(req: Request, res: Response) {
     try {
       const { school_id } = req.params;
-      const examSets = await examSetService.getExamSetsBySchool(parseInt(school_id));
+      const { term, year, class_level } = req.query;
+
+      const filters = {
+        term: term ? parseInt(term as string) : undefined,
+        year: year ? parseInt(year as string) : undefined,
+        class_level: class_level as string
+      };
+
+      const examSets = await examSetService.getExamSetsBySchool(parseInt(school_id), filters);
       res.status(200).json(examSets);
     } catch (error) {
       res.status(500).json({ message: 'Error getting exam sets', error });
     }
   }
 
-    async getExamSet(req: Request, res: Response) {
+  async getExamSet(req: Request, res: Response) {
     try {
       const { set_id } = req.params;
       const examSet = await examSetService.getExamSetById(parseInt(set_id));
@@ -34,7 +42,7 @@ class ExamSetController {
     } catch (error) {
       res.status(500).json({ message: 'Error getting exam set', error });
     }
-    }
+  }
 }
 
 export default new ExamSetController();

@@ -3,7 +3,10 @@ import { Router } from 'express';
 import * as schoolController from '../../services/schools/school.controller';
 import { authenticateToken } from '../../middleware/auth.middleware';
 
+import multer from 'multer';
+
 const router = Router();
+const upload = multer({ storage: multer.memoryStorage() });
 
 // All routes in this file are protected and require a valid token
 router.use(authenticateToken);
@@ -28,5 +31,8 @@ router.delete('/:id', schoolController.deleteSchool);
 
 // POST /api/v1/schools/switch - Switch active school
 router.post('/switch', schoolController.switchSchool);
+
+// POST /api/v1/schools/:id/badge - Upload school badge
+router.post('/:id/badge', upload.single('file'), schoolController.uploadBadge);
 
 export default router;

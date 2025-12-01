@@ -12,6 +12,7 @@ export interface School {
     school_type: string; // Added during schema review
     accountant_number?: string; // RSVP/Mobile Money number for fees
     account_status?: 'Dormant' | 'Active' | 'Suspended';
+    badge_url?: string;
 }
 
 export const createSchool = async (school: School) => {

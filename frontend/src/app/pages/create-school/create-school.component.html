@@ -9,44 +9,25 @@
       <!-- School Name -->
       <div class="form-group">
         <label for="school_name">School Name</label>
-        <input
-          id="school_name"
-          type="text"
-          formControlName="school_name"
-          required
-        />
+        <input id="school_name" type="text" formControlName="school_name" required />
       </div>
 
       <!-- Admin Phone -->
       <div class="form-group">
         <label for="admin_phone">Administrator Phone</label>
-        <input
-          id="admin_phone"
-          type="text"
-          formControlName="admin_phone"
-          required
-        />
+        <input id="admin_phone" type="text" formControlName="admin_phone" required />
       </div>
 
       <!-- Accountant Phone -->
       <div class="form-group">
         <label for="accountant_number">Accountant Phone</label>
-        <input
-          id="accountant_number"
-          type="text"
-          formControlName="accountant_number"
-          required
-        />
+        <input id="accountant_number" type="text" formControlName="accountant_number" required />
       </div>
 
       <!-- Location District -->
       <div class="form-group">
         <label for="location_district">District</label>
-        <select
-          id="location_district"
-          formControlName="location_district"
-          required
-        >
+        <select id="location_district" formControlName="location_district" required>
           <option value="" disabled>Select a district</option>
           <option *ngFor="let d of districts" [value]="d">{{ d }}</option>
         </select>
@@ -77,17 +58,34 @@
       <!-- Student Count Range -->
       <div class="form-group">
         <label for="student_count_range">Number of Students</label>
-        <select
-          id="student_count_range"
-          formControlName="student_count_range"
-          required
-        >
+        <select id="student_count_range" formControlName="student_count_range" required>
           <option value="" disabled>Select a range</option>
-          <option value="<500"><500</option>
+          <option value="<500">
+            <500< /option>
           <option value="501-1000">501-1000</option>
           <option value="1001-2000">1001-2000</option>
           <option value=">2000">>2000</option>
         </select>
+      </div>
+
+      <!-- School Badge -->
+      <div class="form-group">
+        <label for="badge">School Badge (Optional)</label>
+        <input type="file" id="badge" (change)="onFileSelected($event)" accept="image/*" />
+        <div *ngIf="previewUrl" class="badge-preview" style="margin-top: 10px;">
+          <img [src]="previewUrl" alt="Badge Preview"
+            style="max-width: 100px; max-height: 100px; object-fit: contain; border-radius: 8px;">
+        </div>
+      </div>
+
+      <!-- Upload Progress -->
+      <div *ngIf="isUploading" class="upload-progress" style="margin-bottom: 15px;">
+        <p>Creating school and uploading badge...</p>
+        <div class="progress-bar"
+          style="width: 100%; height: 10px; background-color: #e0e0e0; border-radius: 5px; overflow: hidden;">
+          <div [style.width.%]="uploadProgress"
+            style="height: 100%; background-color: #4caf50; transition: width 0.3s;"></div>
+        </div>
       </div>
 
       <div *ngIf="errorMessage" class="error-message">

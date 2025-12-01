@@ -190,4 +190,13 @@ export class SchoolService {
       tap(() => this.mySchool.next(null))
     );
   }
+
+  uploadBadge(schoolId: number, file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post(`${this.apiUrl}/schools/${schoolId}/badge`, formData, {
+      reportProgress: true,
+      observe: 'events'
+    });
+  }
 }

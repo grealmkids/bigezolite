@@ -4,6 +4,8 @@
 node_modules/
 
 BIGEZO RENDER/
+**/BIGEZO RENDER/
+
 
 # Build artifacts
 **/dist/

@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { MarksService, ExamSet, AssessmentElement, Subject } from '../../services/marks.service';
 import { SchoolService } from '../../services/school.service';
 import { ClassCategorizationService } from '../../services/class-categorization.service';
+import * as ExcelJS from 'exceljs';
 
 interface BulkMarkEntry {
   student_identifier: string;
@@ -158,18 +159,27 @@ export class BulkUploadMarksComponent implements OnInit {
     }
 
     try {
-      const XLSX = await import('xlsx');
+      const workbook = new ExcelJS.Workbook();
+      const sheetName = this.getSelectedSubjectName().substring(0, 30) || 'Marks Template';
+      const worksheet = workbook.addWorksheet(sheetName);
+
       const headers = ['Student Reg Number', 'Student Name', 'Student LIN (Optional)'];
       const elementHeaders = this.assessmentElements.map(el => `${el.element_name} (Max: ${el.max_score})`);
-      headers.push(...elementHeaders);
 
-      const ws = XLSX.utils.aoa_to_sheet([headers]);
-      const wb = XLSX.utils.book_new();
-      const selectedSubject = this.subjects.find(s => s.subject_id === this.selectedSubjectId);
-      const sheetName = selectedSubject?.subject_name || 'Marks Template';
-      XLSX.utils.book_append_sheet(wb, ws, sheetName.substring(0, 30)); // Sheet names limited to 31 chars
+      worksheet.addRow([...headers, ...elementHeaders]);
 
-      XLSX.writeFile(wb, `${sheetName}_marks_template.xlsx`);
+      // Generate buffer
+      const buffer = await workbook.xlsx.writeBuffer();
+
+      // Create blob and download
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${sheetName}_marks_template.xlsx`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+
     } catch (err) {
       console.error('Error generating template:', err);
       alert('Failed to generate template');
@@ -186,12 +196,32 @@ export class BulkUploadMarksComponent implements OnInit {
     const reader = new FileReader();
     reader.onload = async (e: any) => {
       try {
-        const data = new Uint8Array(e.target.result);
-        const XLSX = await import('xlsx');
-        const workbook = XLSX.read(data, { type: 'array' });
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
-        const jsonData: any[] = XLSX.utils.sheet_to_json(worksheet);
+        const buffer = e.target.result;
+        const workbook = new ExcelJS.Workbook();
+        await workbook.xlsx.load(buffer);
+
+        const worksheet = workbook.worksheets[0];
+        const jsonData: any[] = [];
+
+        // Get headers from first row
+        const headers: string[] = [];
+        worksheet.getRow(1).eachCell((cell: any, colNumber: number) => {
+          headers[colNumber] = cell.text;
+        });
+
+        // Iterate rows (skip header)
+        worksheet.eachRow((row: any, rowNumber: number) => {
+          if (rowNumber === 1) return;
+
+          const rowData: any = {};
+          row.eachCell((cell: any, colNumber: number) => {
+            const header = headers[colNumber];
+            if (header) {
+              rowData[header] = cell.value;
+            }
+          });
+          jsonData.push(rowData);
+        });
 
         this.processUploadData(jsonData);
       } catch (error) {
@@ -222,10 +252,20 @@ export class BulkUploadMarksComponent implements OnInit {
             const matchingColumn = Object.keys(row).find(key => columnPattern.test(key));
 
             if (matchingColumn && row[matchingColumn] !== undefined && row[matchingColumn] !== '') {
-              marks.push({
-                element_id: element.element_id,
-                score_obtained: parseFloat(row[matchingColumn])
-              });
+              // Handle rich text or other cell types from ExcelJS
+              let val = row[matchingColumn];
+              if (typeof val === 'object' && val !== null) {
+                if (val.result !== undefined) val = val.result; // Formula result
+                else if (val.text !== undefined) val = val.text; // Rich text
+              }
+
+              const score = parseFloat(val);
+              if (!isNaN(score)) {
+                marks.push({
+                  element_id: element.element_id,
+                  score_obtained: score
+                });
+              }
             }
           }
 

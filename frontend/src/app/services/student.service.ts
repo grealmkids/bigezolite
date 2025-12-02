@@ -12,20 +12,22 @@ export interface Student {
   student_status: 'Active' | 'Inactive' | 'Expelled' | 'Alumni' | 'Suspended' | 'Sick';
   fees_status: 'Paid' | 'Pending' | 'Defaulter';
   parent_phone_sms: string;
+  student_photo_url?: string;
 }
 
 export interface StudentData {
-    student_name: string;
-    class_name: string;
-    year_enrolled: number;
-    student_status: 'Active' | 'Inactive' | 'Expelled' | 'Alumni' | 'Suspended' | 'Sick';
-    gender?: string;
-    parent_primary_name: string;
-    parent_phone_sms: string;
-    parent_name_mother?: string;
-    parent_name_father?: string;
-    residence_district: string;
-    joining_term?: number; // optional in API, but required in UI form
+  student_name: string;
+  class_name: string;
+  year_enrolled: number;
+  student_status: 'Active' | 'Inactive' | 'Expelled' | 'Alumni' | 'Suspended' | 'Sick';
+  gender?: string;
+  parent_primary_name: string;
+  parent_phone_sms: string;
+  parent_name_mother?: string;
+  parent_name_father?: string;
+  residence_district: string;
+  joining_term?: number; // optional in API, but required in UI form
+  student_photo_url?: string;
 }
 
 @Injectable({
@@ -50,7 +52,7 @@ export class StudentService {
       .append('limit', pageSize.toString())
       .append('sort', sort)
       .append('order', order);
-    
+
     if (searchTerm) {
       params = params.append('search', searchTerm);
     }
@@ -69,10 +71,10 @@ export class StudentService {
     if (term) {
       params = params.append('term', term);
     }
-  const url = this.apiUrl;
+    const url = this.apiUrl;
     console.log('[StudentService] GET', url, 'params:', params.toString());
     // Backend may return either an array of students or an object { items, total }
-  return this.http.get<any>(url, { params, headers: { 'X-Skip-Global-Loading': 'true' } as any }).pipe(
+    return this.http.get<any>(url, { params, headers: { 'X-Skip-Global-Loading': 'true' } as any }).pipe(
       tap((resp) => {
         console.log('[StudentService] response payload:', resp);
       }),
@@ -134,5 +136,14 @@ export class StudentService {
 
   sendSms(studentId: number, message: string): Observable<void> {
     return this.http.post<void>(`${this.apiUrl}/${studentId}/sms`, { message });
+  }
+
+  uploadStudentPhoto(studentId: number, file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post(`${this.apiUrl}/${studentId}/photo`, formData, {
+      reportProgress: true,
+      observe: 'events'
+    });
   }
 }

@@ -1,6 +1,7 @@
 import { Component, inject, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { HttpEventType } from '@angular/common/http';
 import { School, SchoolService } from '../../services/school.service';
 
 @Component({
@@ -10,7 +11,7 @@ import { School, SchoolService } from '../../services/school.service';
   templateUrl: './school-edit-modal.component.html',
   styleUrls: ['./school-edit-modal.component.scss']
 })
-export class SchoolEditModalComponent {
+export class SchoolEditModalComponent implements OnChanges {
   private fb = inject(FormBuilder);
   private schoolService = inject(SchoolService);
   @Input() school?: School | null = null;
@@ -27,6 +28,11 @@ export class SchoolEditModalComponent {
     'International Primary',
     'International Secondary'
   ];
+
+  selectedFile: File | null = null;
+  previewUrl: string | null = null;
+  isUploadingBadge = false;
+  uploadProgress = 0;
 
   form = this.fb.group({
     school_name: ['', [Validators.required, Validators.maxLength(120)]],
@@ -49,7 +55,69 @@ export class SchoolEditModalComponent {
         student_count_range: s.student_count_range || '',
         school_type: s.school_type || ''
       });
+      this.previewUrl = s.badge_url || null;
+      this.selectedFile = null;
+      this.isUploadingBadge = false;
+      this.uploadProgress = 0;
     }
+  }
+
+  onFileSelected(event: any): void {
+    const file = event.target.files[0];
+    if (file) {
+      this.selectedFile = file;
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.previewUrl = reader.result as string;
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  uploadBadge(): void {
+    if (!this.selectedFile || !this.school) return;
+
+    this.isUploadingBadge = true;
+    this.schoolService.uploadBadge(this.school.school_id, this.selectedFile).subscribe({
+      next: (event) => {
+        if (event.type === HttpEventType.UploadProgress) {
+          this.uploadProgress = Math.round(100 * event.loaded / event.total);
+        } else if (event.type === HttpEventType.Response) {
+          this.isUploadingBadge = false;
+          // Update local school object with new badge URL
+          if (this.school) {
+            this.school = { ...this.school, badge_url: event.body.badge_url };
+            this.saved.emit(this.school); // Emit update to parent
+          }
+          this.selectedFile = null;
+          alert('Badge uploaded successfully!');
+        }
+      },
+      error: (err) => {
+        console.error('Upload failed', err);
+        this.isUploadingBadge = false;
+        alert('Failed to upload badge');
+      }
+    });
+  }
+
+  deleteBadge(): void {
+    if (!this.school) return;
+
+    if (!confirm('Are you sure you want to remove the badge?')) return;
+
+    this.schoolService.updateMySchool(this.school.school_id, { badge_url: '' }).subscribe({
+      next: (updated) => {
+        this.school = updated;
+        this.previewUrl = null;
+        this.saved.emit(updated);
+      },
+      error: (err) => {
+        console.error('Failed to delete badge', err);
+        alert('Failed to delete badge');
+      }
+    });
   }
 
   save(): void {

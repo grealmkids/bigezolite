@@ -23,19 +23,11 @@
             </div>
           </div>
 
-          <!-- Switch School button removed for single-school support -->
-          <!--
-          <button
-            mat-button
-            class="change-school-btn"
-            (click)="
-              schoolService.selectSchool(null); router.navigate(['/dashboard'])
-            "
-          >
-            <mat-icon>swap_horiz</mat-icon>
-            Switch School
+          <button mat-stroked-button color="primary" class="edit-school-btn" routerLink="/dashboard"
+            (click)="onNavItemClicked()" style="width: 100%; margin-top: 15px;">
+            <mat-icon>edit</mat-icon>
+            Edit School
           </button>
-          -->
         </div>
         <mat-nav-list>
           <!-- removed Manage School from sidenav - Create is still available via Dashboard -->

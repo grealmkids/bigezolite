@@ -46,6 +46,48 @@
             <option *ngFor="let r of studentCountRanges" [value]="r">{{ r }}</option>
           </select>
         </div>
+
+        <!-- Badge Section -->
+        <div class="form-group" style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">
+          <label class="form-label">School Badge</label>
+
+          <div class="badge-actions" style="display: flex; align-items: flex-start; gap: 15px;">
+            <!-- Preview -->
+            <div class="badge-preview-container"
+              style="width: 80px; height: 80px; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #f9f9f9;">
+              <img *ngIf="previewUrl" [src]="previewUrl" alt="Badge"
+                style="max-width: 100%; max-height: 100%; object-fit: contain;">
+              <span *ngIf="!previewUrl" style="font-size: 10px; color: #999;">No Badge</span>
+            </div>
+
+            <!-- Actions -->
+            <div class="actions" style="flex: 1;">
+              <div *ngIf="!isUploadingBadge">
+                <input type="file" (change)="onFileSelected($event)" accept="image/*"
+                  style="margin-bottom: 10px; display: block; width: 100%;">
+
+                <div style="display: flex; gap: 10px;">
+                  <button type="button" class="btn btn-sm btn-success" *ngIf="selectedFile" (click)="uploadBadge()">
+                    Upload New
+                  </button>
+                  <button type="button" class="btn btn-sm btn-danger" *ngIf="previewUrl && !selectedFile"
+                    (click)="deleteBadge()">
+                    Remove Badge
+                  </button>
+                </div>
+              </div>
+
+              <!-- Progress -->
+              <div *ngIf="isUploadingBadge" class="progress-container">
+                <p style="margin: 0 0 5px; font-size: 12px;">Uploading...</p>
+                <div class="progress" style="height: 6px; background: #eee; border-radius: 3px; overflow: hidden;">
+                  <div class="progress-bar" [style.width.%]="uploadProgress"
+                    style="height: 100%; background: #28a745; transition: width 0.3s;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" (click)="cancel()">

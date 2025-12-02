@@ -12,9 +12,10 @@ import { take } from 'rxjs/operators';
   selector: 'app-manage-school',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, FormsModule, MatSnackBarModule],
+  styleUrls: ['./manage-school.component.scss'],
   template: `
-    <div class="manage-school card">
-      <h2 class="welcometext" >Welcome</h2>
+    <div class="manage-school card" style="margin: 20px; padding: 30px;">
+      <h2 class="welcometext" style="text-align: center; margin-bottom: 30px;">Welcome</h2>
      
       <div class="credentials-section">
         <div class="credentials-card">
@@ -23,7 +24,7 @@ import { take } from 'rxjs/operators';
            
           </div>
           <ng-container *ngIf="isAdmin; else notAdmin">
-             <h3>SMS Provider Credentials</h3>
+             <h3 style="margin-bottom: 20px; color: #333;">SMS Provider Credentials</h3>
             <form (ngSubmit)="saveCredentials()" class="credentials-form">
             <div class="row floating">
               <input id="smsUsername" type="text" placeholder=" " [(ngModel)]="smsUsername" name="smsUsername" />
@@ -35,13 +36,10 @@ import { take } from 'rxjs/operators';
               <label for="smsPassword">Password</label>
             </div>
 
-            <div class="row floating">
-              <input id="smsProvider" type="text" placeholder=" " [(ngModel)]="smsProvider" name="smsProvider" />
-              <label for="smsProvider">Provider (optional)</label>
-            </div>
+            <!-- Provider input removed as requested -->
 
-            <div class="actions">
-              <button type="submit" class="btn primary">Save SMS Credentials</button>
+            <div class="actions" style="margin-top: 30px;">
+              <button type="submit" class="btn primary" style="border: none !important; box-shadow: none;">Save SMS Credentials</button>
               <button type="button" class="btn secondary" (click)="checkBalance()">Check Balance</button>
             </div>
             </form>
@@ -112,7 +110,7 @@ export class ManageSchoolComponent implements OnInit {
     if (!this.school) return;
     const updates = this.schoolForm.value;
     this.schoolService.updateMySchool(this.school.school_id, updates).subscribe(() => {
-      this.snack.open('School updated successfully!', 'Close', { 
+      this.snack.open('School updated successfully!', 'Close', {
         duration: 3000,
         panelClass: ['success-snackbar'],
         verticalPosition: 'top',
@@ -125,7 +123,7 @@ export class ManageSchoolComponent implements OnInit {
     if (!this.school) return;
     if (!confirm('Are you sure you want to delete this school? This action cannot be undone.')) return;
     this.schoolService.deleteMySchool(this.school.school_id).subscribe(() => {
-      this.snack.open('School deleted successfully!', 'Close', { 
+      this.snack.open('School deleted successfully!', 'Close', {
         duration: 3000,
         panelClass: ['success-snackbar'],
         verticalPosition: 'top',
@@ -137,7 +135,7 @@ export class ManageSchoolComponent implements OnInit {
 
   saveCredentials(): void {
     if (!this.smsUsername || !this.smsPassword) {
-      this.snack.open('Please provide username and password', 'Close', { 
+      this.snack.open('Please provide username and password', 'Close', {
         duration: 3000,
         panelClass: ['error-snackbar'],
         verticalPosition: 'top',
@@ -148,13 +146,13 @@ export class ManageSchoolComponent implements OnInit {
     // call communication service
     // lazy import to avoid circular deps
     this.communicationService.setSmsCredentials(this.smsUsername, this.smsPassword, this.smsProvider).subscribe({
-      next: () => this.snack.open('Credentials saved successfully!', 'Close', { 
+      next: () => this.snack.open('Credentials saved successfully!', 'Close', {
         duration: 3000,
         panelClass: ['success-snackbar'],
         verticalPosition: 'top',
         horizontalPosition: 'center'
       }),
-      error: (err: any) => this.snack.open(err?.error?.message || 'Failed to save credentials', 'Close', { 
+      error: (err: any) => this.snack.open(err?.error?.message || 'Failed to save credentials', 'Close', {
         duration: 4000,
         panelClass: ['error-snackbar'],
         verticalPosition: 'top',

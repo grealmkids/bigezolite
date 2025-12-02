@@ -30,7 +30,12 @@ export class ClassCategorizationService {
     }
 
     // tolerant matching: try to find a map key that is contained inside the provided value
-    for (const k of Object.keys(this.classMap)) {
+    // We sort keys by length descending so that "nursery & primary" is checked before "nursery"
+    const keys = Object.keys(this.classMap).sort((a, b) => b.length - a.length);
+
+    for (const k of keys) {
+      // Check if the school type string contains the key (e.g. "My Nursery & Primary" contains "nursery & primary")
+      // OR if the key contains the school type (e.g. "Primary" matches "Primary (Local)")
       if (key.includes(k) || k.includes(key)) {
         return this.classMap[k];
       }

@@ -39,8 +39,8 @@ export const getSchoolAnalytics = async (schoolId: number, year?: number, term?:
         params.push(term);
     }
 
-    // Choose JOIN type: when year/term filters are present we INNER JOIN to limit to students with matching fees_records
-    const joinType = feesJoinFilters.length ? 'INNER JOIN' : 'LEFT JOIN';
+    // Choose JOIN type: always LEFT JOIN to ensure we count all students even if they don't have fee records for the selected period
+    const joinType = 'LEFT JOIN';
 
     // Get student counts by status (apply same fees_records filtering behavior)
     const statusQuery = `

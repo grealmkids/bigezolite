@@ -8,9 +8,13 @@ export type SchoolType = 'Nursery' | 'Primary (Local)' | 'Secondary (Local)' | '
 export class ClassCategorizationService {
   private classMap: Record<string, string[]> = {
     'nursery': ['Baby', 'Middle', 'Top'],
+    'nursery school / kindergarten': ['Baby', 'Middle', 'Top'],
     'primary (local)': ['P.1', 'P.2', 'P.3', 'P.4', 'P.5', 'P.6', 'P.7'],
+    'primary school (local)': ['P.1', 'P.2', 'P.3', 'P.4', 'P.5', 'P.6', 'P.7'],
     'secondary (local)': ['S.1', 'S.2', 'S.3', 'S.4', 'S.5', 'S.6'],
+    'secondary school (local)': ['S.1', 'S.2', 'S.3', 'S.4', 'S.5', 'S.6'],
     'nursery & primary (local)': ['Baby', 'Middle', 'Top', 'P.1', 'P.2', 'P.3', 'P.4', 'P.5', 'P.6', 'P.7'],
+    'nursery & primary school (local)': ['Baby', 'Middle', 'Top', 'P.1', 'P.2', 'P.3', 'P.4', 'P.5', 'P.6', 'P.7'],
     'international primary': ['Year 1', 'Year 2', 'Year 3', 'Year 4', 'Year 5', 'Year 6'],
     'international secondary': ['Year 7 (or Form 1)', 'Year 8', 'Year 9', 'Year 10 (IGCSE)', 'Year 11', 'Year 12 (A-Level/IB 1)', 'Year 13 (A-Level/IB 2)']
   };

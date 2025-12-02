@@ -4,8 +4,20 @@
 
     <!-- Mobile icon-only row -->
     <div class="header-actions-mobile">
-      <button class="icon-btn" (click)="refreshStudents()" [disabled]="isLoading" aria-label="Refresh">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <button
+        class="icon-btn"
+        (click)="refreshStudents()"
+        [disabled]="isLoading"
+        aria-label="Refresh"
+      >
+        <svg
+          width="22"
+          height="22"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
           <polyline points="23 4 23 10 17 10"></polyline>
           <polyline points="1 20 1 14 7 14"></polyline>
           <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"></path>
@@ -18,7 +30,14 @@
         [disabled]="displayedStudents.length === 0 || isLoading"
         aria-label="Download PDF"
       >
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <svg
+          width="22"
+          height="22"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
           <polyline points="7 10 12 15 17 10"></polyline>
           <line x1="12" y1="15" x2="12" y2="3"></line>
@@ -27,9 +46,20 @@
     </div>
 
     <div class="header-actions">
-      <button class="refresh-btn" (click)="refreshStudents()" [disabled]="isLoading">
-        <span class="icon" style="margin-right:6px;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <button
+        class="refresh-btn"
+        (click)="refreshStudents()"
+        [disabled]="isLoading"
+      >
+        <span class="icon" style="margin-right: 6px">
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
             <polyline points="23 4 23 10 17 10"></polyline>
             <polyline points="1 20 1 14 7 14"></polyline>
             <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"></path>
@@ -90,7 +120,10 @@
         <option value="Suspended">Suspended</option>
         <option value="Sick">Sick</option>
       </select>
-      <select #feesStatusFilter (change)="onFeesStatusChange(feesStatusFilter.value)">
+      <select
+        #feesStatusFilter
+        (change)="onFeesStatusChange(feesStatusFilter.value)"
+      >
         <option value="">All Fees Status</option>
         <option value="Paid">Paid</option>
         <option value="Pending">Partially Paid</option>
@@ -211,34 +244,59 @@
                   >
                 </td>
                 <td class="actions">
-                  <button class="action-btn fees filled" (click)="openFeesModal(student)">
+                  <button
+                    class="action-btn fees filled"
+                    (click)="openFeesModal(student)"
+                  >
                     <span class="icon">
                       <svg width="18" height="18" viewBox="0 0 24 24">
-                        <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v2.93zM11 7h2v6h-2zm0 8h2v2h-2z" />
+                        <path
+                          fill="currentColor"
+                          d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v2.93zM11 7h2v6h-2zm0 8h2v2h-2z"
+                        />
                       </svg>
                     </span>
                     FEES
                   </button>
-                  <button class="action-btn edit filled alt" (click)="openStudentModal(student)">
+                  <button
+                    class="action-btn edit filled alt"
+                    (click)="openStudentModal(student)"
+                  >
                     <span class="icon">
                       <svg width="18" height="18" viewBox="0 0 24 24">
-                        <path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
+                        <path
+                          fill="currentColor"
+                          d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
+                        />
                       </svg>
                     </span>
                     EDIT
                   </button>
-                  <button class="action-btn sms filled" (click)="openSmsModal(student)">
+                  <button
+                    class="action-btn sms filled"
+                    (click)="openSmsModal(student)"
+                  >
                     <span class="icon">
                       <svg width="18" height="18" viewBox="0 0 24 24">
-                        <path fill="currentColor" d="M20 2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 14H6v-2h12v2zm0-4H6v-2h12v2zm0-4H6V6h12v2z" />
+                        <path
+                          fill="currentColor"
+                          d="M20 2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 14H6v-2h12v2zm0-4H6v-2h12v2zm0-4H6V6h12v2z"
+                        />
                       </svg>
                     </span>
                     SMS
                   </button>
-                  <button *ngIf="canViewProfiles" class="action-btn view filled" (click)="openProfile(student)">
+                  <button
+                    *ngIf="canViewProfiles"
+                    class="action-btn view filled"
+                    (click)="openProfile(student)"
+                  >
                     <span class="icon">
                       <svg width="18" height="18" viewBox="0 0 24 24">
-                        <path fill="currentColor" d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                        <path
+                          fill="currentColor"
+                          d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+                        />
                       </svg>
                     </span>
                     PROFILE
@@ -279,15 +337,28 @@
                 <td>{{ row.klass }}</td>
                 <td>{{ row.category }}</td>
                 <td>
-                  <span class="fees-status" [ngClass]="feesClassFromLabel(deriveFeesStatus(row.total, row.paid, row.balance))">
+                  <span
+                    class="fees-status"
+                    [ngClass]="
+                      feesClassFromLabel(
+                        deriveFeesStatus(row.total, row.paid, row.balance)
+                      )
+                    "
+                  >
                     {{ deriveFeesStatus(row.total, row.paid, row.balance) }}
                   </span>
                 </td>
                 <td>{{ row.term }}</td>
                 <td>{{ row.year }}</td>
-                <td>{{ row.total | number:'1.0-0' }}</td>
-                <td>{{ row.paid  | number:'1.0-0' }}</td>
-                <td [ngClass]="(row.balance || 0) > 0 ? 'amount-neg' : 'amount-pos'">{{ row.balance | number:'1.0-0' }}</td>
+                <td>{{ row.total | number : "1.0-0" }}</td>
+                <td>{{ row.paid | number : "1.0-0" }}</td>
+                <td
+                  [ngClass]="
+                    (row.balance || 0) > 0 ? 'amount-neg' : 'amount-pos'
+                  "
+                >
+                  {{ row.balance | number : "1.0-0" }}
+                </td>
                 <td>{{ row.phone }}</td>
               </tr>
             </tbody>

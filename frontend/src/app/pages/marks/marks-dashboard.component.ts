@@ -2,11 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MarksService, ExamSet } from '../../services/marks.service';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-marks-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, MatIconModule],
   templateUrl: './marks-dashboard.component.html',
   styleUrls: ['./marks-dashboard.component.scss']
 })
@@ -15,7 +16,7 @@ export class MarksDashboardComponent implements OnInit {
   loading = false;
   schoolId: number = 0;
 
-  constructor(private marksService: MarksService) {}
+  constructor(private marksService: MarksService) { }
 
   ngOnInit(): void {
     const storedSchoolId = localStorage.getItem('currentSchoolId');

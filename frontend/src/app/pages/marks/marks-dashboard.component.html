@@ -1,57 +1,136 @@
 <div class="marks-dashboard">
   <div class="header">
-    <h1>Assessment & Marks Management</h1>
+    <div class="header-content">
+      <h1>Assessment & Marks</h1>
+      <p class="subtitle">Manage exams, subjects, and student performance</p>
+    </div>
     <button routerLink="/marks/create-exam-set" class="btn-primary">
+      <mat-icon>add</mat-icon>
       Create New Exam Set
     </button>
   </div>
 
-  <div class="quick-actions">
+  <div class="quick-actions-grid">
     <a routerLink="/marks/subjects" class="action-card">
-      <h3>Manage Subjects</h3>
-      <p>Configure subjects for different class levels</p>
-    </a>
-    <a routerLink="/marks/assessment-elements" class="action-card">
-      <h3>Manage Assessment Elements</h3>
-      <p>Add/edit elements for exam sets</p>
-    </a>
-    <a routerLink="/marks/grading" class="action-card">
-      <h3>Grading Configuration</h3>
-      <p>Set up grading scales and school settings</p>
-    </a>
-    <a routerLink="/marks/bulk-upload" class="action-card">
-      <h3>Bulk Upload Marks</h3>
-      <p>Upload marks via Excel/CSV</p>
-    </a>
-    <a routerLink="/marks/reports" class="action-card">
-      <h3>Generate Reports</h3>
-      <p>Create student report cards</p>
-    </a>
-    <a routerLink="/marks/view-marks" class="action-card">
-      <h3>View & Edit Marks</h3>
-      <p>Editable table with all student marks</p>
+      <div class="icon-wrapper subjects">
+        <mat-icon>library_books</mat-icon>
+      </div>
+      <div class="card-content">
+        <h3>Manage Subjects</h3>
+        <p>Configure subjects for different class levels</p>
+      </div>
+      <mat-icon class="arrow">arrow_forward</mat-icon>
     </a>
 
+    <a routerLink="/marks/assessment-elements" class="action-card">
+      <div class="icon-wrapper elements">
+        <mat-icon>assignment</mat-icon>
+      </div>
+      <div class="card-content">
+        <h3>Assessment Elements</h3>
+        <p>Add/edit elements for exam sets</p>
+      </div>
+      <mat-icon class="arrow">arrow_forward</mat-icon>
+    </a>
+
+    <a routerLink="/marks/grading" class="action-card">
+      <div class="icon-wrapper grading">
+        <mat-icon>grade</mat-icon>
+      </div>
+      <div class="card-content">
+        <h3>Grading Config</h3>
+        <p>Set up grading scales and settings</p>
+      </div>
+      <mat-icon class="arrow">arrow_forward</mat-icon>
+    </a>
+
+    <a routerLink="/marks/bulk-upload" class="action-card">
+      <div class="icon-wrapper upload">
+        <mat-icon>cloud_upload</mat-icon>
+      </div>
+      <div class="card-content">
+        <h3>Bulk Upload</h3>
+        <p>Upload marks via Excel/CSV</p>
+      </div>
+      <mat-icon class="arrow">arrow_forward</mat-icon>
+    </a>
+
+    <a routerLink="/marks/reports" class="action-card">
+      <div class="icon-wrapper reports">
+        <mat-icon>assessment</mat-icon>
+      </div>
+      <div class="card-content">
+        <h3>Generate Reports</h3>
+        <p>Create student report cards</p>
+      </div>
+      <mat-icon class="arrow">arrow_forward</mat-icon>
+    </a>
+
+    <a routerLink="/marks/view-marks" class="action-card">
+      <div class="icon-wrapper view">
+        <mat-icon>visibility</mat-icon>
+      </div>
+      <div class="card-content">
+        <h3>View & Edit Marks</h3>
+        <p>Editable table with all student marks</p>
+      </div>
+      <mat-icon class="arrow">arrow_forward</mat-icon>
+    </a>
   </div>
 
   <div class="exam-sets-section">
-    <h2>Recent Exam Sets</h2>
-    <div *ngIf="loading" class="loading">Loading...</div>
-    <div *ngIf="!loading && examSets.length === 0" class="empty-state">
-      No exam sets created yet. Create your first exam set to get started.
+    <div class="section-header">
+      <h2>Recent Exam Sets</h2>
+      <button class="btn-text" routerLink="/marks/view-marks">View All</button>
     </div>
+
+    <div *ngIf="loading" class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading exam sets...</p>
+    </div>
+
+    <div *ngIf="!loading && examSets.length === 0" class="empty-state">
+      <div class="empty-icon">
+        <mat-icon>assignment_late</mat-icon>
+      </div>
+      <h3>No Exam Sets Found</h3>
+      <p>Create your first exam set to start recording marks.</p>
+      <button routerLink="/marks/create-exam-set" class="btn-secondary">
+        Create Exam Set
+      </button>
+    </div>
+
     <div *ngIf="!loading && examSets.length > 0" class="exam-sets-grid">
       <div *ngFor="let examSet of examSets" class="exam-set-card">
-        <h3>{{ examSet.set_name }}</h3>
-        <p>Class: {{ examSet.class_level }}</p>
-        <p>Term {{ examSet.term }}, {{ examSet.year }}</p>
-        <p>Type: {{ examSet.assessment_type }}</p>
+        <div class="card-header">
+          <div class="set-info">
+            <h3>{{ examSet.set_name }}</h3>
+            <span class="badge" [class.term-1]="examSet.term === 1" [class.term-2]="examSet.term === 2"
+              [class.term-3]="examSet.term === 3">
+              Term {{ examSet.term }}
+            </span>
+          </div>
+          <span class="year">{{ examSet.year }}</span>
+        </div>
+
+        <div class="card-details">
+          <div class="detail-item">
+            <mat-icon>school</mat-icon>
+            <span>{{ examSet.class_level }}</span>
+          </div>
+          <div class="detail-item">
+            <mat-icon>category</mat-icon>
+            <span>{{ examSet.assessment_type }}</span>
+          </div>
+        </div>
+
         <div class="card-actions">
-          <button [routerLink]="['/marks/exam-set', examSet.exam_set_id]" class="btn-secondary">
-            View Details
-          </button>
-          <button [routerLink]="['/marks/enter-marks', examSet.exam_set_id]" class="btn-primary">
+          <button [routerLink]="['/marks/enter-marks', examSet.exam_set_id]" class="btn-primary-outline">
+            <mat-icon>edit</mat-icon>
             Enter Marks
+          </button>
+          <button [routerLink]="['/marks/exam-set', examSet.exam_set_id]" class="btn-icon" title="View Details">
+            <mat-icon>visibility</mat-icon>
           </button>
         </div>
       </div>

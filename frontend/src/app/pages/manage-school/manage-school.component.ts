@@ -8,10 +8,12 @@ import { HttpClient } from '@angular/common/http';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { take } from 'rxjs/operators';
 
+import { MatIconModule } from '@angular/material/icon';
+
 @Component({
   selector: 'app-manage-school',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, MatSnackBarModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, MatSnackBarModule, MatIconModule],
   styleUrls: ['./manage-school.component.scss'],
   template: `
     <div class="manage-school card" style="margin: 20px; padding: 30px;">
@@ -32,8 +34,11 @@ import { take } from 'rxjs/operators';
             </div>
 
             <div class="row floating">
-              <input id="smsPassword" type="password" placeholder=" " [(ngModel)]="smsPassword" name="smsPassword" />
+              <input id="smsPassword" [type]="showPassword ? 'text' : 'password'" placeholder=" " [(ngModel)]="smsPassword" name="smsPassword" style="padding-right: 40px;" />
               <label for="smsPassword">Password</label>
+              <button type="button" (click)="togglePasswordVisibility()" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #666;">
+                <mat-icon>{{ showPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
             </div>
 
             <!-- Provider input removed as requested -->
@@ -58,6 +63,7 @@ export class ManageSchoolComponent implements OnInit {
   smsPassword = '';
   smsProvider = 'egosms';
   isAdmin = false;
+  showPassword = false;
   private http = inject(HttpClient);
   private snack = inject(MatSnackBar);
 
@@ -176,5 +182,9 @@ export class ManageSchoolComponent implements OnInit {
         panelClass: ['success-snackbar']
       });
     });
+  }
+
+  togglePasswordVisibility(): void {
+    this.showPassword = !this.showPassword;
   }
 }

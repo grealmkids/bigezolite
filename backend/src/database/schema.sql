@@ -78,6 +78,7 @@ CREATE TABLE IF NOT EXISTS students (
     parent_name_father VARCHAR(255),
     residence_district VARCHAR(255) NOT NULL,
     gender VARCHAR(20) DEFAULT 'Not Specified',
+    student_photo_url VARCHAR(500),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     CONSTRAINT students_reg_number_school_unique UNIQUE (reg_number, school_id),
     CONSTRAINT gender_check CHECK (gender IN ('Boy', 'Girl', 'Not Specified'))

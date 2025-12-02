@@ -19,6 +19,7 @@ import { CommonModule } from '@angular/common';
 import { StudentModalComponent } from '../../components/student-modal/student-modal.component';
 import { FeesManagementModalComponent } from '../../components/fees-management-modal/fees-management-modal.component';
 import { SmsStudentModalComponent } from '../../components/sms-student-modal/sms-student-modal.component';
+import { StudentProfileComponent } from '../../components/student-profile/student-profile.component';
 import { SchoolService } from '../../services/school.service';
 import { ClassCategorizationService, SchoolType } from '../../services/class-categorization.service';
 import { LoadingSpinnerComponent } from '../../components/loading-spinner/loading-spinner.component';
@@ -34,6 +35,7 @@ import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-
     StudentModalComponent,
     FeesManagementModalComponent,
     SmsStudentModalComponent,
+    StudentProfileComponent,
     LoadingSpinnerComponent,
     MatPaginatorModule,
     NoDashPipe
@@ -75,6 +77,7 @@ export class StudentManagementComponent implements OnInit {
   isStudentModalOpen = false;
   isFeesModalOpen = false;
   isSmsModalOpen = false;
+  isProfileOpen = false;
   selectedStudent: Student | null = null;
 
   classes: string[] = [];
@@ -99,6 +102,26 @@ export class StudentManagementComponent implements OnInit {
     this.pageIndex.next(0);
     this.lastSearchTerm = term || '';
     this.searchTerms.next(term);
+  }
+
+  // Profile Modal Methods
+  openProfile(student: Student): void {
+    if (!student || !student.student_id) return;
+    const schoolId = this.schoolService.getSelectedSchoolId();
+    this.studentService.getStudentById(student.student_id, schoolId || undefined)
+      .subscribe(fullStudent => {
+        this.selectedStudent = fullStudent || student;
+        // Only open if account_status is Active in localStorage (frontend-only check)
+        const status = (localStorage.getItem('account_status') || '').toLowerCase();
+        if (status === 'active') {
+          this.isProfileOpen = true;
+        }
+      });
+  }
+
+  closeProfile(): void {
+    this.isProfileOpen = false;
+    this.selectedStudent = null;
   }
 
   onClassChange(term: string): void {
@@ -292,6 +315,10 @@ export class StudentManagementComponent implements OnInit {
   closeFeesModal(): void {
     this.isFeesModalOpen = false;
     this.selectedStudent = null;
+  }
+
+  get canViewProfiles(): boolean {
+    return (localStorage.getItem('account_status') || '').toLowerCase() === 'active';
   }
 
   // SMS Modal Methods

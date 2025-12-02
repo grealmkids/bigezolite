@@ -28,3 +28,11 @@ export const findUserByPhone = async (phoneNumber: string) => {
   const result = await query(sql, params);
   return result.rows[0];
 };
+
+export const findSchoolByUserId = async (userId: number) => {
+  const sql = 'SELECT * FROM schools WHERE user_id = $1 LIMIT 1';
+  const params = [userId];
+
+  const result = await query(sql, params);
+  return result.rows[0];
+};

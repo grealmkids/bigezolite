@@ -25,15 +25,8 @@ export class AuthService {
     if (credentials.email) payload.email = credentials.email;
     if (credentials.phoneNumber) payload.phoneNumber = credentials.phoneNumber;
 
-    return this.http.post<{ token: string, account_status?: string }>(`${this.apiUrl}/users/login`, payload).pipe(
-      tap(response => {
-        this.saveToken(response.token);
-        if (response.account_status) {
-          localStorage.setItem('account_status', response.account_status);
-        } else {
-          localStorage.removeItem('account_status');
-        }
-      })
+    return this.http.post<{ token: string }>(`${this.apiUrl}/users/login`, payload).pipe(
+      tap(response => this.saveToken(response.token))
     );
   }
 
@@ -51,17 +44,14 @@ export class AuthService {
         const resp: any = await this.http.post(`${this.apiUrl}/auth/google`, { idToken }).toPromise();
         if (resp?.token) {
           this.saveToken(resp.token);
-          if (resp.account_status) {
-            localStorage.setItem('account_status', resp.account_status);
-          }
           return { user: result.user, token: resp.token };
         }
-        // Backend didn't return an app token. Do NOT save the raw Firebase ID token
-        // as the application's auth token — our server expects a HS256 app token and
-        // attempting to save the Firebase token causes server-side JWT verification
-        // to fail with algorithm errors. Instead, return the firebase user info so
-        // the caller can decide what to do (e.g., prompt to register).
-        return { user: result.user, idToken: null };
+  // Backend didn't return an app token. Do NOT save the raw Firebase ID token
+  // as the application's auth token — our server expects a HS256 app token and
+  // attempting to save the Firebase token causes server-side JWT verification
+  // to fail with algorithm errors. Instead, return the firebase user info so
+  // the caller can decide what to do (e.g., prompt to register).
+  return { user: result.user, idToken: null };
       } catch (err: any) {
         console.error('Failed to exchange ID token with backend:', err);
         if (err?.status === 404) {
@@ -72,9 +62,9 @@ export class AuthService {
           if (email) localStorage.setItem('bigezo_google_email', email);
           throw { code: 'NO_ACCOUNT', message: 'No existing account found for this Google email.', email };
         }
-        // Do not persist the idToken when exchange fails; rethrow a clear error so
-        // the UI can surface the server response (if any) or a friendly generic error.
-        throw { code: 'EXCHANGE_FAILED', message: 'Failed to exchange ID token with backend.' };
+  // Do not persist the idToken when exchange fails; rethrow a clear error so
+  // the UI can surface the server response (if any) or a friendly generic error.
+  throw { code: 'EXCHANGE_FAILED', message: 'Failed to exchange ID token with backend.' };
       }
     } catch (error) {
       console.error('Google sign-in error:', error);
@@ -99,26 +89,25 @@ export class AuthService {
   logout(): void {
     // Clear all localStorage
     localStorage.clear();
-    localStorage.removeItem('account_status');
-
+    
     // Clear all sessionStorage
     sessionStorage.clear();
-
+    
     // Clear cookies (best effort - some cookies may be httpOnly)
     document.cookie.split(";").forEach((c) => {
       document.cookie = c
         .replace(/^ +/, "")
         .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
     });
-
+    
     // Clear Cache Storage and unregister service workers (best-effort)
     if (typeof window !== 'undefined') {
       try {
         if ('caches' in window) {
-          caches.keys().then((names) => Promise.all(names.map((n) => caches.delete(n)))).catch(() => { });
+          caches.keys().then((names) => Promise.all(names.map((n) => caches.delete(n)))).catch(() => {});
         }
         if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) {
-          navigator.serviceWorker.getRegistrations().then((regs) => regs.forEach((r) => r.unregister())).catch(() => { });
+          navigator.serviceWorker.getRegistrations().then((regs) => regs.forEach((r) => r.unregister())).catch(() => {});
         }
       } catch (err) {
         // ignore non-critical errors

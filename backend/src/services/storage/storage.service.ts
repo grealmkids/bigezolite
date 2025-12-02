@@ -18,8 +18,8 @@ const s3Client = new S3Client({
     credentials: B2_CONFIG.credentials
 });
 
-export const uploadFileForSchool = async (schoolId: string | number, fileBuffer: Buffer, mimeType: string, originalName: string, fileType: string = 'badge'): Promise<string> => {
-    // fileType is now passed as an argument (defaulting to 'badge' for backward compatibility)
+export const uploadFileForSchool = async (schoolId: string | number, fileBuffer: Buffer, mimeType: string, originalName: string): Promise<string> => {
+    const fileType = 'badge'; // For now we only upload badges
     const extension = originalName.split('.').pop() || 'png';
     const fileName = `${fileType}_${randomUUID()}.${extension}`;
     const key = `school-${schoolId}/students/${fileType}/${fileName}`;

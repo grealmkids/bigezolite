@@ -17,7 +17,6 @@ export interface Student {
     parent_name_mother?: string;
     parent_name_father?: string;
     residence_district: string;
-    student_photo_url?: string;
 }
 
 // Get a single student by ID
@@ -34,7 +33,7 @@ export const getStudentById = async (req: AuthenticatedRequest, res: Response) =
 
         console.log('[getStudentById] req.user:', req.user);
         console.log('[getStudentById] schoolId:', schoolId, 'studentId:', studentId);
-
+        
         if (!schoolId || !studentId) {
             return res.status(400).json({ message: 'Missing school or student ID' });
         }
@@ -154,7 +153,7 @@ export const updateStudent = async (req: AuthenticatedRequest, res: Response) =>
         const schoolId = schoolIdFromQuery || req.user?.schoolId;
 
         console.log('[updateStudent] schoolId:', schoolId, 'studentId:', studentId, 'updates:', req.body);
-
+        
         if (!schoolId || !studentId) {
             return res.status(400).json({ message: 'Missing school or student ID' });
         }
@@ -190,7 +189,7 @@ export const deleteStudent = async (req: AuthenticatedRequest, res: Response) =>
         const schoolId = schoolIdFromQuery || req.user?.schoolId;
 
         console.log('[deleteStudent] schoolId:', schoolId, 'studentId:', studentId);
-
+        
         if (!schoolId || !studentId) {
             return res.status(400).json({ message: 'Missing school or student ID' });
         }
@@ -208,43 +207,6 @@ export const deleteStudent = async (req: AuthenticatedRequest, res: Response) =>
         res.status(200).json({ message: 'Student deleted successfully' });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-};
-
-export const uploadPhoto = async (req: AuthenticatedRequest, res: Response) => {
-    try {
-        const studentId = parseInt(req.params.studentId, 10);
-        const file = (req as any).file;
-
-        if (!file) {
-            return res.status(400).json({ message: 'No file uploaded.' });
-        }
-
-        const schoolIdFromQuery = req.query.schoolId ? Number(req.query.schoolId) : null;
-        const schoolId = schoolIdFromQuery || req.user?.schoolId;
-
-        if (!schoolId) {
-            return res.status(400).json({ message: 'Missing schoolId' });
-        }
-
-        // Verify access
-        const userId = req.user?.userId;
-        if (!userId) return res.status(403).json({ message: 'Forbidden' });
-
-        const accessCheck = await studentService.verifyUserSchoolAccess(userId, schoolId);
-        if (!accessCheck) return res.status(403).json({ message: 'Forbidden' });
-
-        // Upload to B2
-        const storageService = require('../../services/storage/storage.service');
-        const photoUrl = await storageService.uploadFileForSchool(schoolId, file.buffer, file.mimetype, file.originalname, 'student-photo');
-
-        // Update student
-        const updated = await studentService.updateStudentById(schoolId, studentId, { student_photo_url: photoUrl });
-
-        res.status(200).json({ student_photo_url: photoUrl, student: updated });
-    } catch (error) {
-        console.error('Error uploading student photo:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
 };

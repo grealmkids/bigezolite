@@ -23,11 +23,6 @@ router.put('/:studentId', studentController.updateStudent);
 // DELETE /api/v1/students/:studentId - Delete a student
 router.delete('/:studentId', studentController.deleteStudent);
 
-// POST /api/v1/students/:studentId/photo - Upload student photo
-import multer from 'multer';
-const upload = multer({ storage: multer.memoryStorage() });
-router.post('/:studentId/photo', upload.single('file'), studentController.uploadPhoto);
-
 // --- Nested Fee Routes ---
 
 // POST /api/v1/students/:studentId/fees - Create a new fee record for a student

@@ -79,11 +79,7 @@ export const login = async (req: Request, res: Response) => {
     const payload = { userId: user.user_id };
     const token = jwt.sign(payload, process.env.JWT_SECRET || 'your_default_secret', { expiresIn: '1h' });
 
-    // Fetch school to get account_status
-    const school = await userService.findSchoolByUserId(user.user_id);
-    const account_status = school ? school.account_status : null;
-
-    res.json({ token, account_status });
+    res.json({ token });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });

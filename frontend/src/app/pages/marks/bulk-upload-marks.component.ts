@@ -158,30 +158,18 @@ export class BulkUploadMarksComponent implements OnInit {
     }
 
     try {
-      const ExcelJS = await import('exceljs');
-      const Workbook = ExcelJS.Workbook;
-      
+      const XLSX = await import('xlsx');
       const headers = ['Student Reg Number', 'Student Name', 'Student LIN (Optional)'];
       const elementHeaders = this.assessmentElements.map(el => `${el.element_name} (Max: ${el.max_score})`);
       headers.push(...elementHeaders);
 
-      const workbook = new Workbook();
+      const ws = XLSX.utils.aoa_to_sheet([headers]);
+      const wb = XLSX.utils.book_new();
       const selectedSubject = this.subjects.find(s => s.subject_id === this.selectedSubjectId);
-      const sheetName = (selectedSubject?.subject_name || 'Marks Template').substring(0, 31); // Sheet names limited to 31 chars
-      const worksheet = workbook.addWorksheet(sheetName);
-      
-      // Add header row
-      worksheet.addRow(headers);
-      
-      // Write to buffer and download
-      const buffer = await workbook.xlsx.writeBuffer();
-      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${sheetName}_marks_template.xlsx`;
-      link.click();
-      window.URL.revokeObjectURL(url);
+      const sheetName = selectedSubject?.subject_name || 'Marks Template';
+      XLSX.utils.book_append_sheet(wb, ws, sheetName.substring(0, 30)); // Sheet names limited to 31 chars
+
+      XLSX.writeFile(wb, `${sheetName}_marks_template.xlsx`);
     } catch (err) {
       console.error('Error generating template:', err);
       alert('Failed to generate template');
@@ -199,32 +187,11 @@ export class BulkUploadMarksComponent implements OnInit {
     reader.onload = async (e: any) => {
       try {
         const data = new Uint8Array(e.target.result);
-        const ExcelJS = await import('exceljs');
-        const Workbook = ExcelJS.Workbook;
-        
-        const workbook = new Workbook();
-        await workbook.xlsx.load(data);
-        const worksheet = workbook.worksheets[0];
-        
-        const jsonData: any[] = [];
-        const headerRow = worksheet.getRow(1);
-        const headers: string[] = [];
-        
-        // Extract headers from first row
-        headerRow.eachCell((cell, colNumber) => {
-          headers.push(cell.value?.toString() || '');
-        });
-        
-        // Extract data rows (skip header)
-        worksheet.eachRow((row, rowNumber) => {
-          if (rowNumber > 1) {
-            const rowData: any = {};
-            row.eachCell((cell, colNumber) => {
-              rowData[headers[colNumber - 1]] = cell.value;
-            });
-            jsonData.push(rowData);
-          }
-        });
+        const XLSX = await import('xlsx');
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const jsonData: any[] = XLSX.utils.sheet_to_json(worksheet);
 
         this.processUploadData(jsonData);
       } catch (error) {

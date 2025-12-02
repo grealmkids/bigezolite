@@ -3,8 +3,7 @@ export const updateStudentById = async (schoolId: number, studentId: number, upd
     // Build dynamic SQL for only provided fields
     const allowedFields: (keyof Student)[] = [
         'student_name', 'class_name', 'year_enrolled', 'student_status', 'gender',
-        'parent_primary_name', 'parent_phone_sms', 'parent_name_mother', 'parent_name_father', 'residence_district',
-        'student_photo_url'
+        'parent_primary_name', 'parent_phone_sms', 'parent_name_mother', 'parent_name_father', 'residence_district'
     ];
     const setClauses: string[] = [];
     const params: any[] = [];
@@ -253,7 +252,7 @@ export const findStudentsBySchool = async (
 
     // Select with ordering and optional pagination (select derived fees_status)
     let sql = `SELECT students.student_id, students.reg_number, students.student_name, students.class_name, students.student_status,
-                      ${derivedStatus} AS fees_status, students.parent_phone_sms, students.student_photo_url
+                      ${derivedStatus} AS fees_status, students.parent_phone_sms
                FROM students ${feesJoin} ${stJoin} ${where}
                ORDER BY ${sortColumn} ${sortOrder}`;
     if (limit && limit > 0) {

@@ -8,86 +8,17 @@
       <form (ngSubmit)="onSubmit()" [formGroup]="studentForm">
         <!-- Student Details -->
         <div class="form-section">Student Details</div>
-        <div class="form-group">
-          <label for="student_name">Full Name</label>
-          <input
-            id="student_name"
-            type="text"
-            formControlName="student_name"
-            required
-          />
-        </div>
-
-        <!-- Student Photo Upload (Only for Active Schools) -->
-        <div class="form-row" *ngIf="canUploadPhoto">
+        <div class="form-row">
           <div class="form-group">
-            <label>Student Photo</label>
-            <div
-              class="photo-upload-container"
-              style="display: flex; gap: 15px; align-items: flex-start"
-            >
-              <div
-                class="preview-box"
-                style="
-                  width: 80px;
-                  height: 80px;
-                  border: 1px solid #ddd;
-                  border-radius: 8px;
-                  overflow: hidden;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                  background: #f9f9f9;
-                "
-              >
-                <img
-                  *ngIf="previewUrl"
-                  [src]="previewUrl"
-                  alt="Preview"
-                  style="max-width: 100%; max-height: 100%; object-fit: cover"
-                />
-                <span *ngIf="!previewUrl" style="font-size: 10px; color: #999"
-                  >No Photo</span
-                >
-              </div>
-              <div class="upload-actions" style="flex: 1">
-                <input
-                  type="file"
-                  (change)="onFileSelected($event)"
-                  accept="image/*"
-                  [disabled]="isUploading"
-                />
-                <div
-                  *ngIf="isUploading"
-                  class="progress-container"
-                  style="margin-top: 10px"
-                >
-                  <p style="margin: 0 0 5px; font-size: 12px">Uploading...</p>
-                  <div
-                    class="progress"
-                    style="
-                      height: 6px;
-                      background: #eee;
-                      border-radius: 3px;
-                      overflow: hidden;
-                    "
-                  >
-                    <div
-                      class="progress-bar"
-                      [style.width.%]="uploadProgress"
-                      style="
-                        height: 100%;
-                        background: #28a745;
-                        transition: width 0.3s;
-                      "
-                    ></div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <label for="student_name">Full Name</label>
+            <input
+              id="student_name"
+              type="text"
+              formControlName="student_name"
+              required
+            />
           </div>
         </div>
-
         <div class="form-row" *ngIf="isEditMode">
           <div class="form-group">
             <label for="student_status">Student Status</label>
@@ -194,288 +125,35 @@
               formControlName="residence_district"
               required
             >
-              <div class="modal-overlay" (click)="close.emit()">
-                <div class="modal-card" (click)="$event.stopPropagation()">
-                  <div class="modal-header">
-                    <h2>
-                      {{ isEditMode ? "Edit Student" : "Add New Student" }}
-                    </h2>
-                    <button class="close-btn" (click)="close.emit()">
-                      &times;
-                    </button>
-                  </div>
-                  <div class="modal-body">
-                    <form (ngSubmit)="onSubmit()" [formGroup]="studentForm">
-                      <!-- Student Details -->
-                      <div class="form-section">Student Details</div>
-                      <div class="form-group">
-                        <label for="student_name">Full Name</label>
-                        <input
-                          id="student_name"
-                          type="text"
-                          formControlName="student_name"
-                          required
-                        />
-                      </div>
-
-                      <!-- Student Photo Upload (Only for Active Schools) -->
-                      <div class="form-row" *ngIf="canUploadPhoto">
-                        <div class="form-group">
-                          <label>Student Photo</label>
-                          <div
-                            class="photo-upload-container"
-                            style="
-                              display: flex;
-                              gap: 15px;
-                              align-items: flex-start;
-                            "
-                          >
-                            <div
-                              class="preview-box"
-                              style="
-                                width: 80px;
-                                height: 80px;
-                                border: 1px solid #ddd;
-                                border-radius: 8px;
-                                overflow: hidden;
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                                background: #f9f9f9;
-                              "
-                            >
-                              <img
-                                *ngIf="previewUrl"
-                                [src]="previewUrl"
-                                alt="Preview"
-                                style="
-                                  max-width: 100%;
-                                  max-height: 100%;
-                                  object-fit: cover;
-                                "
-                              />
-                              <span
-                                *ngIf="!previewUrl"
-                                style="font-size: 10px; color: #999"
-                                >No Photo</span
-                              >
-                            </div>
-                            <div class="upload-actions" style="flex: 1">
-                              <input
-                                type="file"
-                                (change)="onFileSelected($event)"
-                                accept="image/*"
-                                [disabled]="isUploading"
-                              />
-                              <div
-                                *ngIf="isUploading"
-                                class="progress-container"
-                                style="margin-top: 10px"
-                              >
-                                <p style="margin: 0 0 5px; font-size: 12px">
-                                  Uploading...
-                                </p>
-                                <div
-                                  class="progress"
-                                  style="
-                                    height: 6px;
-                                    background: #eee;
-                                    border-radius: 3px;
-                                    overflow: hidden;
-                                  "
-                                >
-                                  <div
-                                    class="progress-bar"
-                                    [style.width.%]="uploadProgress"
-                                    style="
-                                      height: 100%;
-                                      background: #28a745;
-                                      transition: width 0.3s;
-                                    "
-                                  ></div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div class="form-row" *ngIf="isEditMode">
-                        <div class="form-group">
-                          <label for="student_status">Student Status</label>
-                          <select
-                            id="student_status"
-                            formControlName="student_status"
-                          >
-                            <option
-                              *ngFor="let status of studentStatuses"
-                              [value]="status"
-                            >
-                              {{ status }}
-                            </option>
-                          </select>
-                        </div>
-                      </div>
-
-                      <div class="form-row">
-                        <div class="form-group">
-                          <label for="class_name">Class</label>
-                          <ng-container
-                            *ngIf="!loadingClasses; else loadingTpl"
-                          >
-                            <select
-                              id="class_name"
-                              formControlName="class_name"
-                              required
-                            >
-                              <option value="" disabled>Select a class</option>
-                              <option
-                                *ngFor="let class of classes"
-                                [value]="class"
-                              >
-                                {{ class }}
-                              </option>
-                            </select>
-                          </ng-container>
-                          <ng-template #loadingTpl>
-                            <div class="class-loading">Loading classes…</div>
-                          </ng-template>
-                        </div>
-                        <div class="form-group">
-                          <label for="year_enrolled">Year Enrolled</label>
-                          <input
-                            id="year_enrolled"
-                            type="number"
-                            formControlName="year_enrolled"
-                            required
-                          />
-                        </div>
-                      </div>
-
-                      <div class="form-row">
-                        <div class="form-group">
-                          <label for="gender">Gender</label>
-                          <select id="gender" formControlName="gender" required>
-                            <option value="" disabled>Select gender</option>
-                            <option *ngFor="let g of genders" [value]="g">
-                              {{ g }}
-                            </option>
-                          </select>
-                        </div>
-                        <div class="form-group">
-                          <label for="joining_term">Joining Term</label>
-                          <select
-                            id="joining_term"
-                            formControlName="joining_term"
-                          >
-                            <option value="">Select term</option>
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                            <option value="3">3</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      <!-- Parent Details -->
-                      <div class="form-section">Parent / Guardian Details</div>
-                      <div class="form-row">
-                        <div class="form-group">
-                          <label for="parent_primary_name"
-                            >Primary Guardian's Name</label
-                          >
-                          <input
-                            id="parent_primary_name"
-                            type="text"
-                            formControlName="parent_primary_name"
-                            required
-                          />
-                        </div>
-                        <div class="form-group">
-                          <label for="parent_phone_sms"
-                            >Primary Guardian's Phone (for SMS)</label
-                          >
-                          <input
-                            id="parent_phone_sms"
-                            type="text"
-                            formControlName="parent_phone_sms"
-                            required
-                          />
-                        </div>
-                      </div>
-                      <div class="form-row">
-                        <div class="form-group">
-                          <label for="parent_name_mother"
-                            >Mother's Name (Optional)</label
-                          >
-                          <input
-                            id="parent_name_mother"
-                            type="text"
-                            formControlName="parent_name_mother"
-                          />
-                        </div>
-                        <div class="form-group">
-                          <label for="parent_name_father"
-                            >Father's Name (Optional)</label
-                          >
-                          <input
-                            id="parent_name_father"
-                            type="text"
-                            formControlName="parent_name_father"
-                          />
-                        </div>
-                      </div>
-                      <div class="form-row">
-                        <div class="form-group">
-                          <label for="residence_district"
-                            >Residence District</label
-                          >
-                          <select
-                            id="residence_district"
-                            formControlName="residence_district"
-                            required
-                          >
-                            <option value="" disabled>Select district</option>
-                            <option *ngFor="let d of districts" [value]="d">
-                              {{ d }}
-                            </option>
-                          </select>
-                        </div>
-                      </div>
-
-                      <div *ngIf="errorMessage" class="error-message">
-                        {{ errorMessage }}
-                      </div>
-
-                      <div class="modal-footer">
-                        <button
-                          type="button"
-                          class="cancel-btn"
-                          (click)="close.emit()"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          *ngIf="isEditMode"
-                          type="button"
-                          class="delete-btn"
-                          (click)="onDelete()"
-                        >
-                          Delete
-                        </button>
-                        <button
-                          type="submit"
-                          class="submit-btn"
-                          [disabled]="studentForm.invalid"
-                        >
-                          Save Student
-                        </button>
-                      </div>
-                    </form>
-                  </div>
-                </div>
-              </div>
+              <option value="" disabled>Select district</option>
+              <option *ngFor="let d of districts" [value]="d">{{ d }}</option>
             </select>
           </div>
+        </div>
+
+        <div *ngIf="errorMessage" class="error-message">
+          {{ errorMessage }}
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="cancel-btn" (click)="close.emit()">
+            Cancel
+          </button>
+          <button
+            *ngIf="isEditMode"
+            type="button"
+            class="delete-btn"
+            (click)="onDelete()"
+          >
+            Delete
+          </button>
+          <button
+            type="submit"
+            class="submit-btn"
+            [disabled]="studentForm.invalid"
+          >
+            Save Student
+          </button>
         </div>
       </form>
     </div>

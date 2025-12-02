@@ -1,14 +1,15 @@
 import { Component, EventEmitter, OnInit, Output, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { HttpEventType } from '@angular/common/http';
-import { School, SchoolService } from '../../services/school.service';
-import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-dialog.component';
-import { StudentService, StudentData, Student } from '../../services/student.service';
-import { ClassCategorizationService } from '../../services/class-categorization.service';
+import { Student, StudentService, StudentData } from '../../services/student.service';
+import { SchoolService } from '../../services/school.service';
+import { ClassCategorizationService, SchoolType } from '../../services/class-categorization.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
-import { take } from 'rxjs/operators';
+import { take, of } from 'rxjs';
+import { switchMap, debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { School } from '../../services/school.service';
+import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-student-modal',
@@ -31,27 +32,17 @@ export class StudentModalComponent implements OnInit, OnChanges {
   studentStatuses: string[] = ['Active', 'Inactive', 'Expelled', 'Alumni', 'Suspended', 'Sick'];
   genders: string[] = ['Boy', 'Girl'];
   districts: string[] = [
-    'Abim', 'Adjumani', 'Agago', 'Alebtong', 'Amolatar', 'Amudat', 'Amuria', 'Amuru', 'Apac', 'Arua', 'Budaka', 'Bududa', 'Bugiri', 'Bugweri', 'Bugutu', 'Buikwe', 'Bukedea', 'Bukomansimbi', 'Bukwa', 'Bulambuli', 'Buliisa', 'Bundibugyo', 'Bushenyi', 'Busia', 'Butaleja', 'Butambala', 'Buvuma', 'Buyende', 'Dokolo', 'Gomba', 'Gulu', 'Hoima', 'Ibanda', 'Iganga', 'Isingiro', 'Jinja', 'Kaabong', 'Kabale', 'Kabarole', 'Kaberamaido', 'Kalangala', 'Kaliro', 'Kalungu', 'Kampala', 'Kamuli', 'Kamwenge', 'Kanungu', 'Kapchorwa', 'Kasese', 'Katakwi', 'Kayunga', 'Kazo', 'Kibaale', 'Kiboga', 'Kibuku', 'Kisoro', 'Kitatta', 'Kitgum', 'Koboko', 'Kole', 'Kotido', 'Kumi', 'Kwania', 'Kween', 'Kyegegwa', 'Kyenjojo', 'Kyaka', 'Kyankwanzi', 'Kyotera', 'Lamwo', 'Lira', 'Luuka', 'Luwero', 'Lwengo', 'Lyantonde', 'Manafwa', 'Maracha', 'Mbarara', 'Mbale', 'Mitooma', 'Mityana', 'Moroto', 'Moyo', 'Mpigi', 'Mukono', 'Nabilatuk', 'Nakapiripirit', 'Nakaseke', 'Nakasongola', 'Namayingo', 'Namisindwa', 'Namutumba', 'Napak', 'Nebbi', 'Ngora', 'Ntoroko', 'Ntungamo', 'Nwoya', 'Omoro', 'Otuke', 'Pader', 'Pakwach', 'Pallisa', 'Rakai', 'Rubirizi', 'Rukiga', 'Rukungiri', 'Sembabule', 'Serere', 'Sheema', 'Sironko', 'Soroti', 'Tororo', 'Wakiso', 'Yumbe'
+    'Abim','Adjumani','Agago','Alebtong','Amolatar','Amudat','Amuria','Amuru','Apac','Arua','Budaka','Bududa','Bugiri','Bugweri','Bugutu','Buikwe','Bukedea','Bukomansimbi','Bukwa','Bulambuli','Buliisa','Bundibugyo','Bushenyi','Busia','Butaleja','Butambala','Buvuma','Buyende','Dokolo','Gomba','Gulu','Hoima','Ibanda','Iganga','Isingiro','Jinja','Kaabong','Kabale','Kabarole','Kaberamaido','Kalangala','Kaliro','Kalungu','Kampala','Kamuli','Kamwenge','Kanungu','Kapchorwa','Kasese','Katakwi','Kayunga','Kazo','Kibaale','Kiboga','Kibuku','Kisoro','Kitatta','Kitgum','Koboko','Kole','Kotido','Kumi','Kwania','Kween','Kyegegwa','Kyenjojo','Kyaka','Kyankwanzi','Kyotera','Lamwo','Lira','Luuka','Luwero','Lwengo','Lyantonde','Manafwa','Maracha','Mbarara','Mbale','Mitooma','Mityana','Moroto','Moyo','Mpigi','Mukono','Nabilatuk','Nakapiripirit','Nakaseke','Nakasongola','Namayingo','Namisindwa','Namutumba','Napak','Nebbi','Ngora','Ntoroko','Ntungamo','Nwoya','Omoro','Otuke','Pader','Pakwach','Pallisa','Rakai','Rubirizi','Rukiga','Rukungiri','Sembabule','Serere','Sheema','Sironko','Soroti','Tororo','Wakiso','Yumbe'
   ];
 
-  selectedFile: File | null = null;
-  previewUrl: string | null = null;
-  uploadProgress: number = 0;
-  isUploading: boolean = false;
-
-  get canUploadPhoto(): boolean {
-    const status = localStorage.getItem('account_status');
-    return (status || '').toLowerCase() === 'active';
-  }
-
   constructor(
-    private fb: FormBuilder,
+    private fb: FormBuilder, 
     private studentService: StudentService,
     private schoolService: SchoolService,
     private classCategorizationService: ClassCategorizationService,
     private snackBar: MatSnackBar,
     private dialog: MatDialog
-  ) {
+    ) {
     this.studentForm = this.fb.group({
       student_name: ['', Validators.required],
       class_name: ['', Validators.required],
@@ -99,31 +90,10 @@ export class StudentModalComponent implements OnInit, OnChanges {
           parent_name_father: (this.student as any)?.parent_name_father || '',
           residence_district: (this.student as any)?.residence_district || '',
         });
-        // Existing photo
-        if ((this.student as any).student_photo_url) {
-          this.previewUrl = (this.student as any).student_photo_url;
-        } else {
-          this.previewUrl = null;
-        }
       }, 0);
     } else {
       this.isEditMode = false;
       this.studentForm.reset({ year_enrolled: new Date().getFullYear(), student_status: 'Active', gender: '' });
-      this.previewUrl = null;
-      this.selectedFile = null;
-    }
-  }
-
-  onFileSelected(event: any): void {
-    const file = event.target.files[0];
-    if (file) {
-      this.selectedFile = file;
-      // Create preview
-      const reader = new FileReader();
-      reader.onload = () => {
-        this.previewUrl = reader.result as string;
-      };
-      reader.readAsDataURL(file);
     }
   }
 
@@ -134,10 +104,10 @@ export class StudentModalComponent implements OnInit, OnChanges {
 
     this.errorMessage = null;
     const formValue: StudentData = this.studentForm.value;
-
+    
     // For editing: use the student's own school_id. For creating: use currently selected school.
-    const schoolId = this.isEditMode && this.student?.school_id
-      ? this.student.school_id
+    const schoolId = this.isEditMode && this.student?.school_id 
+      ? this.student.school_id 
       : this.schoolService.getSelectedSchoolId();
 
     const operation = this.isEditMode && this.student
@@ -153,53 +123,17 @@ export class StudentModalComponent implements OnInit, OnChanges {
           const year = Number(this.studentForm.get('year_enrolled')?.value || new Date().getFullYear());
           if (term && created?.student_id) {
             this.studentService.upsertStudentTerm(created.student_id, year, term, true, this.studentForm.get('student_status')?.value, this.studentForm.get('class_name')?.value)
-              .pipe(take(1)).subscribe({ next: () => { }, error: () => { } });
+              .pipe(take(1)).subscribe({ next: ()=>{}, error: ()=>{} });
           }
         }
-
-        // Handle File Upload if present and allowed
-        if (this.selectedFile && this.canUploadPhoto && created?.student_id) {
-          this.isUploading = true;
-          this.studentService.uploadStudentPhoto(created.student_id, this.selectedFile).subscribe({
-            next: (event) => {
-              if (event.type === HttpEventType.UploadProgress) {
-                this.uploadProgress = Math.round(100 * event.loaded / event.total);
-              } else if (event.type === HttpEventType.Response) {
-                this.isUploading = false;
-                this.snackBar.open(successMessage + ' Photo uploaded.', 'Close', {
-                  duration: 3000,
-                  panelClass: ['success-snackbar'],
-                  verticalPosition: 'top',
-                  horizontalPosition: 'center'
-                });
-                this.studentUpserted.emit();
-                this.close.emit();
-              }
-            },
-            error: (err) => {
-              console.error('Photo upload failed', err);
-              this.isUploading = false;
-              this.snackBar.open(successMessage + ' But photo upload failed.', 'Close', {
-                duration: 4000,
-                panelClass: ['warning-snackbar'],
-                verticalPosition: 'top',
-                horizontalPosition: 'center'
-              });
-              this.studentUpserted.emit();
-              this.close.emit();
-            }
-          });
-        } else {
-          // No file to upload or not allowed
-          this.snackBar.open(successMessage, 'Close', {
-            duration: 3000,
-            panelClass: ['success-snackbar'],
-            verticalPosition: 'top',
-            horizontalPosition: 'center'
-          });
-          this.studentUpserted.emit();
-          this.close.emit();
-        }
+        this.snackBar.open(successMessage, 'Close', {
+          duration: 3000,
+          panelClass: ['success-snackbar'],
+          verticalPosition: 'top',
+          horizontalPosition: 'center'
+        });
+        this.studentUpserted.emit();
+        this.close.emit();
       },
       error: (err) => {
         this.errorMessage = `Failed to ${this.isEditMode ? 'update' : 'create'} student. Please try again.`;

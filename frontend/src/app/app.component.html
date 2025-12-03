@@ -8,14 +8,11 @@
         <div class="current-school-block" *ngIf="schoolService.selectedSchool$ | async as current">
           <div class="current-school-label">Current school</div>
           <div class="current-school-name">{{ current.school_name }}</div>
-          <div class="current-school-status" [ngClass]="current.account_status.toLowerCase()"
-            style="display: none !important">
-            Status: <span>{{ current.account_status }}</span>
-          </div>
 
-          <div class="school-badge-container" style="margin-top: 8px; display: flex; justify-content: center;">
-            <img *ngIf="current.badge_url" [src]="current.badge_url" alt="School Badge"
-              style="width: 60px; height: 60px; object-fit: contain; border-radius: 8px;">
+          <div class="school-badge-container"
+            style="margin-top: 8px; position: relative; width: 60px; height: 60px; margin-left: auto; margin-right: auto;">
+            <img *ngIf="current.badge_url" [ngSrc]="current.badge_url" fill alt="School Badge"
+              style="object-fit: contain; border-radius: 8px;">
 
             <div *ngIf="!current.badge_url" class="school-badge-placeholder"
               style="width: 60px; height: 60px; background-color: #e0e0e0; border: 2px dashed #999; border-radius: 8px; display: flex; align-items: center; justify-content: center;">

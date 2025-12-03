@@ -160,7 +160,7 @@ export class PdfExportService {
         }
       },
       margin: { left: 14, right: 14 },
-      tableWidth: 'auto'
+      tableWidth: pageWidth - 28 // Explicitly set width to page width minus margins
     });
 
     const fileName = `Fees_Details_${header.year}_${header.term}_${new Date().getTime()}.pdf`;
@@ -199,9 +199,28 @@ export class PdfExportService {
     if (header.badgeUrl) {
       try {
         const badgeData = await this.getBase64ImageFromURL(header.badgeUrl);
-        // Draw badge on the left with padding
-        // x=14 (margin), y=5 (padding top)
-        doc.addImage(badgeData, 'PNG', 14, 4, 28, 28);
+        console.log('Badge data prefix:', badgeData.substring(0, 100)); // Debug log
+
+        // Robust addImage with fallback
+        try {
+          // Attempt to detect format
+          let format = 'PNG';
+          if (badgeData.includes('data:image/jpeg') || badgeData.includes('data:image/jpg') || badgeData.includes('/9j/')) {
+            format = 'JPEG';
+          }
+
+          doc.addImage(badgeData, format, 14, 4, 28, 28);
+        } catch (imgErr) {
+          console.warn('First attempt to add image failed, trying fallback format', imgErr);
+          // If the first attempt failed (likely "wrong PNG signature" if we tried PNG on a JPEG),
+          // try the other common format.
+          try {
+            doc.addImage(badgeData, 'JPEG', 14, 4, 28, 28);
+          } catch (jpegErr) {
+            console.warn('JPEG fallback also failed, trying PNG', jpegErr);
+            doc.addImage(badgeData, 'PNG', 14, 4, 28, 28);
+          }
+        }
 
         // Shift text to the right
         textStartX = 50;
@@ -392,7 +411,7 @@ export class PdfExportService {
         }
       },
       margin: { left: 14, right: 14 },
-      tableWidth: 'auto'
+      tableWidth: pageWidth - 28 // Explicitly set width to page width minus margins
     });
 
     // ========== FOOTER SECTION ==========
@@ -467,9 +486,26 @@ export class PdfExportService {
 
   private async getBase64ImageFromURL(url: string): Promise<string> {
     try {
-      // Append timestamp to bypass cache and avoid CORS issues with cached opaque responses
-      const fetchUrl = url + (url.includes('?') ? '&' : '?') + 't=' + new Date().getTime();
-      const response = await fetch(fetchUrl);
+      // Use backend proxy to avoid CORS issues
+      // Assuming backend is at /api/v1/utils/proxy-image
+      // We need the base URL. Since this is Angular, we can use a relative path if proxy.conf.json is set up,
+      // or construct the full URL. Let's assume relative path works if served from same origin or proxy.
+      // If running locally on 4200 and backend on 3000, we need the full URL or proxy.
+      // Let's try to use the environment URL if possible, or just hardcode for now based on typical setup.
+      // Better: Use the same logic as other services. But here we are in a service without environment injected.
+      // Let's try to fetch directly first (with cache bust), if that fails, try proxy.
+
+      // Actually, the user says it fails. So let's go straight to proxy or try-catch.
+      // Let's construct the proxy URL.
+      // We can guess the API URL from the window location if we don't have environment.
+      // Or just use a relative path '/api/v1/utils/proxy-image' and hope the Angular proxy handles it.
+
+      const proxyUrl = `/api/v1/utils/proxy-image?url=${encodeURIComponent(url)}`;
+
+      const response = await fetch(proxyUrl);
+      if (!response.ok) {
+        throw new Error(`Proxy fetch failed: ${response.statusText}`);
+      }
       const blob = await response.blob();
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -481,8 +517,24 @@ export class PdfExportService {
         reader.readAsDataURL(blob);
       });
     } catch (error) {
-      console.error('Error fetching badge image:', error);
-      throw error;
+      console.error('Error fetching badge image via proxy:', error);
+      // Fallback to direct fetch just in case (though likely to fail if CORS is the issue)
+      try {
+        const fetchUrl = url + (url.includes('?') ? '&' : '?') + 't=' + new Date().getTime();
+        const response = await fetch(fetchUrl);
+        const blob = await response.blob();
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            resolve(reader.result as string);
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+      } catch (e) {
+        console.error('Direct fetch also failed', e);
+        throw e;
+      }
     }
   }
 }

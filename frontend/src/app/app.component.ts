@@ -1,7 +1,7 @@
 
 import { Component, inject, OnInit, ViewChild } from '@angular/core';
 import { Router, RouterOutlet, RouterModule } from '@angular/router';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { LoadingSpinnerComponent } from './components/loading-spinner/loading-spinner.component';
 import { AuthService } from './services/auth.service';
 import { WebSocketService } from './services/websocket.service';
@@ -31,8 +31,9 @@ import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
     MatSidenavModule,
     MatListModule,
     MatIconModule,
-    MatButtonModule
-    ,MatSnackBarModule
+    MatButtonModule,
+    MatSnackBarModule,
+    NgOptimizedImage
   ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
@@ -96,11 +97,11 @@ export class AppComponent implements OnInit {
       if (this.isSmallScreen) {
         this.sidenavMode = 'over';
         this.sidenavOpened = false; // collapsed by default on small screens
-        try { if (this.sidenav) this.sidenav.close(); } catch {}
+        try { if (this.sidenav) this.sidenav.close(); } catch { }
       } else {
         this.sidenavMode = 'side';
         this.sidenavOpened = true;
-        try { if (this.sidenav) this.sidenav.open(); } catch {}
+        try { if (this.sidenav) this.sidenav.open(); } catch { }
       }
     });
   }
@@ -140,7 +141,7 @@ export class AppComponent implements OnInit {
         });
       });
     } catch (e) {
-      this.snack.open('Failed to check balance', 'Close', { 
+      this.snack.open('Failed to check balance', 'Close', {
         duration: 3000,
         panelClass: ['error-snackbar'],
         verticalPosition: 'top',

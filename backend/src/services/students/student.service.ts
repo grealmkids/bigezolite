@@ -3,7 +3,8 @@ export const updateStudentById = async (schoolId: number, studentId: number, upd
     // Build dynamic SQL for only provided fields
     const allowedFields: (keyof Student)[] = [
         'student_name', 'class_name', 'year_enrolled', 'student_status', 'gender',
-        'parent_primary_name', 'parent_phone_sms', 'parent_name_mother', 'parent_name_father', 'residence_district'
+        'parent_primary_name', 'parent_phone_sms', 'parent_name_mother', 'parent_name_father', 'residence_district',
+        'student_photo_url'
     ];
     const setClauses: string[] = [];
     const params: any[] = [];
@@ -122,7 +123,7 @@ export const createStudent = async (student: Omit<Student, 'student_id' | 'reg_n
             await query(insSql, vparams);
 
             // Upsert student_terms presence for each term applied
-            const termSet = new Set<number>(fts.rows.map((r:any)=> Number(r.term)));
+            const termSet = new Set<number>(fts.rows.map((r: any) => Number(r.term)));
             for (const t of termSet) {
                 const upSql = `
                     INSERT INTO student_terms (school_id, student_id, year, term, class_name_at_term, status_at_term, presence)

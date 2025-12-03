@@ -3,7 +3,10 @@ import * as studentController from '../../services/students/student.controller';
 import * as feesController from '../../services/fees/fees.controller'; // Import fees controller
 import { authenticateToken } from '../../middleware/auth.middleware';
 
+import multer from 'multer';
+
 const router = Router();
+const upload = multer({ storage: multer.memoryStorage() });
 
 // All student routes are protected
 router.use(authenticateToken);
@@ -19,6 +22,9 @@ router.get('/:studentId', studentController.getStudentById);
 
 // PUT /api/v1/students/:studentId - Update a student's details
 router.put('/:studentId', studentController.updateStudent);
+
+// POST /api/v1/students/:studentId/photo - Upload student photo
+router.post('/:studentId/photo', upload.single('file'), studentController.uploadStudentPhoto);
 
 // DELETE /api/v1/students/:studentId - Delete a student
 router.delete('/:studentId', studentController.deleteStudent);

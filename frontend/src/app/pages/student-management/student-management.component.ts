@@ -10,6 +10,7 @@ import { Component, OnInit } from '@angular/core';
 import { LoadingService } from '../../services/loading.service';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatDialog } from '@angular/material/dialog';
 import { Observable, Subject, combineLatest, BehaviorSubject, of, forkJoin } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap, startWith, take, map } from 'rxjs/operators';
@@ -36,6 +37,7 @@ import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-
     SmsStudentModalComponent,
     LoadingSpinnerComponent,
     MatPaginatorModule,
+    MatProgressBarModule,
     NoDashPipe
   ],
   templateUrl: './student-management.component.html',
@@ -82,15 +84,15 @@ export class StudentManagementComponent implements OnInit {
   loadingClasses = false;
 
   constructor(
-  private studentService: StudentService,
-  private schoolService: SchoolService,
-  private classCategorizationService: ClassCategorizationService,
-  private loadingService: LoadingService,
-  private snack: MatSnackBar,
-  private pdfExportService: PdfExportService,
-  private dialog: MatDialog,
-  private feesService: FeesService,
-  private feesToTrackService: FeesToTrackService
+    private studentService: StudentService,
+    private schoolService: SchoolService,
+    private classCategorizationService: ClassCategorizationService,
+    private loadingService: LoadingService,
+    private snack: MatSnackBar,
+    private pdfExportService: PdfExportService,
+    private dialog: MatDialog,
+    private feesService: FeesService,
+    private feesToTrackService: FeesToTrackService
   ) { }
 
   onSearch(term: string): void {
@@ -235,7 +237,7 @@ export class StudentManagementComponent implements OnInit {
       error: (err) => {
         this.isLoading = false;
         const msg = err?.error?.message || 'Failed to load students';
-        this.snack.open(msg, 'Close', { 
+        this.snack.open(msg, 'Close', {
           duration: 5000,
           panelClass: ['error-snackbar'],
           verticalPosition: 'top',
@@ -436,6 +438,8 @@ export class StudentManagementComponent implements OnInit {
     });
   }
 
+  isGeneratingPdf = false;
+
   // PDF Export Method
   downloadPDF(): void {
     if (this.displayedStudents.length === 0) {
@@ -460,6 +464,8 @@ export class StudentManagementComponent implements OnInit {
       return;
     }
 
+    this.isGeneratingPdf = true;
+
     const searchTerm = this.lastSearchTerm;
     const classTerm = this.classFilter.value || '';
     const statusTerm = this.statusFilter.value || '';
@@ -482,8 +488,9 @@ export class StudentManagementComponent implements OnInit {
     ).subscribe({
       next: (resp) => {
         const allStudents = resp.items || [];
-        
+
         if (allStudents.length === 0) {
+          this.isGeneratingPdf = false;
           this.snack.open('No students found to export', 'Close', {
             duration: 3000,
             panelClass: ['error-snackbar'],
@@ -495,13 +502,15 @@ export class StudentManagementComponent implements OnInit {
 
         // Compute header/meta first (used by both exports)
         let schoolName = 'School Registry';
+        let badgeUrl: string | undefined;
         try {
           const schoolData = localStorage.getItem('bigezo_selected_school');
           if (schoolData) {
             const school = JSON.parse(schoolData);
             schoolName = school?.school_name || 'School Registry';
+            badgeUrl = school?.badge_url;
           }
-        } catch {}
+        } catch { }
         const filters: string[] = [];
         if (searchTerm) filters.push(`Search: \"${searchTerm}\"`);
         if (classTerm) filters.push(`Class: ${classTerm}`);
@@ -519,7 +528,7 @@ export class StudentManagementComponent implements OnInit {
           forkJoin(requests).pipe(take(1)).subscribe({
             next: async (allFeeRecords: any[]) => {
               // Build per-term rows and filter per selected status, year, and term
-              type Row = { reg: string; name: string; klass: string; feesStatus: string; feeName?: string; term: number|undefined; year: number|undefined; total: number|undefined; paid: number|undefined; balance: number|undefined; phone: string };
+              type Row = { reg: string; name: string; klass: string; feesStatus: string; feeName?: string; term: number | undefined; year: number | undefined; total: number | undefined; paid: number | undefined; balance: number | undefined; phone: string };
               const rows: Row[] = [];
               const filter = (feesStatusTerm || '').toLowerCase();
               const ySel = yearTerm ? Number(yearTerm) : new Date().getFullYear(); // enforce one year (default current)
@@ -564,7 +573,7 @@ export class StudentManagementComponent implements OnInit {
                   const nameCalls = idArr.map(id => this.feesToTrackService.getById(id).pipe(take(1)));
                   const defsPromise = forkJoin(nameCalls).pipe(take(1)).toPromise() as Promise<any[]>;
                   let defs: any[] = [];
-                  try { defs = await defsPromise; } catch {}
+                  try { defs = await defsPromise; } catch { }
                   defs?.forEach((d: any, i: number) => { nameMap[idArr[i]] = d?.name || 'School Fees'; });
                 } catch {
                   // fallback names remain empty -> default later
@@ -587,9 +596,11 @@ export class StudentManagementComponent implements OnInit {
               // Header options: hide Year (in header) and hide Term if selected
               const headerTerm = tSel ? `Term ${tSel}` : '';
               this.emitFeesPDF(rows, schoolName, headerTerm || 'All Terms', String(ySel), rows.length, filterInfo, { hideYear: true, hideTerm: !!tSel });
+              this.isGeneratingPdf = false;
             },
             error: (err) => {
               console.error('Error fetching fees for export:', err);
+              this.isGeneratingPdf = false;
               this.snack.open('Failed to fetch fees for export', 'Close', {
                 duration: 5000,
                 panelClass: ['error-snackbar'],
@@ -606,26 +617,40 @@ export class StudentManagementComponent implements OnInit {
           schoolName: schoolName,
           term: term,
           year: yearTerm || new Date().getFullYear().toString(),
-          generatedDate: new Date().toLocaleDateString('en-US', { 
-            year: 'numeric', 
-            month: 'long', 
+          generatedDate: new Date().toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
             day: 'numeric',
             hour: '2-digit',
             minute: '2-digit'
           }),
           totalStudents: allStudents.length,
-          filterInfo: filterInfo
+          filterInfo: filterInfo,
+          badgeUrl: badgeUrl
+        }).then(() => {
+          this.isGeneratingPdf = false;
+          this.snack.open(`PDF downloaded successfully (${allStudents.length} students)`, 'Close', {
+            duration: 3000,
+            panelClass: ['success-snackbar'],
+            verticalPosition: 'top',
+            horizontalPosition: 'center'
+          });
+        }).catch(err => {
+          this.isGeneratingPdf = false;
+          console.error('Error generating PDF:', err);
+          this.snack.open('Failed to generate PDF', 'Close', {
+            duration: 5000,
+            panelClass: ['error-snackbar'],
+            verticalPosition: 'top',
+            horizontalPosition: 'center'
+          });
         });
 
-        this.snack.open(`PDF downloaded successfully (${allStudents.length} students)`, 'Close', {
-          duration: 3000,
-          panelClass: ['success-snackbar'],
-          verticalPosition: 'top',
-          horizontalPosition: 'center'
-        });
+
       },
       error: (err) => {
         console.error('Error fetching students for PDF:', err);
+        this.isGeneratingPdf = false;
         this.snack.open('Failed to generate PDF', 'Close', {
           duration: 5000,
           panelClass: ['error-snackbar'],
@@ -647,7 +672,7 @@ export class StudentManagementComponent implements OnInit {
       schoolName,
       term,
       year,
-      generatedDate: new Date().toLocaleDateString('en-US', { 
+      generatedDate: new Date().toLocaleDateString('en-US', {
         year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
       }),
       totalStudents: total,

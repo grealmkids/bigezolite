@@ -14,6 +14,7 @@ interface PDFHeader {
   statusTheme?: 'paid' | 'pending' | 'defaulter';
   hideTerm?: boolean;
   hideYear?: boolean;
+  badgeUrl?: string;
 }
 
 @Injectable({
@@ -95,10 +96,10 @@ export class PdfExportService {
     const includeTerm = !header.hideTerm;
     const includeYear = !header.hideYear;
     const head = [[
-      '#','Reg Number','Student Name','Class','Fees Status','Fee',
+      '#', 'Reg Number', 'Student Name', 'Class', 'Fees Status', 'Fee',
       ...(includeTerm ? ['Term'] : []),
       ...(includeYear ? ['Year'] : []),
-      'Total Due','Paid','Balance','Parent Phone'
+      'Total Due', 'Paid', 'Balance', 'Parent Phone'
     ]];
     const fmt0 = (n: any) => {
       const v = Number(n || 0);
@@ -129,8 +130,8 @@ export class PdfExportService {
       head,
       body,
       theme: 'grid',
-      styles: { fontSize: 11, cellPadding: 3, lineColor: [0,0,0], lineWidth: 0.25, font: 'helvetica', textColor: [40,40,40], halign: 'left' },
-      headStyles: { fillColor: [52,73,94], textColor: [255,255,255], fontSize: 12, fontStyle: 'bold', halign: 'left', cellPadding: 4 },
+      styles: { fontSize: 11, cellPadding: 3, lineColor: [0, 0, 0], lineWidth: 0.25, font: 'helvetica', textColor: [40, 40, 40], halign: 'left' },
+      headStyles: { fillColor: [52, 73, 94], textColor: [255, 255, 255], fontSize: 12, fontStyle: 'bold', halign: 'left', cellPadding: 4 },
       columnStyles: {
         0: { cellWidth: 8 }, // #
         1: { cellWidth: 28 }, // Reg
@@ -140,7 +141,7 @@ export class PdfExportService {
         5: { cellWidth: 30 }, // Fee
         6: { cellWidth: includeTerm ? 14 : (includeYear ? 20 : 24) }, // Term or Total Due depending on shifts
       },
-      alternateRowStyles: { fillColor: [245,247,250] },
+      alternateRowStyles: { fillColor: [245, 247, 250] },
       didParseCell: (data) => {
         if (data.column.index === 9 && data.section === 'body') {
           // Balance color: red if > 0 else green
@@ -151,10 +152,10 @@ export class PdfExportService {
         }
         if (data.column.index === 4 && data.section === 'body') {
           const status = (data.cell.raw as string || '').toLowerCase();
-          let bg: [number,number,number] = [255,255,255]; let tx: [number,number,number] = [40,40,40];
-          if (status === 'paid') { bg = [198,246,213]; tx = [22,163,74]; }
-          if (status === 'pending' || status === 'partially paid') { bg = [227,242,253]; tx = [25,118,210]; }
-          if (status === 'defaulter') { bg = [254,202,202]; tx = [220,38,38]; }
+          let bg: [number, number, number] = [255, 255, 255]; let tx: [number, number, number] = [40, 40, 40];
+          if (status === 'paid') { bg = [198, 246, 213]; tx = [22, 163, 74]; }
+          if (status === 'pending' || status === 'partially paid') { bg = [227, 242, 253]; tx = [25, 118, 210]; }
+          if (status === 'defaulter') { bg = [254, 202, 202]; tx = [220, 38, 38]; }
           data.cell.styles.fillColor = bg; data.cell.styles.textColor = tx; data.cell.styles.fontStyle = 'bold';
         }
       },
@@ -170,7 +171,7 @@ export class PdfExportService {
    * Generates a professional PDF with student data
    * Designed with Adobe-quality styling
    */
-  generateStudentListPDF(students: Student[], header: PDFHeader): void {
+  async generateStudentListPDF(students: Student[], header: PDFHeader): Promise<void> {
     // Create PDF in landscape for better table visibility
     const doc = new jsPDF({
       orientation: 'landscape',
@@ -182,58 +183,86 @@ export class PdfExportService {
     const pageHeight = doc.internal.pageSize.getHeight();
 
     // ========== HEADER SECTION (Professional Adobe-style) ==========
-    
+
     // Background gradient effect (simulated with filled rectangles)
     doc.setFillColor(0, 89, 179); // #0059b3
     doc.rect(0, 0, pageWidth, 35, 'F');
-    
+
     // Accent stripe
     doc.setFillColor(255, 193, 7); // Gold accent
     doc.rect(0, 35, pageWidth, 2, 'F');
+
+    let textStartX = pageWidth / 2;
+    let align: 'center' | 'left' | 'right' | 'justify' = 'center';
+
+    // Badge Logic
+    if (header.badgeUrl) {
+      try {
+        const badgeData = await this.getBase64ImageFromURL(header.badgeUrl);
+        // Draw badge on the left with padding
+        // x=14 (margin), y=5 (padding top)
+        doc.addImage(badgeData, 'PNG', 14, 4, 28, 28);
+
+        // Shift text to the right
+        textStartX = 50;
+        align = 'left';
+      } catch (err) {
+        console.warn('Failed to load badge image for PDF', err);
+        // Fallback to centered if badge fails
+      }
+    }
 
     // School Name - Large, Bold, White
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(24);
     doc.setFont('helvetica', 'bold');
-    doc.text(header.schoolName, pageWidth / 2, 12, { align: 'center' });
+    doc.text(header.schoolName, textStartX, 14, { align: align });
 
     // Document Title
     doc.setFontSize(16);
     doc.setFont('helvetica', 'normal');
-    doc.text('Student Registry Report', pageWidth / 2, 21, { align: 'center' });
+    doc.text('Student Registry Report', textStartX, 23, { align: align });
 
-    // Header Info Bar - Two columns
-    doc.setFontSize(16);
+    // Header Info Bar - Two columns (shifted if badge exists)
+    // If badge exists, we might want to put Year/Term below the title or to the far right.
+    // Let's keep Year/Term on the far right if badge is present, or below title.
+
+    doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
-    const leftX = 14;
     const rightX = pageWidth - 14;
-    
-    // Left side info
-    doc.setTextColor(255, 255, 255);
-    doc.text(`Academic Year: ${header.year}`, leftX, 29);
-    
-    // Right side info
-    const termText2 = (() => { const t = String(header.term || ''); return /^\s*term\b/i.test(t) ? t : (t ? `Term ${t}` : ''); })();
-    if (termText2) doc.text(termText2, rightX, 29, { align: 'right' });
+
+    if (header.badgeUrl) {
+      // If badge is present, put Year/Term on the right side of the header bar
+      doc.text(`Year: ${header.year}`, rightX, 14, { align: 'right' });
+      const termText = (() => { const t = String(header.term || ''); return /^\s*term\b/i.test(t) ? t : (t ? `Term ${t}` : ''); })();
+      if (termText) doc.text(termText, rightX, 23, { align: 'right' });
+    } else {
+      // Original centered layout
+      const leftX = 14;
+      doc.text(`Academic Year: ${header.year}`, leftX, 29);
+      const termText2 = (() => { const t = String(header.term || ''); return /^\s*term\b/i.test(t) ? t : (t ? `Term ${t}` : ''); })();
+      if (termText2) doc.text(termText2, rightX, 29, { align: 'right' });
+    }
 
     // Reset text color for body
     doc.setTextColor(0, 0, 0);
 
     // ========== METADATA SECTION ==========
     const metaY = 42;
-    
+    const leftX = 14;
+
     // Left side - Generated date
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(100, 100, 100);
     doc.text(`Generated: ${header.generatedDate}`, leftX, metaY);
-    
+
     // Right side - Total Students (more vivid and larger)
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(0, 89, 179); // Blue color to match header
     doc.text(`Total Records: ${header.totalStudents}`, rightX, metaY, { align: 'right' });
-    
+
     if (header.filterInfo) {
       doc.setFontSize(8);
       doc.setTextColor(150, 150, 150);
@@ -241,14 +270,14 @@ export class PdfExportService {
     }
 
     // ========== TABLE SECTION (Adobe-quality styling) ==========
-    
+
     // Prepare table data
     const tableData = students.map((student, index) => {
       // Debug: log if parent_phone_sms is missing
       if (!student.parent_phone_sms) {
         console.warn('Missing parent_phone_sms for student:', student.student_name, student);
       }
-      
+
       const feesLabel = (student.fees_status || '').toLowerCase() === 'pending' ? 'Partially Paid' : (student.fees_status || '');
       return [
         index + 1,
@@ -303,7 +332,7 @@ export class PdfExportService {
           const status = data.cell.raw as string;
           let bgColor: [number, number, number] = [255, 255, 255];
           let textColor: [number, number, number] = [40, 40, 40];
-          
+
           switch (status?.toLowerCase()) {
             case 'active':
               bgColor = [212, 237, 218]; // Light green
@@ -330,17 +359,17 @@ export class PdfExportService {
               textColor = [255, 102, 0];
               break;
           }
-          
+
           data.cell.styles.fillColor = bgColor;
           data.cell.styles.textColor = textColor;
           data.cell.styles.fontStyle = 'bold';
         }
-        
+
         if (data.column.index === 5 && data.section === 'body') { // Fees Status
           const status = data.cell.raw as string;
           let bgColor: [number, number, number] = [255, 255, 255];
           let textColor: [number, number, number] = [40, 40, 40];
-          
+
           switch (status?.toLowerCase()) {
             case 'paid':
               bgColor = [198, 246, 213]; // Green tint
@@ -356,7 +385,7 @@ export class PdfExportService {
               textColor = [220, 38, 38];
               break;
           }
-          
+
           data.cell.styles.fillColor = bgColor;
           data.cell.styles.textColor = textColor;
           data.cell.styles.fontStyle = 'bold';
@@ -368,39 +397,39 @@ export class PdfExportService {
 
     // ========== FOOTER SECTION ==========
     const finalY = (doc as any).lastAutoTable.finalY || 50;
-    
+
     // Add summary box if there's space
     if (finalY < pageHeight - 30) {
       const summaryY = finalY + 8;
-      
+
       // Summary box background
       doc.setFillColor(249, 250, 251);
       doc.setDrawColor(220, 220, 220);
       doc.roundedRect(14, summaryY, pageWidth - 28, 15, 2, 2, 'FD');
-      
+
       // Summary text
       doc.setFontSize(9);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(52, 73, 94);
-      
+
       const activeCount = students.filter(s => s.student_status?.toLowerCase() === 'active').length;
       const paidCount = students.filter(s => s.fees_status?.toLowerCase() === 'paid').length;
       const defaulterCount = students.filter(s => s.fees_status?.toLowerCase() === 'defaulter').length;
-      
-      doc.text(`Summary: ${activeCount} Active Students | ${paidCount} Paid | ${defaulterCount} Defaulters`, 
+
+      doc.text(`Summary: ${activeCount} Active Students | ${paidCount} Paid | ${defaulterCount} Defaulters`,
         pageWidth / 2, summaryY + 6, { align: 'center' });
-      
+
       doc.setFontSize(7);
       doc.setFont('helvetica', 'italic');
       doc.setTextColor(120, 120, 120);
-      doc.text('This is an official computer-generated document.', 
+      doc.text('This is an official computer-generated document.',
         pageWidth / 2, summaryY + 11, { align: 'center' });
-      
+
       // Branding line
       doc.setFontSize(6.5);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(100, 100, 100);
-      doc.text('Bigezo, a product of G-Realm Studio    --------- support@bigezo.com', 
+      doc.text('Bigezo, a product of G-Realm Studio    --------- support@bigezo.com',
         pageWidth / 2, summaryY + 14, { align: 'center' });
     }
 
@@ -411,20 +440,20 @@ export class PdfExportService {
       doc.setFontSize(8);
       doc.setTextColor(150, 150, 150);
       doc.setFont('helvetica', 'normal');
-      
+
       // Footer line
       doc.setDrawColor(220, 220, 220);
       doc.line(14, pageHeight - 10, pageWidth - 14, pageHeight - 10);
-      
+
       // Footer text - left
       doc.text(`${header.schoolName} - Student Registry`, 14, pageHeight - 5);
-      
+
       // Footer text - center (branding)
       doc.setFontSize(7);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(100, 100, 100);
       doc.text('Bigezo app, a product of G-Realm Studio    --------- support@bigezo.com', pageWidth / 2, pageHeight - 5, { align: 'center' });
-      
+
       // Footer text - right
       doc.setFontSize(8);
       doc.setTextColor(150, 150, 150);
@@ -434,5 +463,26 @@ export class PdfExportService {
     // ========== SAVE PDF ==========
     const fileName = `Student_List_${header.year}_${header.term}_${new Date().getTime()}.pdf`;
     doc.save(fileName);
+  }
+
+  private async getBase64ImageFromURL(url: string): Promise<string> {
+    try {
+      // Append timestamp to bypass cache and avoid CORS issues with cached opaque responses
+      const fetchUrl = url + (url.includes('?') ? '&' : '?') + 't=' + new Date().getTime();
+      const response = await fetch(fetchUrl);
+      const blob = await response.blob();
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const base64data = reader.result as string;
+          resolve(base64data);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    } catch (error) {
+      console.error('Error fetching badge image:', error);
+      throw error;
+    }
   }
 }

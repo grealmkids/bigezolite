@@ -159,4 +159,32 @@
             transition: width 0.3s ease;
         }
     }
+
+    .btn-upload {
+        background-color: #28a745;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        border-radius: 4px;
+        cursor: pointer;
+
+        &:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+    }
+
+    .btn-remove {
+        background-color: #dc3545;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        border-radius: 4px;
+        cursor: pointer;
+
+        &:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+    }
 }

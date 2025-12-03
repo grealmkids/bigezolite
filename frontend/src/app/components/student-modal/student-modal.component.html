@@ -72,7 +72,24 @@
             <div class="photo-preview" *ngIf="previewUrl">
               <img [src]="previewUrl" alt="Student Photo Preview">
             </div>
-            <input type="file" (change)="onFileSelected($event)" accept="image/*">
+
+            <div class="upload-actions">
+              <input type="file" (change)="onFileSelected($event)" accept="image/*">
+
+              <!-- Separate actions for Edit Mode -->
+              <div class="action-buttons" *ngIf="isEditMode"
+                style="margin-top: 10px; display: flex; gap: 10px; justify-content: center;">
+                <button type="button" class="btn-upload" *ngIf="selectedFile" (click)="uploadPhoto()"
+                  [disabled]="isUploading">
+                  Upload New
+                </button>
+                <button type="button" class="btn-remove" *ngIf="previewUrl && !selectedFile" (click)="deletePhoto()"
+                  [disabled]="isUploading">
+                  Remove Photo
+                </button>
+              </div>
+            </div>
+
             <div class="progress-bar" *ngIf="isUploading">
               <div class="progress-fill" [style.width.%]="uploadProgress"></div>
             </div>

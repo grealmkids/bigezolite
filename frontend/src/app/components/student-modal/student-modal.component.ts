@@ -166,8 +166,8 @@ export class StudentModalComponent implements OnInit, OnChanges {
           }
         }
 
-        // Handle File Upload if present and allowed
-        if (this.selectedFile && this.canUploadPhoto && created?.student_id) {
+        // Handle File Upload for NEW students (chained)
+        if (!this.isEditMode && this.selectedFile && this.canUploadPhoto && created?.student_id) {
           this.isUploading = true;
           this.studentService.uploadStudentPhoto(created.student_id, this.selectedFile).subscribe({
             next: (event) => {
@@ -199,7 +199,7 @@ export class StudentModalComponent implements OnInit, OnChanges {
             }
           });
         } else {
-          // No file to upload or not allowed
+          // For Edit mode, we rely on the separate "Upload New" button, or if no file selected
           this.snackBar.open(successMessage, 'Close', {
             duration: 3000,
             panelClass: ['success-snackbar'],
@@ -213,6 +213,61 @@ export class StudentModalComponent implements OnInit, OnChanges {
       error: (err) => {
         this.errorMessage = `Failed to ${this.isEditMode ? 'update' : 'create'} student. Please try again.`;
         console.error(err);
+      }
+    });
+  }
+
+  uploadPhoto(): void {
+    if (!this.selectedFile || !this.student) return;
+
+    this.isUploading = true;
+    this.studentService.uploadStudentPhoto(this.student.student_id, this.selectedFile).subscribe({
+      next: (event) => {
+        if (event.type === HttpEventType.UploadProgress) {
+          this.uploadProgress = Math.round(100 * event.loaded / event.total);
+        } else if (event.type === HttpEventType.Response) {
+          this.isUploading = false;
+          // Update local student object with new photo URL
+          if (this.student) {
+            // We need to know the property name returned by backend. Usually it returns the updated student or file info.
+            // Assuming event.body contains { student_photo_url: '...' } or similar.
+            // Based on SchoolEditModal, it returns { badge_url: ... }
+            // Let's assume backend returns { student_photo_url: ... }
+            const body: any = event.body;
+            if (body && body.student_photo_url) {
+              (this.student as any).student_photo_url = body.student_photo_url;
+              this.previewUrl = body.student_photo_url;
+            }
+          }
+          this.selectedFile = null;
+          this.snackBar.open('Photo uploaded successfully!', 'Close', { duration: 3000, panelClass: ['success-snackbar'] });
+          this.studentUpserted.emit();
+        }
+      },
+      error: (err) => {
+        console.error('Upload failed', err);
+        this.isUploading = false;
+        this.snackBar.open('Failed to upload photo', 'Close', { duration: 3000, panelClass: ['error-snackbar'] });
+      }
+    });
+  }
+
+  deletePhoto(): void {
+    if (!this.student) return;
+    if (!confirm('Are you sure you want to remove the photo?')) return;
+
+    // We can use updateStudent to set photo_url to null/empty
+    const schoolId = this.student.school_id || this.schoolService.getSelectedSchoolId();
+    this.studentService.updateStudent(this.student.student_id, { student_photo_url: '' } as any, schoolId || undefined).subscribe({
+      next: (updated) => {
+        this.student = updated;
+        this.previewUrl = null;
+        this.snackBar.open('Photo removed successfully!', 'Close', { duration: 3000, panelClass: ['success-snackbar'] });
+        this.studentUpserted.emit();
+      },
+      error: (err) => {
+        console.error('Failed to delete photo', err);
+        this.snackBar.open('Failed to remove photo', 'Close', { duration: 3000, panelClass: ['error-snackbar'] });
       }
     });
   }

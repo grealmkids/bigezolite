@@ -199,26 +199,39 @@ export class PdfExportService {
     if (header.badgeUrl) {
       try {
         const badgeData = await this.getBase64ImageFromURL(header.badgeUrl);
-        console.log('Badge data prefix:', badgeData.substring(0, 100)); // Debug log
+        console.log('Badge loaded, length:', badgeData.length, 'Prefix:', badgeData.substring(0, 50));
 
-        // Robust addImage with fallback
+        // Normalize image to valid PNG using canvas
         try {
-          // Attempt to detect format
+          const normalizedData = await this.normalizeImage(badgeData);
+          doc.addImage(normalizedData, 'PNG', 14, 4, 28, 28);
+        } catch (normErr) {
+          console.warn('Image normalization failed, trying raw addImage with smart detection', normErr);
+
+          // Fallback: Smart detection and "Try Everything" strategy
+          // 1. Strip header to get raw base64
+          const rawBase64 = badgeData.replace(/^data:image\/(png|jpg|jpeg);base64,/, "");
+
+          // 2. Guess format
           let format = 'PNG';
-          if (badgeData.includes('data:image/jpeg') || badgeData.includes('data:image/jpg') || badgeData.includes('/9j/')) {
+          if (rawBase64.startsWith('/9j/') || badgeData.includes('image/jpeg') || badgeData.includes('image/jpg')) {
             format = 'JPEG';
           }
 
-          doc.addImage(badgeData, format, 14, 4, 28, 28);
-        } catch (imgErr) {
-          console.warn('First attempt to add image failed, trying fallback format', imgErr);
-          // If the first attempt failed (likely "wrong PNG signature" if we tried PNG on a JPEG),
-          // try the other common format.
+          console.log('Fallback: Guessing format:', format);
+
           try {
-            doc.addImage(badgeData, 'JPEG', 14, 4, 28, 28);
-          } catch (jpegErr) {
-            console.warn('JPEG fallback also failed, trying PNG', jpegErr);
-            doc.addImage(badgeData, 'PNG', 14, 4, 28, 28);
+            // 3. Try guessed format
+            doc.addImage(rawBase64, format, 14, 4, 28, 28);
+          } catch (firstErr) {
+            console.warn(`Fallback: Failed as ${format}, trying opposite`, firstErr);
+            // 4. Try opposite format
+            const otherFormat = format === 'PNG' ? 'JPEG' : 'PNG';
+            try {
+              doc.addImage(rawBase64, otherFormat, 14, 4, 28, 28);
+            } catch (secondErr) {
+              console.error('Fallback: All attempts failed', secondErr);
+            }
           }
         }
 
@@ -322,7 +335,8 @@ export class PdfExportService {
         lineWidth: 0.25,
         font: 'helvetica',
         textColor: [40, 40, 40],
-        halign: 'left'
+        halign: 'left',
+        overflow: 'linebreak' // Ensure text wraps
       },
       headStyles: {
         fillColor: [52, 73, 94], // Professional dark blue-gray
@@ -335,11 +349,11 @@ export class PdfExportService {
       columnStyles: {
         0: { halign: 'left', cellWidth: 10, fillColor: [248, 249, 250] }, // #
         1: { halign: 'left', cellWidth: 35, fontStyle: 'bold' }, // Reg Number
-        2: { halign: 'left', cellWidth: 52, fontStyle: 'normal' }, // Student Name
+        2: { halign: 'left', cellWidth: 'auto', fontStyle: 'normal' }, // Student Name - Auto width
         3: { halign: 'left', cellWidth: 22 }, // Class
         4: { halign: 'left', cellWidth: 26 }, // Status
-        5: { halign: 'left', cellWidth: 35 }, // Fees Status - wider to prevent wrapping
-        6: { halign: 'left', cellWidth: 40 } // Parent Phone
+        5: { halign: 'left', cellWidth: 30 }, // Fees Status
+        6: { halign: 'left', cellWidth: 35 } // Parent Phone
       },
       alternateRowStyles: {
         fillColor: [245, 247, 250] // Light alternating rows for readability
@@ -487,19 +501,6 @@ export class PdfExportService {
   private async getBase64ImageFromURL(url: string): Promise<string> {
     try {
       // Use backend proxy to avoid CORS issues
-      // Assuming backend is at /api/v1/utils/proxy-image
-      // We need the base URL. Since this is Angular, we can use a relative path if proxy.conf.json is set up,
-      // or construct the full URL. Let's assume relative path works if served from same origin or proxy.
-      // If running locally on 4200 and backend on 3000, we need the full URL or proxy.
-      // Let's try to use the environment URL if possible, or just hardcode for now based on typical setup.
-      // Better: Use the same logic as other services. But here we are in a service without environment injected.
-      // Let's try to fetch directly first (with cache bust), if that fails, try proxy.
-
-      // Actually, the user says it fails. So let's go straight to proxy or try-catch.
-      // Let's construct the proxy URL.
-      // We can guess the API URL from the window location if we don't have environment.
-      // Or just use a relative path '/api/v1/utils/proxy-image' and hope the Angular proxy handles it.
-
       const proxyUrl = `/api/v1/utils/proxy-image?url=${encodeURIComponent(url)}`;
 
       const response = await fetch(proxyUrl);
@@ -518,7 +519,7 @@ export class PdfExportService {
       });
     } catch (error) {
       console.error('Error fetching badge image via proxy:', error);
-      // Fallback to direct fetch just in case (though likely to fail if CORS is the issue)
+      // Fallback to direct fetch
       try {
         const fetchUrl = url + (url.includes('?') ? '&' : '?') + 't=' + new Date().getTime();
         const response = await fetch(fetchUrl);
@@ -536,5 +537,41 @@ export class PdfExportService {
         throw e;
       }
     }
+  }
+
+  /**
+   * Normalizes an image to a valid PNG base64 string using an HTML Canvas.
+   * This ensures that the image data is always a valid PNG, preventing "wrong PNG signature" errors.
+   */
+  private normalizeImage(base64Data: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      // No crossOrigin needed for base64 data URIs
+
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0);
+            // Convert to PNG data URL
+            const dataURL = canvas.toDataURL('image/png');
+            resolve(dataURL);
+          } else {
+            reject(new Error('Could not get canvas context'));
+          }
+        } catch (e) {
+          reject(e);
+        }
+      };
+
+      img.onerror = (e) => {
+        reject(new Error('Failed to load image for normalization'));
+      };
+
+      img.src = base64Data;
+    });
   }
 }

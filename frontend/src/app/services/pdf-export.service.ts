@@ -15,6 +15,7 @@ interface PDFHeader {
   hideTerm?: boolean;
   hideYear?: boolean;
   badgeUrl?: string;
+  includePhotos?: boolean;
 }
 
 @Injectable({
@@ -277,9 +278,6 @@ export class PdfExportService {
     doc.text('Student Registry', textStartX, 23, { align: align });
 
     // Header Info Bar - Two columns (shifted if badge exists)
-    // If badge exists, we might want to put Year/Term below the title or to the far right.
-    // Let's keep Year/Term on the far right if badge is present, or below title.
-
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
     const rightX = pageWidth - 14;
@@ -322,31 +320,88 @@ export class PdfExportService {
       doc.text(`Filters Applied: ${header.filterInfo}`, pageWidth / 2, metaY + 4, { align: 'center' });
     }
 
+    // ========== PHOTOS PRELOADING ==========
+    const photoMap = new Map<number, string>();
+    if (header.includePhotos) {
+      // Fetch photos in parallel
+      const promises = students.map(async (s) => {
+        if (s.student_photo_url) {
+          try {
+            // Use existing getBase64ImageFromURL method
+            const base64 = await this.getBase64ImageFromURL(s.student_photo_url);
+            // Normalize it to ensure it's a valid PNG/JPEG for jsPDF
+            try {
+              const normalized = await this.normalizeImage(base64);
+              photoMap.set(s.student_id, normalized);
+            } catch {
+              // If normalization fails, try using raw base64
+              photoMap.set(s.student_id, base64);
+            }
+          } catch (e) {
+            console.warn(`Failed to load photo for student ${s.student_id}`, e);
+          }
+        }
+      });
+      await Promise.all(promises);
+    }
+
     // ========== TABLE SECTION (Adobe-quality styling) ==========
+
+    // Prepare columns
+    const columns = ['#'];
+    if (header.includePhotos) columns.push('Photo');
+    columns.push('Reg Number', 'Student Name', 'Class', 'Status', 'Fees Status', 'Parent Phone');
 
     // Prepare table data
     const tableData = students.map((student, index) => {
-      // Debug: log if parent_phone_sms is missing
-      if (!student.parent_phone_sms) {
-        console.warn('Missing parent_phone_sms for student:', student.student_name, student);
-      }
-
       const feesLabel = (student.fees_status || '').toLowerCase() === 'pending' ? 'Partially Paid' : (student.fees_status || '');
-      return [
-        index + 1,
+      const row: (string | number)[] = [
+        index + 1
+      ];
+      if (header.includePhotos) {
+        row.push(''); // Placeholder for photo
+      }
+      row.push(
         student.reg_number?.replace(/-/g, '') || '',
         student.student_name || '',
         student.class_name || '',
         student.student_status || '',
         feesLabel,
         student.parent_phone_sms || 'N/A'
-      ];
+      );
+      return row;
     });
+
+    // Column styles
+    const colStyles: any = {
+      0: { halign: 'left', cellWidth: 10, fillColor: [248, 249, 250] }, // #
+    };
+    let colIdx = 1;
+    if (header.includePhotos) {
+      colStyles[colIdx] = { cellWidth: 20, minCellHeight: 20, valign: 'middle' }; // Photo
+      colIdx++;
+    }
+    colStyles[colIdx] = { halign: 'left', cellWidth: 35, fontStyle: 'bold', valign: 'middle' }; // Reg Number
+    colIdx++;
+    colStyles[colIdx] = { halign: 'left', cellWidth: 'auto', fontStyle: 'normal', valign: 'middle' }; // Name
+    colIdx++;
+    colStyles[colIdx] = { halign: 'left', cellWidth: 22, valign: 'middle' }; // Class
+    colIdx++;
+    colStyles[colIdx] = { halign: 'left', cellWidth: 26, valign: 'middle' }; // Status
+    colIdx++;
+    colStyles[colIdx] = { halign: 'left', cellWidth: 30, valign: 'middle' }; // Fees Status
+    colIdx++;
+    colStyles[colIdx] = { halign: 'left', cellWidth: 35, valign: 'middle' }; // Phone
+
+    // Indices for status coloring
+    const statusColIdx = header.includePhotos ? 5 : 4;
+    const feesStatusColIdx = header.includePhotos ? 6 : 5;
+    const photoColIdx = 1;
 
     // Table styling with vivid colors and professional design
     autoTable(doc, {
       startY: header.filterInfo ? metaY + 8 : metaY + 2,
-      head: [['#', 'Reg Number', 'Student Name', 'Class', 'Status', 'Fees Status', 'Parent Phone']],
+      head: [columns],
       body: tableData,
       theme: 'grid',
       styles: {
@@ -367,22 +422,40 @@ export class PdfExportService {
         halign: 'left',
         cellPadding: 4
       },
-      columnStyles: {
-        0: { halign: 'left', cellWidth: 10, fillColor: [248, 249, 250] }, // #
-        1: { halign: 'left', cellWidth: 35, fontStyle: 'bold' }, // Reg Number
-        2: { halign: 'left', cellWidth: 'auto', fontStyle: 'normal' }, // Student Name - Auto width
-        3: { halign: 'left', cellWidth: 22 }, // Class
-        4: { halign: 'left', cellWidth: 26 }, // Status
-        5: { halign: 'left', cellWidth: 30 }, // Fees Status
-        6: { halign: 'left', cellWidth: 35 } // Parent Phone
-      },
+      columnStyles: colStyles,
       alternateRowStyles: {
         fillColor: [245, 247, 250] // Light alternating rows for readability
       },
       // Vivid row highlighting based on status
+      didDrawCell: (data) => {
+        // Draw Photo
+        if (header.includePhotos && data.column.index === photoColIdx && data.section === 'body') {
+          const student = students[data.row.index];
+          if (!student) return;
+          const base64 = photoMap.get(student.student_id);
+          if (base64) {
+            try {
+              // Center image in cell
+              const cell = data.cell;
+              const imgSize = 16;
+              const x = cell.x + (cell.width - imgSize) / 2;
+              const y = cell.y + (cell.height - imgSize) / 2;
+              doc.addImage(base64, 'PNG', x, y, imgSize, imgSize);
+            } catch (e) {
+              // ignore
+            }
+          } else {
+            // Optional: Draw "No Photo" text or placeholder
+            doc.setFontSize(7);
+            doc.setTextColor(150, 150, 150);
+            const cell = data.cell;
+            doc.text('No Photo', cell.x + cell.width / 2, cell.y + cell.height / 2, { align: 'center', baseline: 'middle' });
+          }
+        }
+      },
       didParseCell: (data) => {
         // Color-code status columns
-        if (data.column.index === 4 && data.section === 'body') { // Student Status
+        if (data.column.index === statusColIdx && data.section === 'body') { // Student Status
           const status = data.cell.raw as string;
           let bgColor: [number, number, number] = [255, 255, 255];
           let textColor: [number, number, number] = [40, 40, 40];
@@ -419,7 +492,7 @@ export class PdfExportService {
           data.cell.styles.fontStyle = 'bold';
         }
 
-        if (data.column.index === 5 && data.section === 'body') { // Fees Status
+        if (data.column.index === feesStatusColIdx && data.section === 'body') { // Fees Status
           const status = data.cell.raw as string;
           let bgColor: [number, number, number] = [255, 255, 255];
           let textColor: [number, number, number] = [40, 40, 40];

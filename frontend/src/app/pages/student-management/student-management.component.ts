@@ -11,7 +11,7 @@ import { LoadingService } from '../../services/loading.service';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatDialog } from '@angular/material/dialog';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { Observable, Subject, combineLatest, BehaviorSubject, of, forkJoin } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap, startWith, take, map } from 'rxjs/operators';
 import { Student, StudentService } from '../../services/student.service';
@@ -26,6 +26,7 @@ import { LoadingSpinnerComponent } from '../../components/loading-spinner/loadin
 import { PdfExportService } from '../../services/pdf-export.service';
 import { FeesToTrackService } from '../../services/fees-to-track.service';
 import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-dialog.component';
+import { PdfOptionsDialogComponent } from '../../components/pdf-options-dialog/pdf-options-dialog.component';
 
 @Component({
   selector: 'app-student-management',
@@ -38,7 +39,8 @@ import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-
     LoadingSpinnerComponent,
     MatPaginatorModule,
     MatProgressBarModule,
-    NoDashPipe
+    NoDashPipe,
+    MatDialogModule
   ],
   templateUrl: './student-management.component.html',
   styleUrls: ['./student-management.component.scss']
@@ -464,17 +466,49 @@ export class StudentManagementComponent implements OnInit {
       return;
     }
 
+    // Check account status
+    let accountStatus = 'Inactive';
+    try {
+      const schoolData = localStorage.getItem('bigezo_selected_school');
+      if (schoolData) {
+        const school = JSON.parse(schoolData);
+        accountStatus = school?.account_status || 'Inactive';
+      }
+    } catch { }
+
+    const isAccountActive = accountStatus.toLowerCase() === 'active';
+
+    if (isAccountActive) {
+      // Open options dialog
+      const dialogRef = this.dialog.open(PdfOptionsDialogComponent, {
+        width: '500px',
+        disableClose: true
+      });
+
+      dialogRef.afterClosed().subscribe(includePhotos => {
+        if (includePhotos !== undefined) {
+          this.proceedWithDownload(includePhotos);
+        }
+      });
+    } else {
+      // Default download (no photos)
+      this.proceedWithDownload(false);
+    }
+  }
+
+  proceedWithDownload(includePhotos: boolean): void {
     this.isGeneratingPdf = true;
 
+    const schoolId = this.schoolService.getSelectedSchoolId();
     const searchTerm = this.lastSearchTerm;
     const classTerm = this.classFilter.value || '';
     const statusTerm = this.statusFilter.value || '';
     const yearTerm = this.yearFilter.value || '';
+    const feesStatusTerm = this.feesStatusFilter.value || '';
 
     // Fetch ALL students matching the current filters (no pagination)
-    const feesStatusTerm = this.feesStatusFilter.value || '';
     this.studentService.getStudents(
-      schoolId,
+      schoolId!,
       searchTerm,
       classTerm,
       statusTerm,
@@ -626,7 +660,8 @@ export class StudentManagementComponent implements OnInit {
           }),
           totalStudents: allStudents.length,
           filterInfo: filterInfo,
-          badgeUrl: badgeUrl
+          badgeUrl: badgeUrl,
+          includePhotos: includePhotos
         }).then(() => {
           this.isGeneratingPdf = false;
           this.snack.open(`PDF downloaded successfully (${allStudents.length} students)`, 'Close', {
@@ -645,8 +680,6 @@ export class StudentManagementComponent implements OnInit {
             horizontalPosition: 'center'
           });
         });
-
-
       },
       error: (err) => {
         console.error('Error fetching students for PDF:', err);

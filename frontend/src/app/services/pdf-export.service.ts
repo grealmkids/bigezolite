@@ -201,10 +201,38 @@ export class PdfExportService {
         const badgeData = await this.getBase64ImageFromURL(header.badgeUrl);
         console.log('Badge loaded, length:', badgeData.length, 'Prefix:', badgeData.substring(0, 50));
 
+        // Calculate dimensions to preserve aspect ratio
+        const dims = await new Promise<{ w: number, h: number }>((resolve) => {
+          const img = new Image();
+          img.onload = () => resolve({ w: img.width, h: img.height });
+          img.onerror = () => resolve({ w: 28, h: 28 }); // Default to square if load fails
+          img.src = badgeData;
+        });
+
+        const maxW = 28;
+        const maxH = 28;
+        let w = maxW;
+        let h = maxH;
+
+        if (dims.w > 0 && dims.h > 0) {
+          const aspect = dims.w / dims.h;
+          if (aspect > 1) {
+            // Wider than tall: constrain width
+            h = maxW / aspect;
+          } else {
+            // Taller than wide: constrain height
+            w = maxH * aspect;
+          }
+        }
+
+        // Center the image within the 28x28 box
+        const x = 14 + (maxW - w) / 2;
+        const y = 4 + (maxH - h) / 2;
+
         // Normalize image to valid PNG using canvas
         try {
           const normalizedData = await this.normalizeImage(badgeData);
-          doc.addImage(normalizedData, 'PNG', 14, 4, 28, 28);
+          doc.addImage(normalizedData, 'PNG', x, y, w, h);
         } catch (normErr) {
           console.warn('Image normalization failed, trying raw addImage with smart detection', normErr);
 
@@ -216,12 +244,12 @@ export class PdfExportService {
           let formatToTry = detectedFormat === 'UNKNOWN' ? 'PNG' : detectedFormat;
 
           try {
-            doc.addImage(rawBase64, formatToTry, 14, 4, 28, 28);
+            doc.addImage(rawBase64, formatToTry, x, y, w, h);
           } catch (firstErr) {
             console.warn(`Fallback: Failed as ${formatToTry}, trying opposite`, firstErr);
             const otherFormat = formatToTry === 'PNG' ? 'JPEG' : 'PNG';
             try {
-              doc.addImage(rawBase64, otherFormat, 14, 4, 28, 28);
+              doc.addImage(rawBase64, otherFormat, x, y, w, h);
             } catch (secondErr) {
               console.error('Fallback: All attempts failed', secondErr);
             }
@@ -237,9 +265,6 @@ export class PdfExportService {
       }
     }
 
-    // School Name - Large, Bold, White
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(24);
     doc.setFont('helvetica', 'bold');
     doc.text(header.schoolName, textStartX, 14, { align: align });
 

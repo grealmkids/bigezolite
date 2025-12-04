@@ -208,25 +208,18 @@ export class PdfExportService {
         } catch (normErr) {
           console.warn('Image normalization failed, trying raw addImage with smart detection', normErr);
 
-          // Fallback: Smart detection and "Try Everything" strategy
-          // 1. Strip header to get raw base64
+          // Fallback: Magic Byte Detection
           const rawBase64 = badgeData.replace(/^data:image\/(png|jpg|jpeg);base64,/, "");
+          const detectedFormat = this.detectImageFormat(rawBase64);
+          console.log('Fallback: Detected format via magic bytes:', detectedFormat);
 
-          // 2. Guess format
-          let format = 'PNG';
-          if (rawBase64.startsWith('/9j/') || badgeData.includes('image/jpeg') || badgeData.includes('image/jpg')) {
-            format = 'JPEG';
-          }
-
-          console.log('Fallback: Guessing format:', format);
+          let formatToTry = detectedFormat === 'UNKNOWN' ? 'PNG' : detectedFormat;
 
           try {
-            // 3. Try guessed format
-            doc.addImage(rawBase64, format, 14, 4, 28, 28);
+            doc.addImage(rawBase64, formatToTry, 14, 4, 28, 28);
           } catch (firstErr) {
-            console.warn(`Fallback: Failed as ${format}, trying opposite`, firstErr);
-            // 4. Try opposite format
-            const otherFormat = format === 'PNG' ? 'JPEG' : 'PNG';
+            console.warn(`Fallback: Failed as ${formatToTry}, trying opposite`, firstErr);
+            const otherFormat = formatToTry === 'PNG' ? 'JPEG' : 'PNG';
             try {
               doc.addImage(rawBase64, otherFormat, 14, 4, 28, 28);
             } catch (secondErr) {
@@ -508,6 +501,12 @@ export class PdfExportService {
         throw new Error(`Proxy fetch failed: ${response.statusText}`);
       }
       const blob = await response.blob();
+      console.log('Image Blob Type:', blob.type, 'Size:', blob.size);
+      if (blob.type.startsWith('text/') || blob.type.includes('html')) {
+        const text = await blob.text();
+        console.error('Proxy returned HTML/Text instead of image. Content:', text.substring(0, 500)); // Log first 500 chars
+        throw new Error(`Fetched resource is not an image. Type: ${blob.type}`);
+      }
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onloadend = () => {
@@ -524,6 +523,9 @@ export class PdfExportService {
         const fetchUrl = url + (url.includes('?') ? '&' : '?') + 't=' + new Date().getTime();
         const response = await fetch(fetchUrl);
         const blob = await response.blob();
+        if (blob.type.startsWith('text/') || blob.type.includes('html')) {
+          throw new Error(`Fetched resource is not an image. Type: ${blob.type}`);
+        }
         return new Promise((resolve, reject) => {
           const reader = new FileReader();
           reader.onloadend = () => {
@@ -573,5 +575,17 @@ export class PdfExportService {
 
       img.src = base64Data;
     });
+  }
+
+  private detectImageFormat(base64Data: string): 'PNG' | 'JPEG' | 'UNKNOWN' {
+    // Check for PNG signature (iVBORw0KGgo)
+    if (base64Data.startsWith('iVBORw0KGgo')) {
+      return 'PNG';
+    }
+    // Check for JPEG signature (/9j/)
+    if (base64Data.startsWith('/9j/')) {
+      return 'JPEG';
+    }
+    return 'UNKNOWN';
   }
 }

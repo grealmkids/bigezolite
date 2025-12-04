@@ -265,13 +265,16 @@ export class PdfExportService {
       }
     }
 
+    // School Name - Large, Bold, White
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(24);
     doc.setFont('helvetica', 'bold');
     doc.text(header.schoolName, textStartX, 14, { align: align });
 
     // Document Title
     doc.setFontSize(16);
     doc.setFont('helvetica', 'normal');
-    doc.text('Student Registry Report', textStartX, 23, { align: align });
+    doc.text('Student Registry', textStartX, 23, { align: align });
 
     // Header Info Bar - Two columns (shifted if badge exists)
     // If badge exists, we might want to put Year/Term below the title or to the far right.

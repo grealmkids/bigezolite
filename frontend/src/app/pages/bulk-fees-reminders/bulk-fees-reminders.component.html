@@ -83,177 +83,87 @@
                 <mat-label>Fees Status</mat-label>
                 <mat-select [(ngModel)]="selectedFeesStatus">
                   <mat-option value="">All Fees Status</mat-option>
-                  <div class="bulk-fees-reminders-container">
-                    <div class="page-header">
-                      <h1>
-                        <mat-icon class="header-icon">campaign</mat-icon>
-                        Bulk Fees Reminders
-                      </h1>
-                      <p class="subtitle">
-                        Send payment reminders to students with outstanding balances
-                      </p>
-                    </div>
+                  <mat-option value="Paid">Paid</mat-option>
+                  <mat-option value="Pending">Partially Paid</mat-option>
+                  <mat-option value="Defaulter">Defaulter</mat-option>
+                </mat-select>
+              </mat-form-field>
 
-                    <div class="content-wrapper">
-                      <!-- Main Settings Card -->
-                      <mat-card class="settings-card">
-                        <mat-card-header>
-                          <mat-card-title>Campaign Settings</mat-card-title>
-                        </mat-card-header>
-                        <mat-card-content>
-                          <div class="form-grid">
-                            <!-- Threshold Amount -->
-                            <mat-form-field appearance="outline" class="full-width">
-                              <mat-label>Minimum Balance Threshold (UGX)</mat-label>
-                              <input matInput type="number" [(ngModel)]="thresholdAmount" min="0" step="1000"
-                                placeholder="1000">
-                              <mat-icon matPrefix>monetization_on</mat-icon>
-                              <mat-hint>Only send to students with balance ≥ this amount</mat-hint>
-                            </mat-form-field>
+              <!-- Term Filter -->
+              <mat-form-field appearance="outline">
+                <mat-label>Term</mat-label>
+                <mat-select [(ngModel)]="selectedTerm">
+                  <mat-option value="">All Terms</mat-option>
+                  <mat-option value="1">Term 1</mat-option>
+                  <mat-option value="2">Term 2</mat-option>
+                  <mat-option value="3">Term 3</mat-option>
+                </mat-select>
+              </mat-form-field>
 
-                            <!-- Message Type -->
-                            <mat-form-field appearance="outline" class="full-width">
-                              <mat-label>Message Type</mat-label>
-                              <mat-select [(ngModel)]="messageType"
-                                (selectionChange)="onMessageTypeChange($event.value)">
-                                <mat-option value="detailed">Standard Fees Reminder (Detailed)</mat-option>
-                                <mat-option value="sent_home">Sent Home Notice</mat-option>
-                                <mat-option value="custom">Custom Message</mat-option>
-                              </mat-select>
-                              <mat-icon matPrefix>message</mat-icon>
-                            </mat-form-field>
+              <!-- Year Filter -->
+              <mat-form-field appearance="outline">
+                <mat-label>Year</mat-label>
+                <mat-select [(ngModel)]="selectedYear">
+                  <mat-option value="">All Years</mat-option>
+                  <mat-option *ngFor="let y of years" [value]="y">{{ y }}</mat-option>
+                </mat-select>
+              </mat-form-field>
 
-                            <!-- Template Editor -->
-                            <mat-form-field appearance="outline" class="full-width"
-                              *ngIf="messageType === 'sent_home' || messageType === 'custom'">
-                              <mat-label>Message Template</mat-label>
-                              <textarea matInput [(ngModel)]="messageTemplate" rows="4"
-                                placeholder="Enter your message..."></textarea>
-                              <mat-hint>
-                                Supported placeholders: {{ '{' }}child's name{{ '}' }}, {{ '{' }}balance{{ '}' }}, {{
-                                '{' }}due_date{{ '}'
-                                }}...
-                              </mat-hint>
-                            </mat-form-field>
-                          </div>
+              <!-- Custom Deadline -->
+              <mat-form-field appearance="outline">
+                <mat-label>Custom Deadline (Optional)</mat-label>
+                <input matInput [matDatepicker]="picker" [(ngModel)]="customDeadline">
+                <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+                <mat-datepicker #picker></mat-datepicker>
+                <mat-hint>Overrides individual due dates</mat-hint>
+              </mat-form-field>
+            </div>
+          </mat-expansion-panel>
+        </mat-accordion>
 
-                          <!-- Advanced Filters (Collapsible) -->
-                          <mat-accordion class="filters-accordion">
-                            <mat-expansion-panel>
-                              <mat-expansion-panel-header>
-                                <mat-panel-title>
-                                  <mat-icon>filter_list</mat-icon>
-                                  Advanced Filters
-                                </mat-panel-title>
-                                <mat-panel-description>
-                                  Filter by Class, Status, Term, etc.
-                                </mat-panel-description>
-                              </mat-expansion-panel-header>
+      </mat-card-content>
+      <mat-card-actions align="end" class="actions-row">
+        <button mat-raised-button color="primary" (click)="loadPreview()" [disabled]="isLoadingPreview">
+          <mat-icon>visibility</mat-icon>
+          {{ isLoadingPreview ? 'Loading Preview...' : 'Preview Campaign' }}
+        </button>
+      </mat-card-actions>
+    </mat-card>
 
-                              <div class="filters-grid">
-                                <!-- Class Filter -->
-                                <mat-form-field appearance="outline">
-                                  <mat-label>Class</mat-label>
-                                  <mat-select [(ngModel)]="selectedClass" [disabled]="loadingClasses">
-                                    <mat-option *ngFor="let cls of classes" [value]="cls">{{ cls }}</mat-option>
-                                  </mat-select>
-                                </mat-form-field>
-
-                                <!-- Status Filter -->
-                                <mat-form-field appearance="outline">
-                                  <mat-label>Student Status</mat-label>
-                                  <mat-select [(ngModel)]="selectedStatus">
-                                    <mat-option *ngFor="let status of studentStatuses" [value]="status">{{ status
-                                      }}</mat-option>
-                                  </mat-select>
-                                </mat-form-field>
-
-                                <!-- Fees Status Filter -->
-                                <mat-form-field appearance="outline">
-                                  <mat-label>Fees Status</mat-label>
-                                  <mat-select [(ngModel)]="selectedFeesStatus">
-                                    <mat-option value="">All Fees Status</mat-option>
-                                    <mat-option value="Paid">Paid</mat-option>
-                                    <mat-option value="Pending">Partially Paid</mat-option>
-                                    <mat-option value="Defaulter">Defaulter</mat-option>
-                                  </mat-select>
-                                </mat-form-field>
-
-                                <!-- Term Filter -->
-                                <mat-form-field appearance="outline">
-                                  <mat-label>Term</mat-label>
-                                  <mat-select [(ngModel)]="selectedTerm">
-                                    <mat-option value="">All Terms</mat-option>
-                                    <mat-option value="1">Term 1</mat-option>
-                                    <mat-option value="2">Term 2</mat-option>
-                                    <mat-option value="3">Term 3</mat-option>
-                                  </mat-select>
-                                </mat-form-field>
-
-                                <!-- Year Filter -->
-                                <mat-form-field appearance="outline">
-                                  <mat-label>Year</mat-label>
-                                  <mat-select [(ngModel)]="selectedYear">
-                                    <mat-option value="">All Years</mat-option>
-                                    <mat-option *ngFor="let y of years" [value]="y">{{ y }}</mat-option>
-                                  </mat-select>
-                                </mat-form-field>
-
-                                <!-- Custom Deadline -->
-                                <mat-form-field appearance="outline">
-                                  <mat-label>Custom Deadline (Optional)</mat-label>
-                                  <input matInput [matDatepicker]="picker" [(ngModel)]="customDeadline">
-                                  <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
-                                  <mat-datepicker #picker></mat-datepicker>
-                                  <mat-hint>Overrides individual due dates</mat-hint>
-                                </mat-form-field>
-                              </div>
-                            </mat-expansion-panel>
-                          </mat-accordion>
-
-                        </mat-card-content>
-                        <mat-card-actions align="end" class="actions-row">
-                          <button mat-raised-button color="primary" (click)="loadPreview()"
-                            [disabled]="isLoadingPreview">
-                            <mat-icon>visibility</mat-icon>
-                            {{ isLoadingPreview ? 'Loading Preview...' : 'Preview Campaign' }}
-                          </button>
-                        </mat-card-actions>
-                      </mat-card>
-
-                      <!-- Help/Info Card -->
-                      <mat-card class="help-card">
-                        <mat-card-header>
-                          <mat-card-title>
-                            <mat-icon>info</mat-icon> How It Works
-                          </mat-card-title>
-                        </mat-card-header>
-                        <mat-card-content>
-                          <div class="help-steps">
-                            <div class="step">
-                              <div class="step-number">1</div>
-                              <div class="step-text">Set a minimum balance threshold. Only students owing this amount or
-                                more will be
-                                included.</div>
-                            </div>
-                            <div class="step">
-                              <div class="step-number">2</div>
-                              <div class="step-text">Use filters to target specific classes or student statuses (e.g.,
-                                Active students
-                                only).</div>
-                            </div>
-                            <div class="step">
-                              <div class="step-number">3</div>
-                              <div class="step-text">Choose a message type. "Detailed" includes specific balance info.
-                              </div>
-                            </div>
-                            <div class="step">
-                              <div class="step-number">4</div>
-                              <div class="step-text">Preview the campaign to see recipient count and cost before
-                                sending.</div>
-                            </div>
-                          </div>
-                        </mat-card-content>
-                      </mat-card>
-                    </div>
-                  </div>
+    <!-- Help/Info Card -->
+    <mat-card class="help-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>info</mat-icon> How It Works
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="help-steps">
+          <div class="step">
+            <div class="step-number">1</div>
+            <div class="step-text">Set a minimum balance threshold. Only students owing this
+              amount or more will be
+              included.</div>
+          </div>
+          <div class="step">
+            <div class="step-number">2</div>
+            <div class="step-text">Use filters to target specific classes or student
+              statuses (e.g., Active students
+              only).</div>
+          </div>
+          <div class="step">
+            <div class="step-number">3</div>
+            <div class="step-text">Choose a message type. "Detailed" includes specific
+              balance info.
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-number">4</div>
+            <div class="step-text">Preview the campaign to see recipient count and cost
+              before sending.</div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

@@ -262,7 +262,7 @@ export const previewBulkFeesRemindersData = async (
     let hasStudentTerms = false;
     try {
         const stProbe = await pool.query(
-            `SELECT 1 FROM student_term_data st JOIN students s ON s.student_id = st.student_id WHERE s.school_id = $1 LIMIT 1`,
+            `SELECT 1 FROM student_terms st JOIN students s ON s.student_id = st.student_id WHERE s.school_id = $1 LIMIT 1`,
             [schoolId]
         );
         hasStudentTerms = ((stProbe as any)?.rowCount ?? 0) > 0;
@@ -358,7 +358,7 @@ export const previewBulkFeesRemindersData = async (
 
     // Debug: Check student_terms table structure and sample data
     try {
-        const stCheck = await pool.query('SELECT * FROM student_term_data LIMIT 1');
+        const stCheck = await pool.query('SELECT * FROM student_terms LIMIT 1');
         console.debug('[BulkFeesPreview] student_terms sample:', stCheck.rows[0]);
         if (stCheck.rows.length > 0) {
             console.debug('[BulkFeesPreview] student_terms columns:', Object.keys(stCheck.rows[0]));
@@ -537,11 +537,18 @@ export const processBulkFeesReminders = async (
     const rsvpNumber: string = school?.accountant_number || '';
 
     // Check if student_terms has data for this school's students
-    const stProbe = await pool.query(
-        `SELECT 1 FROM student_term_data st JOIN students s ON s.student_id = st.student_id WHERE s.school_id = $1 LIMIT 1`,
-        [schoolId]
-    );
-    const hasStudentTerms = ((stProbe as any)?.rowCount ?? 0) > 0;
+    // Check if student_terms has data for this school's students
+    let hasStudentTerms = false;
+    try {
+        const stProbe = await pool.query(
+            `SELECT 1 FROM student_terms st JOIN students s ON s.student_id = st.student_id WHERE s.school_id = $1 LIMIT 1`,
+            [schoolId]
+        );
+        hasStudentTerms = ((stProbe as any)?.rowCount ?? 0) > 0;
+    } catch (err) {
+        console.debug('[BulkFeesSend] student_terms table issue:', (err as any)?.message);
+        hasStudentTerms = false;
+    }
 
     // Select top outstanding record per student similar to preview
     let sql = `
@@ -593,7 +600,7 @@ LEFT JOIN fees_to_track ft ON ft.fee_id = f.fee_id
         if (useStudentTerms) {
             // Build student_terms existence clause using tokens ($Y/$T) for year/term
             // so we only bind year/term once later when replacing $Y/$T placeholders.
-            let stClause = ' AND EXISTS (SELECT 1 FROM student_term_data st WHERE st.student_id = base_students.student_id';
+            let stClause = ' AND EXISTS (SELECT 1 FROM student_terms st WHERE st.student_id = base_students.student_id';
             if (year) { stClause += ` AND st.year = $Y`; }
             if (term) { stClause += ` AND st.term = $T`; }
             // status_at_term will use the next numeric placeholder; push statusFilter now
@@ -609,7 +616,7 @@ LEFT JOIN fees_to_track ft ON ft.fee_id = f.fee_id
     } else {
         if (useStudentTerms) {
             // Use tokens for year/term; actual numeric placeholders will be substituted below
-            let stClause = ' AND EXISTS (SELECT 1 FROM student_term_data st WHERE st.student_id = base_students.student_id';
+            let stClause = ' AND EXISTS (SELECT 1 FROM student_terms st WHERE st.student_id = base_students.student_id';
             if (year) { stClause += ` AND st.year = $Y`; }
             if (term) { stClause += ` AND st.term = $T`; }
             stClause += ')';

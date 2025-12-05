@@ -191,7 +191,7 @@ export const processFeesReminder = async (schoolId: number, studentId: number): 
         GROUP BY s.student_id, s.student_name, s.parent_phone_sms, s.school_id
     `;
     const studentResult = await pool.query(studentQuery, [studentId, schoolId]);
-    
+
     if (studentResult.rows.length === 0) {
         throw new Error('Student not found or does not belong to your school');
     }
@@ -199,7 +199,7 @@ export const processFeesReminder = async (schoolId: number, studentId: number): 
     const student = studentResult.rows[0];
     const balance = parseFloat(student.balance);
     const amountPaid = parseFloat(student.amount_paid);
-    
+
     // Do not send reminders for trivially small balances under the threshold (UGX 1,000)
     if (balance < 1000) {
         const err: any = new Error('Outstanding balance is less than UGX 1,000 — reminder not sent');
@@ -209,7 +209,7 @@ export const processFeesReminder = async (schoolId: number, studentId: number): 
     }
 
     // Format deadline as DD-MMM-YYYY
-    const deadline = student.earliest_due_date 
+    const deadline = student.earliest_due_date
         ? new Date(student.earliest_due_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-')
         : '';
 
@@ -262,7 +262,7 @@ export const previewBulkFeesRemindersData = async (
     let hasStudentTerms = false;
     try {
         const stProbe = await pool.query(
-            `SELECT 1 FROM student_terms st JOIN students s ON s.student_id = st.student_id WHERE s.school_id = $1 LIMIT 1`,
+            `SELECT 1 FROM student_term_data st JOIN students s ON s.student_id = st.student_id WHERE s.school_id = $1 LIMIT 1`,
             [schoolId]
         );
         hasStudentTerms = ((stProbe as any)?.rowCount ?? 0) > 0;
@@ -270,7 +270,7 @@ export const previewBulkFeesRemindersData = async (
         console.debug('[BulkFeesPreview] student_terms table issue:', (err as any)?.message);
         hasStudentTerms = false;
     }
-    
+
     // Build SQL safely by assembling WHERE clauses and a params array in order.
     // This avoids mismatched placeholder counts for different filter combinations.
     const params: any[] = [];
@@ -340,25 +340,25 @@ export const previewBulkFeesRemindersData = async (
         console.error('[BulkFeesPreview] placeholder/params mismatch', { maxPlaceholder: _maxPlaceholderPreview, paramsLength: params.length, params, sql });
         throw new Error(`SQL placeholder/params mismatch: SQL expects ${_maxPlaceholderPreview} params but provided ${params.length}`);
     }
-    
+
     // Debug: Check what students exist for this school
     const studentCheck = await pool.query('SELECT COUNT(*) as count, array_agg(DISTINCT student_status) as statuses, array_agg(DISTINCT class_name) as classes FROM students WHERE school_id = $1', [schoolId]);
     console.debug('[BulkFeesPreview] Students in school:', studentCheck.rows[0]);
-    
+
     // Debug: Check what fees records exist
     const feesCheck = await pool.query('SELECT COUNT(*) as count, array_agg(DISTINCT year) as years, array_agg(DISTINCT term) as terms FROM fees_records f JOIN students s ON f.student_id = s.student_id WHERE s.school_id = $1', [schoolId]);
     console.debug('[BulkFeesPreview] Fees records for school:', feesCheck.rows[0]);
-    
+
     // Debug: Check what school IDs actually have data
     const allSchoolsCheck = await pool.query('SELECT school_id, COUNT(*) as student_count FROM students GROUP BY school_id ORDER BY school_id');
     console.debug('[BulkFeesPreview] All schools with students:', allSchoolsCheck.rows);
-    
+
     const allFeesCheck = await pool.query('SELECT s.school_id, COUNT(f.*) as fees_count FROM fees_records f JOIN students s ON f.student_id = s.student_id GROUP BY s.school_id ORDER BY s.school_id');
     console.debug('[BulkFeesPreview] All schools with fees:', allFeesCheck.rows);
-    
+
     // Debug: Check student_terms table structure and sample data
     try {
-        const stCheck = await pool.query('SELECT * FROM student_terms LIMIT 1');
+        const stCheck = await pool.query('SELECT * FROM student_term_data LIMIT 1');
         console.debug('[BulkFeesPreview] student_terms sample:', stCheck.rows[0]);
         if (stCheck.rows.length > 0) {
             console.debug('[BulkFeesPreview] student_terms columns:', Object.keys(stCheck.rows[0]));
@@ -538,7 +538,7 @@ export const processBulkFeesReminders = async (
 
     // Check if student_terms has data for this school's students
     const stProbe = await pool.query(
-        `SELECT 1 FROM student_terms st JOIN students s ON s.student_id = st.student_id WHERE s.school_id = $1 LIMIT 1`,
+        `SELECT 1 FROM student_term_data st JOIN students s ON s.student_id = st.student_id WHERE s.school_id = $1 LIMIT 1`,
         [schoolId]
     );
     const hasStudentTerms = ((stProbe as any)?.rowCount ?? 0) > 0;
@@ -589,35 +589,35 @@ LEFT JOIN fees_to_track ft ON ft.fee_id = f.fee_id
 
     // For status: if year/term provided, prefer student_terms.status; else students.student_status
     const useStudentTerms = Boolean(term || year) && hasStudentTerms;
-        if (statusFilter && statusFilter !== 'All Statuses') {
-            if (useStudentTerms) {
-                // Build student_terms existence clause using tokens ($Y/$T) for year/term
-                // so we only bind year/term once later when replacing $Y/$T placeholders.
-                let stClause = ' AND EXISTS (SELECT 1 FROM student_terms st WHERE st.student_id = base_students.student_id';
-                if (year) { stClause += ` AND st.year = $Y`; }
-                if (term) { stClause += ` AND st.term = $T`; }
-                // status_at_term will use the next numeric placeholder; push statusFilter now
-                stClause += ` AND st.status_at_term = $${next})`;
-                params.push(statusFilter);
-                next++;
-                sql = sql.replace('/*STATUS_OR_ST_FILTER*/', stClause);
-            } else {
-                sql = sql.replace('/*STATUS_OR_ST_FILTER*/', ` AND student_status = $${next}`);
-                params.push(statusFilter);
-                next++;
-            }
+    if (statusFilter && statusFilter !== 'All Statuses') {
+        if (useStudentTerms) {
+            // Build student_terms existence clause using tokens ($Y/$T) for year/term
+            // so we only bind year/term once later when replacing $Y/$T placeholders.
+            let stClause = ' AND EXISTS (SELECT 1 FROM student_term_data st WHERE st.student_id = base_students.student_id';
+            if (year) { stClause += ` AND st.year = $Y`; }
+            if (term) { stClause += ` AND st.term = $T`; }
+            // status_at_term will use the next numeric placeholder; push statusFilter now
+            stClause += ` AND st.status_at_term = $${next})`;
+            params.push(statusFilter);
+            next++;
+            sql = sql.replace('/*STATUS_OR_ST_FILTER*/', stClause);
         } else {
-            if (useStudentTerms) {
-                // Use tokens for year/term; actual numeric placeholders will be substituted below
-                let stClause = ' AND EXISTS (SELECT 1 FROM student_terms st WHERE st.student_id = base_students.student_id';
-                if (year) { stClause += ` AND st.year = $Y`; }
-                if (term) { stClause += ` AND st.term = $T`; }
-                stClause += ')';
-                sql = sql.replace('/*STATUS_OR_ST_FILTER*/', stClause);
-            } else {
-                sql = sql.replace('/*STATUS_OR_ST_FILTER*/', '');
-            }
+            sql = sql.replace('/*STATUS_OR_ST_FILTER*/', ` AND student_status = $${next}`);
+            params.push(statusFilter);
+            next++;
         }
+    } else {
+        if (useStudentTerms) {
+            // Use tokens for year/term; actual numeric placeholders will be substituted below
+            let stClause = ' AND EXISTS (SELECT 1 FROM student_term_data st WHERE st.student_id = base_students.student_id';
+            if (year) { stClause += ` AND st.year = $Y`; }
+            if (term) { stClause += ` AND st.term = $T`; }
+            stClause += ')';
+            sql = sql.replace('/*STATUS_OR_ST_FILTER*/', stClause);
+        } else {
+            sql = sql.replace('/*STATUS_OR_ST_FILTER*/', '');
+        }
+    }
 
     if (year) {
         const idx = next;

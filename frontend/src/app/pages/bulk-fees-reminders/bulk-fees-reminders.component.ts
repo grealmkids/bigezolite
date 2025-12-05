@@ -10,6 +10,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatCardModule } from '@angular/material/card';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
 import { CommunicationService } from '../../services/communication.service';
 import { SchoolService } from '../../services/school.service';
 import { ClassCategorizationService } from '../../services/class-categorization.service';
@@ -27,7 +29,9 @@ import { MatSnackBar } from '@angular/material/snack-bar';
     MatSelectModule,
     MatFormFieldModule,
     MatExpansionModule,
-    MatCardModule
+    MatCardModule,
+    MatDatepickerModule,
+    MatNativeDateModule
   ],
   templateUrl: './bulk-fees-reminders.component.html',
   styleUrls: ['./bulk-fees-reminders.component.scss']

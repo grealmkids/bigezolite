@@ -7,6 +7,7 @@ import { MarksService, ExamSet, AssessmentElement } from '../../services/marks.s
 import { StudentService, Student } from '../../services/student.service';
 import { SchoolService } from '../../services/school.service';
 import { ClassCategorizationService } from '../../services/class-categorization.service';
+import { PdfExportService } from '../../services/pdf-export.service';
 
 interface Subject {
   subject_id: number;
@@ -64,7 +65,8 @@ export class StudentMarksViewerComponent implements OnInit {
     private studentService: StudentService,
     private schoolService: SchoolService,
     private classCategorizationService: ClassCategorizationService,
-    private snack: MatSnackBar
+    private snack: MatSnackBar,
+    private pdfExportService: PdfExportService
   ) { }
 
   ngOnInit(): void {
@@ -409,139 +411,49 @@ export class StudentMarksViewerComponent implements OnInit {
     this.router.navigate(['/marks']);
   }
 
+
+
   downloadPdf(): void {
     if (!this.selectedClass || !this.selectedExamSetId || !this.selectedElementId) {
       this.snack.open('Please select all filters to download PDF', 'Close', { duration: 3000 });
       return;
     }
 
-    import('jspdf').then(jsPDF => {
-      import('jspdf-autotable').then(autoTable => {
-        const doc = new jsPDF.default();
+    const examSet = this.examSets.find(e => e.exam_set_id === this.selectedExamSetId);
+    const subjectName = this.subjects.find(s => s.subject_id === this.selectedSubjectId)?.subject_name || '-';
+    const elementName = this.selectedElement ? `${this.selectedElement.element_name} (Max: ${this.selectedElement.max_score})` : '-';
 
-        // Colors
-        const primaryColor = [41, 128, 185]; // Blue
-        const blackColor = [0, 0, 0];
-        const whiteColor = [255, 255, 255];
+    // Get badge URL from local storage (same as StudentManagement)
+    let badgeUrl: string | undefined;
+    try {
+      const schoolData = localStorage.getItem('bigezo_selected_school');
+      if (schoolData) {
+        const school = JSON.parse(schoolData);
+        badgeUrl = school?.badge_url;
+      }
+    } catch { }
 
-        // --- Header Section ---
-        // Logo Placeholder (Left)
-        doc.setDrawColor(200);
-        doc.setFillColor(240, 240, 240);
-        doc.rect(14, 15, 30, 30, 'FD'); // x, y, w, h
-        doc.setFontSize(8);
-        doc.setTextColor(150);
-        doc.text('Logo', 29, 32, { align: 'center' });
+    const data = this.students.map(s => ({
+      reg: s.reg_number,
+      name: s.student_name,
+      mark: (s.mark !== null && s.mark !== undefined) ? s.mark : 'MISSING'
+    }));
 
-        // School Name & Title (Center/Right)
-        doc.setTextColor(0);
-        doc.setFontSize(22);
-        doc.setFont('helvetica', 'bold');
-        doc.text(this.schoolName || 'SCHOOL NAME HERE', 105, 25, { align: 'center' });
-
-        doc.setFontSize(16);
-        doc.setFont('helvetica', 'normal');
-        doc.text('Student Marks List', 105, 35, { align: 'center' });
-
-        // Info Box (Below Header)
-        const startY = 50;
-        doc.setDrawColor(0);
-        doc.setLineWidth(0.5);
-        doc.line(14, 48, 196, 48); // Top line
-
-        doc.setFontSize(11);
-        doc.setTextColor(0);
-
-        // Left Column
-        doc.setFont('helvetica', 'bold');
-        doc.text('Class:', 14, 55);
-        doc.setFont('helvetica', 'normal');
-        doc.text(this.selectedClass, 40, 55);
-
-        doc.setFont('helvetica', 'bold');
-        doc.text('Subject:', 14, 62);
-        doc.setFont('helvetica', 'normal');
-        const subjectName = this.subjects.find(s => s.subject_id === this.selectedSubjectId)?.subject_name || '-';
-        doc.text(subjectName, 40, 62);
-
-        // Right Column
-        doc.setFont('helvetica', 'bold');
-        doc.text('Exam Set:', 110, 55);
-        doc.setFont('helvetica', 'normal');
-        const examSet = this.examSets.find(e => e.exam_set_id === this.selectedExamSetId);
-        const examSetName = examSet ? `${examSet.set_name} (${examSet.year})` : '-';
-        doc.text(examSetName, 140, 55);
-
-        doc.setFont('helvetica', 'bold');
-        doc.text('Assessment:', 110, 62);
-        doc.setFont('helvetica', 'normal');
-        const elementName = this.selectedElement ? `${this.selectedElement.element_name} (Max: ${this.selectedElement.max_score})` : '-';
-        doc.text(elementName, 140, 62);
-
-        doc.line(14, 66, 196, 66); // Bottom line
-
-        // --- Table Data ---
-        const tableData = this.students.map(student => {
-          const hasMark = student.mark !== null && student.mark !== undefined;
-          return [
-            student.reg_number,
-            student.student_name,
-            hasMark ? student.mark : 'MISSING'
-          ];
-        });
-
-        // --- Generate Table ---
-        (autoTable.default as any)(doc, {
-          head: [['Reg Number', 'Student Name', 'Mark Obtained']],
-          body: tableData,
-          startY: 75,
-          theme: 'grid',
-          headStyles: {
-            fillColor: primaryColor,
-            textColor: whiteColor,
-            fontStyle: 'bold',
-            lineWidth: 0.1,
-            lineColor: blackColor
-          },
-          bodyStyles: {
-            textColor: blackColor,
-            lineWidth: 0.1,
-            lineColor: blackColor
-          },
-          styles: {
-            fontSize: 10,
-            cellPadding: 4,
-            valign: 'middle'
-          },
-          didParseCell: (data: any) => {
-            if (data.section === 'body') {
-              const markValue = data.row.raw[2];
-              if (markValue === 'MISSING') {
-                data.cell.styles.fillColor = [253, 237, 236]; // Light Red background
-                data.cell.styles.textColor = [192, 57, 43];   // Dark Red text
-                data.cell.styles.fontStyle = 'bold';
-              } else {
-                data.cell.styles.fillColor = [233, 247, 239]; // Light Green background
-                data.cell.styles.textColor = [25, 111, 61];   // Dark Green text
-              }
-            }
-          }
-        });
-
-        // Footer
-        const pageCount = (doc as any).internal.getNumberOfPages();
-        for (let i = 1; i <= pageCount; i++) {
-          doc.setPage(i);
-          doc.setFontSize(8);
-          doc.setTextColor(150);
-          doc.text(`Page ${i} of ${pageCount}`, 196, 290, { align: 'right' });
-          doc.text(`Generated on ${new Date().toLocaleDateString()}`, 14, 290);
-        }
-
-        // Save
-        const fileName = `Marks_${this.selectedClass}_${this.selectedElement?.element_name || 'List'}.pdf`;
-        doc.save(fileName);
-      });
+    this.pdfExportService.generateMarksListPDF(data, {
+      schoolName: this.schoolName || 'School Registry',
+      className: this.selectedClass,
+      subjectName: subjectName,
+      examSetName: examSet ? `${examSet.set_name} (${examSet.year})` : '-',
+      elementName: elementName,
+      generatedDate: new Date().toLocaleDateString('en-US', {
+        year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+      }),
+      badgeUrl: badgeUrl
+    }).then(() => {
+      this.snack.open('PDF downloaded successfully', 'Close', { duration: 3000 });
+    }).catch(err => {
+      console.error('Error generating PDF:', err);
+      this.snack.open('Failed to generate PDF', 'Close', { duration: 3000 });
     });
   }
 }

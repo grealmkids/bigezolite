@@ -592,6 +592,175 @@ export class PdfExportService {
     doc.save(fileName);
   }
 
+  /**
+   * Generates a professional Marks List PDF
+   */
+  async generateMarksListPDF(
+    data: { reg: string; name: string; mark: number | string }[],
+    header: {
+      schoolName: string;
+      className: string;
+      subjectName: string;
+      examSetName: string;
+      elementName: string;
+      generatedDate: string;
+      badgeUrl?: string;
+    }
+  ): Promise<void> {
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+
+    // ========== HEADER SECTION ==========
+    // Background gradient effect
+    doc.setFillColor(0, 89, 179); // #0059b3
+    doc.rect(0, 0, pageWidth, 40, 'F');
+
+    // Accent stripe
+    doc.setFillColor(255, 193, 7); // Gold accent
+    doc.rect(0, 40, pageWidth, 2, 'F');
+
+    let textStartX = pageWidth / 2;
+    let align: 'center' | 'left' | 'right' = 'center';
+
+    // Badge Logic
+    if (header.badgeUrl) {
+      try {
+        const badgeData = await this.getBase64ImageFromURL(header.badgeUrl);
+        // Calculate dimensions
+        const dims = await new Promise<{ w: number, h: number }>((resolve) => {
+          const img = new Image();
+          img.onload = () => resolve({ w: img.width, h: img.height });
+          img.onerror = () => resolve({ w: 30, h: 30 });
+          img.src = badgeData;
+        });
+
+        const maxW = 30;
+        const maxH = 30;
+        let w = maxW;
+        let h = maxH;
+
+        if (dims.w > 0 && dims.h > 0) {
+          const aspect = dims.w / dims.h;
+          if (aspect > 1) { h = maxW / aspect; } else { w = maxH * aspect; }
+        }
+
+        const x = 14 + (maxW - w) / 2;
+        const y = 5 + (maxH - h) / 2;
+
+        try {
+          const normalizedData = await this.normalizeImage(badgeData);
+          doc.addImage(normalizedData, 'PNG', x, y, w, h);
+        } catch (normErr) {
+          // Fallback
+          const rawBase64 = badgeData.replace(/^data:image\/(png|jpg|jpeg);base64,/, "");
+          doc.addImage(rawBase64, 'PNG', x, y, w, h);
+        }
+
+        textStartX = 55;
+        align = 'left';
+      } catch (err) {
+        console.warn('Failed to load badge image for PDF', err);
+      }
+    }
+
+    // School Name
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(22);
+    doc.setFont('helvetica', 'bold');
+    doc.text(header.schoolName, textStartX, 15, { align: align });
+
+    // Title
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Student Marks List', textStartX, 24, { align: align });
+
+    // Context Info (Class, Subject, etc.)
+    doc.setFontSize(10);
+    doc.setTextColor(220, 220, 220);
+    const infoY = 32;
+    // If badge is present, list info on the right, otherwise center/spread
+    if (header.badgeUrl) {
+      doc.text(`${header.className} | ${header.subjectName}`, textStartX, infoY);
+      doc.text(`${header.examSetName} - ${header.elementName}`, textStartX, infoY + 5);
+    } else {
+      doc.text(`${header.className} | ${header.subjectName} | ${header.examSetName}`, pageWidth / 2, infoY, { align: 'center' });
+      doc.text(header.elementName, pageWidth / 2, infoY + 5, { align: 'center' });
+    }
+
+    // ========== METADATA ==========
+    doc.setTextColor(0, 0, 0);
+    const metaY = 48;
+    doc.setFontSize(9);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Generated: ${header.generatedDate}`, 14, metaY);
+    doc.text(`Total Students: ${data.length}`, pageWidth - 14, metaY, { align: 'right' });
+
+    // ========== TABLE ==========
+    const tableData = data.map((item, i) => {
+      return [
+        i + 1,
+        item.reg,
+        item.name,
+        item.mark === null || item.mark === undefined || item.mark === '' ? 'MISSING' : item.mark
+      ];
+    });
+
+    autoTable(doc, {
+      startY: metaY + 5,
+      head: [['#', 'Reg Number', 'Student Name', 'Mark Obtained']],
+      body: tableData,
+      theme: 'grid',
+      styles: {
+        fontSize: 11,
+        cellPadding: 3,
+        lineColor: [0, 0, 0],
+        lineWidth: 0.1,
+        font: 'helvetica',
+        textColor: [40, 40, 40]
+      },
+      headStyles: {
+        fillColor: [52, 73, 94],
+        textColor: [255, 255, 255],
+        fontSize: 12,
+        fontStyle: 'bold',
+        halign: 'left'
+      },
+      columnStyles: {
+        0: { cellWidth: 10, halign: 'center', fillColor: [245, 245, 245] },
+        1: { cellWidth: 40 },
+        2: { cellWidth: 'auto' },
+        3: { cellWidth: 40, halign: 'center', fontStyle: 'bold' }
+      },
+      alternateRowStyles: {
+        fillColor: [250, 250, 250]
+      },
+      didParseCell: (data) => {
+        if (data.section === 'body' && data.column.index === 3) {
+          const val = data.cell.raw;
+          if (val === 'MISSING') {
+            data.cell.styles.textColor = [192, 57, 43]; // Red
+            data.cell.styles.fillColor = [253, 237, 236];
+          } else {
+            data.cell.styles.textColor = [25, 111, 61]; // Green
+          }
+        }
+      }
+    });
+
+    // ========== FOOTER ==========
+    const pageCount = (doc as any).internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setTextColor(150, 150, 150);
+      doc.text(`Page ${i} of ${pageCount}`, pageWidth - 14, pageHeight - 5, { align: 'right' });
+      doc.text('Bigezo app, a product of G-Realm Studio', pageWidth / 2, pageHeight - 5, { align: 'center' });
+    }
+
+    const fileName = `Marks_${header.className}_${header.elementName.replace(/[^a-z0-9]/gi, '_')}.pdf`;
+    doc.save(fileName);
+  }
   private async getBase64ImageFromURL(url: string): Promise<string> {
     try {
       // Use backend proxy to avoid CORS issues

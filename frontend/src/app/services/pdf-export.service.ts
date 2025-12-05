@@ -442,7 +442,7 @@ export class PdfExportService {
               const y = cell.y + (cell.height - imgSize) / 2;
               doc.addImage(base64, 'PNG', x, y, imgSize, imgSize);
             } catch (e) {
-              // ignore
+              console.error(`Failed to add image for student ${student.student_id} at row ${data.row.index}`, e);
             }
           } else {
             // Optional: Draw "No Photo" text or placeholder

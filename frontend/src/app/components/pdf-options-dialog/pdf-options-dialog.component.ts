@@ -4,11 +4,11 @@ import { MatButtonModule } from '@angular/material/button';
 import { CommonModule } from '@angular/common';
 
 @Component({
-    selector: 'app-pdf-options-dialog',
-    standalone: true,
-    imports: [CommonModule, MatDialogModule, MatButtonModule],
-    templateUrl: './pdf-options-dialog.component.html',
-    styles: [`
+  selector: 'app-pdf-options-dialog',
+  standalone: true,
+  imports: [CommonModule, MatDialogModule, MatButtonModule],
+  templateUrl: './pdf-options-dialog.component.html',
+  styles: [`
     .options-container {
       display: flex;
       flex-direction: column;
@@ -59,19 +59,19 @@ import { CommonModule } from '@angular/common';
   `]
 })
 export class PdfOptionsDialogComponent {
-    selectedOption: 'with-photos' | 'no-photos' = 'with-photos';
+  selectedOption: 'with-photos' | 'no-photos' = 'no-photos';
 
-    constructor(public dialogRef: MatDialogRef<PdfOptionsDialogComponent>) { }
+  constructor(public dialogRef: MatDialogRef<PdfOptionsDialogComponent>) { }
 
-    selectOption(option: 'with-photos' | 'no-photos') {
-        this.selectedOption = option;
-    }
+  selectOption(option: 'with-photos' | 'no-photos') {
+    this.selectedOption = option;
+  }
 
-    onDownload() {
-        this.dialogRef.close(this.selectedOption === 'with-photos');
-    }
+  onDownload() {
+    this.dialogRef.close(this.selectedOption === 'with-photos');
+  }
 
-    onCancel() {
-        this.dialogRef.close(undefined);
-    }
+  onCancel() {
+    this.dialogRef.close(undefined);
+  }
 }

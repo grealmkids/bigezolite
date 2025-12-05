@@ -1,6 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { MatDialog } from '@angular/material/dialog';
+import { BulkFeesPreviewDialogComponent } from '../../components/bulk-fees-preview-dialog/bulk-fees-preview-dialog.component';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { MatCardModule } from '@angular/material/card';
 import { CommunicationService } from '../../services/communication.service';
 import { SchoolService } from '../../services/school.service';
 import { ClassCategorizationService } from '../../services/class-categorization.service';
@@ -9,7 +18,17 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 @Component({
   selector: 'app-bulk-fees-reminders',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatIconModule,
+    MatButtonModule,
+    MatInputModule,
+    MatSelectModule,
+    MatFormFieldModule,
+    MatExpansionModule,
+    MatCardModule
+  ],
   templateUrl: './bulk-fees-reminders.component.html',
   styleUrls: ['./bulk-fees-reminders.component.scss']
 })
@@ -25,10 +44,6 @@ export class BulkFeesRemindersComponent implements OnInit {
   messageTemplate: string = '';
   isSending: boolean = false;
   isLoadingPreview: boolean = false;
-  showPreview: boolean = false;
-
-  // Preview data
-  previewData: any = null;
 
   // Filter options
   classes: string[] = ['All Students'];
@@ -42,8 +57,9 @@ export class BulkFeesRemindersComponent implements OnInit {
     private communicationService: CommunicationService,
     private schoolService: SchoolService,
     private classCategorizationService: ClassCategorizationService,
-    private snackBar: MatSnackBar
-  ) {}
+    private snackBar: MatSnackBar,
+    private dialog: MatDialog
+  ) { }
 
   onMessageTypeChange(type: 'detailed' | 'sent_home' | 'custom' | 'generic'): void {
     this.messageType = type;
@@ -106,13 +122,24 @@ export class BulkFeesRemindersComponent implements OnInit {
       payload.messageType,
       payload.messageTemplate
     ).subscribe({
-      next: (response) => {
+      next: (response: any) => {
         this.isLoadingPreview = false;
         console.log('[BulkFeesPreview][response]', response);
-        this.previewData = response;
-        this.showPreview = true;
+
+        // Open Dialog with preview data
+        const dialogRef = this.dialog.open(BulkFeesPreviewDialogComponent, {
+          width: '600px',
+          disableClose: true,
+          data: response
+        });
+
+        dialogRef.afterClosed().subscribe(result => {
+          if (result === true) {
+            this.sendBulkReminders(response); // Pass preview data to avoid re-fetching if needed, or just use current state
+          }
+        });
       },
-      error: (err) => {
+      error: (err: any) => {
         this.isLoadingPreview = false;
         this.snackBar.open(
           err?.error?.message || 'Failed to load preview',
@@ -128,12 +155,7 @@ export class BulkFeesRemindersComponent implements OnInit {
     });
   }
 
-  cancelPreview(): void {
-    this.showPreview = false;
-    this.previewData = null;
-  }
-
-  sendBulkReminders(): void {
+  sendBulkReminders(previewData?: any): void {
     if (this.thresholdAmount < 0) {
       this.snackBar.open('Please enter a valid threshold amount', 'Close', {
         duration: 3000,
@@ -170,10 +192,10 @@ export class BulkFeesRemindersComponent implements OnInit {
       payload.messageType,
       payload.messageTemplate
     ).subscribe({
-      next: (response) => {
+      next: (response: any) => {
         this.isSending = false;
         console.log('[BulkFeesSend][response]', response);
-        const count = response?.sentCount ?? (this.previewData?.recipientCount || 0);
+        const count = response?.sentCount ?? (previewData?.recipientCount || 0);
         const failed = response?.failedCount ?? 0;
         this.snackBar.open(
           `Sent ${count} reminder${count !== 1 ? 's' : ''}${failed ? `, ${failed} failed` : ''}.`,
@@ -185,10 +207,8 @@ export class BulkFeesRemindersComponent implements OnInit {
             horizontalPosition: 'center'
           }
         );
-        // Reset preview and go back to settings
-        this.cancelPreview();
       },
-      error: (err) => {
+      error: (err: any) => {
         this.isSending = false;
         this.snackBar.open(
           err?.error?.message || 'Failed to send fees reminders',

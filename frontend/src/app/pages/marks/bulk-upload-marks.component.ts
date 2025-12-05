@@ -48,16 +48,15 @@ export class BulkUploadMarksComponent implements OnInit {
       next: (school) => {
         if (school) {
           this.schoolId = school.school_id;
-          this.loadClasses();
+          this.loadClasses(school.school_type);
         }
       },
       error: (err) => console.error('Error loading school:', err)
     });
   }
 
-  loadClasses(): void {
+  loadClasses(schoolType: string): void {
     try {
-      const schoolType = this.schoolService.getSelectedSchoolType();
       if (schoolType) {
         this.classes = this.classCategorizationService.getClassesForSchoolType(schoolType);
       }

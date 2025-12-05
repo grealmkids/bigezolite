@@ -68,33 +68,21 @@ export class StudentMarksViewerComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    this.schoolService.selectedSchool$.subscribe({
+    this.schoolService.getMySchool().subscribe({
       next: (school) => {
         if (school) {
           this.schoolId = school.school_id;
           this.schoolName = school.school_name;
-          this.loadClasses();
+          this.loadClasses(school.school_type);
           this.generateYearsList();
-
-          // Reset filters when school changes
-          this.selectedClass = '';
-          this.onClassChange();
-        } else {
-          // Fallback if no school selected yet (e.g. direct load)
-          this.schoolService.getMySchool().subscribe(s => {
-            if (s) {
-              this.schoolService.selectSchool(s); // This will trigger the subscription above
-            }
-          });
         }
       },
       error: (err) => console.error('Error loading school:', err)
     });
   }
 
-  loadClasses(): void {
+  loadClasses(schoolType: string): void {
     try {
-      const schoolType = this.schoolService.getSelectedSchoolType();
       if (schoolType) {
         this.classes = this.classCategorizationService.getClassesForSchoolType(schoolType);
       }

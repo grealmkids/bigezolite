@@ -273,7 +273,7 @@ export class StudentManagementComponent implements OnInit {
   onStudentUpserted(): void {
     this.closeStudentModal();
     setTimeout(() => {
-      this.searchTerms.next(''); // Refresh the list after modal closes
+      this.refreshStudents(); // Force refresh the list after modal closes
     }, 100);
   }
 

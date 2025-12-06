@@ -1,8 +1,7 @@
 <div class="modal-overlay" (click)="onCancel()">
     <div class="modal-card" (click)="$event.stopPropagation()">
         <div class="modal-header">
-            <h2>{{ isEditMode ? 'Edit Staff Application' : 'Add New Staff' }} <small
-                    style="font-size:0.5em; color: gray;">(Upload: {{canUploadPhoto}})</small></h2>
+            <h2>{{ isEditMode ? 'Edit Staff Application' : 'Add New Staff' }}</h2>
             <button class="close-btn" (click)="onCancel()">&times;</button>
         </div>
         <div class="modal-body">
@@ -34,12 +33,7 @@
                         <label for="role">Role</label>
                         <select id="role" formControlName="role" required>
                             <option value="" disabled>Select Role</option>
-                            <option value="Teacher">Teacher</option>
-                            <option value="Class Teacher">Class Teacher</option>
-                            <option value="Accountant">Accountant</option>
-                            <option value="IT">IT</option>
-                            <option value="Canteen">Canteen</option>
-                            <option value="Other">Other</option>
+                            <option *ngFor="let role of roles" [value]="role">{{role}}</option>
                         </select>
                     </div>
                 </div>
@@ -80,11 +74,6 @@
                                     [disabled]="isUploading">
                                     Upload New
                                 </button>
-                                <!-- We need to implement deletePhoto in TS if we want this button -->
-                                <!-- <button type="button" class="btn-remove" *ngIf="photoPreview && !selectedFile" (click)="deletePhoto()"
-                   [disabled]="isUploading">
-                   Remove Photo
-                 </button> -->
                             </div>
                         </div>
 

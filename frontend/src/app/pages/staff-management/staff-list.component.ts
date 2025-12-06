@@ -1,7 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { StaffService, Staff } from '../../services/staff.service';
-import { AuthService } from '../../services/auth.service'; // To get school_id from user context
+import { SchoolService } from '../../services/school.service';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -21,15 +21,19 @@ export class StaffListComponent implements OnInit {
     displayedColumns: string[] = ['photo', 'name', 'role', 'email', 'phone', 'status', 'actions'];
 
     private staffService = inject(StaffService);
-    // private authService = inject(AuthService); // Need to expose school_id from auth service
+    private schoolService = inject(SchoolService);
     private dialog = inject(MatDialog);
 
-    // Mock schoolId for now until we have a reliable way to get it from AuthService
-    // In a real scenario, AuthService should provide the current user's school_id
-    schoolId = 1;
+    schoolId: number = 0;
 
     ngOnInit(): void {
-        this.loadStaff();
+        const sid = this.schoolService.getSelectedSchoolId();
+        if (sid) {
+            this.schoolId = sid;
+            this.loadStaff();
+        } else {
+            console.error('No selected school found.');
+        }
     }
 
     loadStaff(): void {

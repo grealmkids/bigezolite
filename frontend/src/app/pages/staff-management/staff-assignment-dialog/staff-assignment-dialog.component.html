@@ -42,7 +42,10 @@
 
             <div class="modal-footer">
                 <button type="button" class="cancel-btn" [mat-dialog-close]="false">Cancel</button>
-                <button type="submit" class="submit-btn" [disabled]="assignmentForm.invalid">Assign</button>
+                <button type="submit" class="submit-btn"
+                    [disabled]="assignmentForm.invalid || isSubmitting || isLoadingSubjects">
+                    {{ isSubmitting ? 'Assigning...' : 'Assign' }}
+                </button>
             </div>
 
         </form>

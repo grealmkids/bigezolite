@@ -30,6 +30,7 @@ export class StaffAssignmentDialogComponent implements OnInit {
     assignmentForm: FormGroup;
     type: 'subject' | 'class' = 'subject';
     isLoadingSubjects = false;
+    isSubmitting = false;
 
     // Real data
     classes: { id: string, name: string }[] = [];
@@ -81,7 +82,7 @@ export class StaffAssignmentDialogComponent implements OnInit {
         this.isLoadingSubjects = true;
         this.subjects = []; // Clear previous
 
-        // Pass the exact class name (e.g. 'P.1') because subjects are stored with specific class levels
+        // Pass the exact class name (e.g. 'P.1') 
         this.marksService.getSubjects(this.data.schoolId, className).subscribe({
             next: (subs) => {
                 this.subjects = subs.map(s => ({ id: s.subject_id, name: s.subject_name }));
@@ -96,20 +97,28 @@ export class StaffAssignmentDialogComponent implements OnInit {
 
     onSubmit(): void {
         if (this.assignmentForm.valid) {
+            this.isSubmitting = true;
+            this.assignmentForm.disable(); // Disable form while submitting
             const val = this.assignmentForm.value;
+            console.log('Submitting Assignment:', { type: val.type, staffId: this.data.staffId, schoolId: this.data.schoolId, val });
+
+            const observer = {
+                next: () => {
+                    this.dialogRef.close(true);
+                },
+                error: (err: any) => {
+                    console.error('Assignment failed', err);
+                    this.isSubmitting = false;
+                    this.assignmentForm.enable();
+                }
+            };
+
             if (val.type === 'subject') {
                 this.staffService.assignSubject(this.data.staffId, this.data.schoolId, val.subject_id, val.class_id)
-                    .subscribe({
-                        next: () => this.dialogRef.close(true),
-                        error: (err) => console.error(err)
-                    });
+                    .subscribe(observer);
             } else {
-                // Class Teacher assignment (No role)
                 this.staffService.assignClass(this.data.staffId, this.data.schoolId, val.class_id)
-                    .subscribe({
-                        next: () => this.dialogRef.close(true),
-                        error: (err) => console.error(err)
-                    });
+                    .subscribe(observer);
             }
         }
     }

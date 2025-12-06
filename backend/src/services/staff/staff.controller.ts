@@ -144,20 +144,27 @@ export const uploadStaffPhoto = async (req: AuthenticatedRequest, res: Response)
 
 export const assignSubject = async (req: AuthenticatedRequest, res: Response) => {
     try {
-        const { staff_id, school_id, subject_id, class_level_id } = req.body;
+        const { staff_id, school_id, subject_id, class_level } = req.body;
+        console.log('[assignSubject] Payload:', req.body);
 
-        if (!staff_id || !school_id || !subject_id || !class_level_id) {
-            return res.status(400).json({ message: 'Missing required assignment fields' });
+        if (!staff_id || !school_id || !subject_id || !class_level) {
+            const missing = [];
+            if (!staff_id) missing.push('staff_id');
+            if (!school_id) missing.push('school_id');
+            if (!subject_id) missing.push('subject_id');
+            if (!class_level) missing.push('class_level');
+            console.error('[assignSubject] Missing fields:', missing);
+            return res.status(400).json({ message: `Missing required assignment fields: ${missing.join(', ')}` });
         }
 
         const { query } = await import('../../database/database');
 
         const sql = `
-            INSERT INTO staff_subject_assignments (staff_id, class_level_id, subject_id)
-            VALUES ($1, $2, $3)
+            INSERT INTO staff_subject_assignments (staff_id, school_id, class_level, subject_id)
+            VALUES ($1, $2, $3, $4)
             RETURNING *
         `;
-        const result = await query(sql, [staff_id, class_level_id, subject_id]);
+        const result = await query(sql, [staff_id, school_id, class_level, subject_id]);
         res.status(201).json(result.rows[0]);
 
     } catch (error: any) {
@@ -172,9 +179,15 @@ export const assignSubject = async (req: AuthenticatedRequest, res: Response) =>
 export const assignClass = async (req: AuthenticatedRequest, res: Response) => {
     try {
         const { staff_id, school_id, class_name } = req.body;
+        console.log('[assignClass] Payload:', req.body);
 
         if (!staff_id || !school_id || !class_name) {
-            return res.status(400).json({ message: 'Missing required assignment fields' });
+            const missing = [];
+            if (!staff_id) missing.push('staff_id');
+            if (!school_id) missing.push('school_id');
+            if (!class_name) missing.push('class_name');
+            console.error('[assignClass] Missing fields:', missing);
+            return res.status(400).json({ message: `Missing required assignment fields: ${missing.join(', ')}` });
         }
 
         const { query } = await import('../../database/database');

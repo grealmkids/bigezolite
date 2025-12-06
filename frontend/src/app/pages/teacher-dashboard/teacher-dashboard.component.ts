@@ -76,6 +76,37 @@ export class TeacherDashboardComponent implements OnInit {
     private snack = inject(MatSnackBar);
     private pdfExportService = inject(PdfExportService);
 
+    // Pagination
+    currentPage = 0;
+    pageSize = 50;
+    paginatedStudents: StudentMarkRow[] = [];
+
+    get totalPages(): number {
+        return Math.max(1, Math.ceil(this.students.length / this.pageSize));
+    }
+
+    get displayedStudents(): StudentMarkRow[] {
+        const start = this.currentPage * this.pageSize;
+        return this.students.slice(start, start + this.pageSize);
+    }
+
+    nextPage(): void {
+        if (this.currentPage < this.totalPages - 1) {
+            this.currentPage++;
+        }
+    }
+
+    prevPage(): void {
+        if (this.currentPage > 0) {
+            this.currentPage--;
+        }
+    }
+
+    changePageSize(size: number): void {
+        this.pageSize = size;
+        this.currentPage = 0;
+    }
+
     ngOnInit(): void {
         const user = this.authService.currentUserValue;
         if (!user || !user.school_id) {
@@ -288,6 +319,7 @@ export class TeacherDashboardComponent implements OnInit {
                 s.reg_number.toLowerCase().includes(term)
             );
         }
+        this.currentPage = 0; // Reset to first page
     }
 
     onMarkChange(student: StudentMarkRow): void {

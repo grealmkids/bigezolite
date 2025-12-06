@@ -74,10 +74,35 @@
             </div>
         </div>
 
+        <!-- Pagination & Summary -->
+        <div class="table-header-controls"
+            style="display: flex; align-items: center; justify-content: space-between; gap: 0.8rem; margin-bottom: 0.8rem;"
+            *ngIf="students.length > 0">
+            <div style="display: flex; align-items: center; gap: 0.8rem">
+                <div class="pagination-controls">
+                    <button class="btn" [disabled]="currentPage <= 0" (click)="prevPage()">Previous</button>
+                    <span>Page {{ currentPage + 1 }} of {{ totalPages }}</span>
+                    <button class="btn" [disabled]="currentPage >= totalPages - 1" (click)="nextPage()">Next</button>
+                </div>
+                <label style="margin-left: 0.8rem">Per page:
+                    <select [(ngModel)]="pageSize" (change)="changePageSize(pageSize)" class="page-size-select">
+                        <option [value]="5">5</option>
+                        <option [value]="10">10</option>
+                        <option [value]="25">25</option>
+                        <option [value]="50">50</option>
+                    </select>
+                </label>
+            </div>
+            <div class="table-summary">
+                Showing {{ displayedStudents.length }} of {{ students.length }} students
+            </div>
+        </div>
+
         <div class="table-responsive">
             <table class="marks-table">
                 <thead>
                     <tr>
+                        <th style="width: 50px">#</th>
                         <th>Reg Number</th>
                         <th>Student Name</th>
                         <th>Mark Scored</th>
@@ -85,7 +110,8 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr *ngFor="let student of students" [class.dirty]="student.markDirty">
+                    <tr *ngFor="let student of displayedStudents; let i = index" [class.dirty]="student.markDirty">
+                        <td>{{ currentPage * pageSize + i + 1 }}</td>
                         <td>{{student.reg_number}}</td>
                         <td>{{student.student_name}}</td>
                         <td>

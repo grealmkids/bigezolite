@@ -68,7 +68,7 @@
             <div class="actions">
                 <input type="text" placeholder="Search student..." [(ngModel)]="searchTerm" (input)="filterStudents()"
                     class="search-input">
-                <button class="save-btn" (click)="saveAllMarks()" [disabled]="!hasChanges || saving">
+                <button class="save-btn" (click)="saveAllMarks()" [disabled]="saving">
                     {{ saving ? 'Saving...' : 'Save Changes' }}
                 </button>
             </div>

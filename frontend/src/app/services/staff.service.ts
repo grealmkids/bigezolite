@@ -71,4 +71,14 @@ export class StaffService {
             observe: 'events'
         });
     }
+
+    deleteSubjectAssignment(assignmentId: number, schoolId: number): Observable<void> {
+        const params = new HttpParams().set('school_id', schoolId.toString());
+        return this.http.delete<void>(`${this.apiUrl}/assignments/subject/${assignmentId}`, { params });
+    }
+
+    deleteClassAssignment(assignmentId: number, schoolId: number): Observable<void> {
+        const params = new HttpParams().set('school_id', schoolId.toString());
+        return this.http.delete<void>(`${this.apiUrl}/assignments/class/${assignmentId}`, { params });
+    }
 }

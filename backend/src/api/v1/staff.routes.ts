@@ -21,5 +21,7 @@ router.post('/:id/photo', upload.single('file'), staffController.uploadStaffPhot
 router.post('/assignments/subject', staffController.assignSubject);
 router.post('/assignments/class', staffController.assignClass);
 router.get('/:id/assignments', staffController.getAssignments);
+router.delete('/assignments/subject/:id', staffController.deleteSubjectAssignment);
+router.delete('/assignments/class/:id', staffController.deleteClassAssignment);
 
 export default router;

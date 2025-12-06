@@ -252,3 +252,47 @@ export const getAssignments = async (req: AuthenticatedRequest, res: Response) =
         return res.status(500).json({ message: 'Internal server error' });
     }
 };
+
+export const deleteSubjectAssignment = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const assignmentId = parseInt(req.params.id);
+        const schoolId = parseInt(req.query.school_id as string);
+
+        if (!assignmentId || !schoolId) return res.status(400).json({ message: 'Invalid request' });
+
+        const { query } = await import('../../database/database');
+        const sql = `DELETE FROM staff_subject_assignments WHERE assignment_id = $1 AND school_id = $2`;
+        const result = await query(sql, [assignmentId, schoolId]);
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ message: 'Assignment not found or unauthorized' });
+        }
+
+        res.status(204).send();
+    } catch (error) {
+        console.error('[deleteSubjectAssignment] Error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+export const deleteClassAssignment = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const assignmentId = parseInt(req.params.id);
+        const schoolId = parseInt(req.query.school_id as string);
+
+        if (!assignmentId || !schoolId) return res.status(400).json({ message: 'Invalid request' });
+
+        const { query } = await import('../../database/database');
+        const sql = `DELETE FROM staff_class_assignments WHERE assignment_id = $1 AND school_id = $2`;
+        const result = await query(sql, [assignmentId, schoolId]);
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ message: 'Assignment not found or unauthorized' });
+        }
+
+        res.status(204).send();
+    } catch (error) {
+        console.error('[deleteClassAssignment] Error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};

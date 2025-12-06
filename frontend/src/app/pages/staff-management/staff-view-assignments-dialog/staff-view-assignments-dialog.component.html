@@ -15,9 +15,15 @@
                 <div *ngIf="assignments.subjects.length === 0" class="empty-state">No subjects assigned.</div>
                 <ul class="assignment-list" *ngIf="assignments.subjects.length > 0">
                     <li *ngFor="let ass of assignments.subjects">
-                        <span class="badge subject">{{ass.subject_name || 'Unknown Subject (ID: ' + ass.subject_id +
-                            ')'}}</span>
-                        <span class="detail">Class: {{ass.class_level}}</span>
+                        <div class="info">
+                            <span class="badge subject">{{ass.subject_name || 'Unknown Subject (ID: ' + ass.subject_id +
+                                ')'}}</span>
+                            <span class="detail">Class: {{ass.class_level}}</span>
+                        </div>
+                        <button mat-icon-button color="warn" (click)="deleteAssignment(ass.assignment_id, 'subject')"
+                            title="Remove">
+                            <mat-icon>delete</mat-icon>
+                        </button>
                     </li>
                 </ul>
             </div>
@@ -27,8 +33,14 @@
                 <div *ngIf="assignments.classes.length === 0" class="empty-state">No class teacher roles assigned.</div>
                 <ul class="assignment-list" *ngIf="assignments.classes.length > 0">
                     <li *ngFor="let cls of assignments.classes">
-                        <span class="badge class-teacher">Class Teacher</span>
-                        <span class="detail">Class: {{cls.class_name}}</span>
+                        <div class="info">
+                            <span class="badge class-teacher">Class Teacher</span>
+                            <span class="detail">Class: {{cls.class_name}}</span>
+                        </div>
+                        <button mat-icon-button color="warn" (click)="deleteAssignment(cls.assignment_id, 'class')"
+                            title="Remove">
+                            <mat-icon>delete</mat-icon>
+                        </button>
                     </li>
                 </ul>
             </div>

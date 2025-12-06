@@ -25,6 +25,11 @@ export class StaffViewAssignmentsDialogComponent implements OnInit {
     ) { }
 
     ngOnInit(): void {
+        this.loadAssignments();
+    }
+
+    loadAssignments(): void {
+        this.isLoading = true;
         this.staffService.getStaffAssignments(this.data.staffId, this.data.schoolId).subscribe({
             next: (data) => {
                 this.assignments = data;
@@ -35,5 +40,25 @@ export class StaffViewAssignmentsDialogComponent implements OnInit {
                 this.isLoading = false;
             }
         });
+    }
+
+    deleteAssignment(id: number, type: 'subject' | 'class'): void {
+        if (confirm('Are you sure you want to remove this assignment?')) {
+            this.isLoading = true;
+            const obs$ = type === 'subject'
+                ? this.staffService.deleteSubjectAssignment(id, this.data.schoolId)
+                : this.staffService.deleteClassAssignment(id, this.data.schoolId);
+
+            obs$.subscribe({
+                next: () => {
+                    this.loadAssignments(); // Reload list
+                },
+                error: (err) => {
+                    console.error('Delete failed', err);
+                    alert('Failed to delete assignment.');
+                    this.isLoading = false;
+                }
+            });
+        }
     }
 }

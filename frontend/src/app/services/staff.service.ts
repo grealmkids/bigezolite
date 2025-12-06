@@ -58,9 +58,9 @@ export class StaffService {
         return this.http.post(`${this.apiUrl}/assignments/class`, { staff_id: staffId, school_id: schoolId, class_name: className });
     }
 
-    getAssignments(staffId: number, schoolId: number): Observable<any> {
+    getStaffAssignments(staffId: number, schoolId: number): Observable<{ subjects: any[], classes: any[] }> {
         const params = new HttpParams().set('school_id', schoolId.toString());
-        return this.http.get(`${this.apiUrl}/${staffId}/assignments`, { params });
+        return this.http.get<{ subjects: any[], classes: any[] }>(`${this.apiUrl}/${staffId}/assignments`, { params });
     }
 
     uploadStaffPhoto(staffId: number, file: File): Observable<any> {

@@ -8,6 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { StaffEditModalComponent } from './staff-edit-modal/staff-edit-modal.component';
 import { StaffAssignmentDialogComponent } from './staff-assignment-dialog/staff-assignment-dialog.component';
+import { StaffViewAssignmentsDialogComponent } from './staff-view-assignments-dialog/staff-view-assignments-dialog.component';
 
 @Component({
     selector: 'app-staff-list',
@@ -69,6 +70,13 @@ export class StaffListComponent implements OnInit {
         this.dialog.open(StaffAssignmentDialogComponent, {
             width: '400px',
             data: { staffId: staff.staff_id, schoolId: this.schoolId }
+        });
+    }
+
+    viewAssignments(staff: Staff): void {
+        this.dialog.open(StaffViewAssignmentsDialogComponent, {
+            width: '500px',
+            data: { staffId: staff.staff_id, schoolId: this.schoolId, staffName: `${staff.first_name} ${staff.last_name}` }
         });
     }
 

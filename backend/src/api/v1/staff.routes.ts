@@ -20,5 +20,6 @@ router.post('/:id/photo', upload.single('file'), staffController.uploadStaffPhot
 // Assignments
 router.post('/assignments/subject', staffController.assignSubject);
 router.post('/assignments/class', staffController.assignClass);
+router.get('/:id/assignments', staffController.getAssignments);
 
 export default router;

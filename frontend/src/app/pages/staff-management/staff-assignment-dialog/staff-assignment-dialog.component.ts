@@ -6,6 +6,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { StaffService } from '../../../services/staff.service';
 import { ClassCategorizationService } from '../../../services/class-categorization.service';
 import { MarksService } from '../../../services/marks.service';
@@ -40,7 +41,9 @@ export class StaffAssignmentDialogComponent implements OnInit {
     private staffService = inject(StaffService);
     private classService = inject(ClassCategorizationService);
     private marksService = inject(MarksService);
+
     private schoolService = inject(SchoolService);
+    private snackBar = inject(MatSnackBar);
 
     constructor(
         public dialogRef: MatDialogRef<StaffAssignmentDialogComponent>,
@@ -104,12 +107,33 @@ export class StaffAssignmentDialogComponent implements OnInit {
 
             const observer = {
                 next: () => {
+                    this.snackBar.open('Assignment successful!', 'Close', {
+                        duration: 3000,
+                        panelClass: ['success-snackbar'],
+                        verticalPosition: 'top',
+                        horizontalPosition: 'center'
+                    });
                     this.dialogRef.close(true);
                 },
                 error: (err: any) => {
                     console.error('Assignment failed', err);
                     this.isSubmitting = false;
                     this.assignmentForm.enable();
+
+                    let message = 'Failed to assign responsibility.';
+                    let panelClass = ['error-snackbar'];
+
+                    if (err.status === 409) {
+                        message = 'This assignment already exists.';
+                        panelClass = ['warning-snackbar'];
+                    }
+
+                    this.snackBar.open(message, 'Close', {
+                        duration: 4000,
+                        panelClass: panelClass,
+                        verticalPosition: 'top',
+                        horizontalPosition: 'center'
+                    });
                 }
             };
 

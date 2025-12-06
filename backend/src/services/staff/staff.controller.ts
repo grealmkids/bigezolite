@@ -212,3 +212,39 @@ export const assignClass = async (req: AuthenticatedRequest, res: Response) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 };
+
+export const getAssignments = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const staffId = parseInt(req.params.id);
+        const schoolId = parseInt(req.query.school_id as string);
+
+        if (!staffId || !schoolId) return res.status(400).json({ message: 'Invalid request' });
+
+        const { query } = await import('../../database/database');
+
+        // Fetch Subject Assignments
+        const subjectSql = `
+            SELECT ssa.*, s.name as subject_name 
+            FROM staff_subject_assignments ssa
+            JOIN subjects s ON ssa.subject_id = s.subject_id
+            WHERE ssa.staff_id = $1 AND ssa.school_id = $2
+        `;
+        const subjects = await query(subjectSql, [staffId, schoolId]);
+
+        // Fetch Class Teacher Assignments
+        const classSql = `
+            SELECT sca.*
+            FROM staff_class_assignments sca
+            WHERE sca.staff_id = $1 AND sca.school_id = $2
+        `;
+        const classes = await query(classSql, [staffId, schoolId]);
+
+        return res.json({
+            subjects: subjects.rows,
+            classes: classes.rows
+        });
+    } catch (error) {
+        console.error('[getAssignments] Error:', error);
+        return res.status(500).json({ message: 'Internal server error' });
+    }
+};

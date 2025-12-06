@@ -1,7 +1,7 @@
 <div class="staff-container">
     <div class="header">
         <h1>Staff Management</h1>
-        <button mat-raised-button color="primary" (click)="openAddStaffModal()">
+        <button mat-raised-button style="background-color: #3f51b5; color: white;" (click)="openAddStaffModal()">
             <mat-icon>add</mat-icon> Add Staff
         </button>
     </div>
@@ -58,6 +58,10 @@
             <ng-container matColumnDef="actions">
                 <th mat-header-cell *matHeaderCellDef> Actions </th>
                 <td mat-cell *matCellDef="let staff">
+                    <button mat-icon-button color="primary" (click)="viewAssignments(staff)"
+                        matTooltip="View Assignments">
+                        <mat-icon>visibility</mat-icon>
+                    </button>
                     <button mat-icon-button color="primary" (click)="openEditStaffModal(staff)" title="Edit">
                         <mat-icon>edit</mat-icon>
                     </button>

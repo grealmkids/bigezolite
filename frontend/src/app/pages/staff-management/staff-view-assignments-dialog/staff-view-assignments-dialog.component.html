@@ -1,0 +1,40 @@
+<div class="modal-card">
+    <div class="modal-header">
+        <h2>Assignments for {{data.staffName}}</h2>
+        <button class="close-btn" [mat-dialog-close]="false">&times;</button>
+    </div>
+
+    <div class="modal-body">
+        <div *ngIf="isLoading" class="loading-container">
+            <mat-spinner diameter="40"></mat-spinner>
+        </div>
+
+        <div *ngIf="!isLoading">
+            <div class="section">
+                <h3>Subject Assignments</h3>
+                <div *ngIf="assignments.subjects.length === 0" class="empty-state">No subjects assigned.</div>
+                <ul class="assignment-list" *ngIf="assignments.subjects.length > 0">
+                    <li *ngFor="let ass of assignments.subjects">
+                        <span class="badge subject">{{ass.subject_name}}</span>
+                        <span class="detail">Class: {{ass.class_level}}</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h3>Class Teacher Roles</h3>
+                <div *ngIf="assignments.classes.length === 0" class="empty-state">No class teacher roles assigned.</div>
+                <ul class="assignment-list" *ngIf="assignments.classes.length > 0">
+                    <li *ngFor="let cls of assignments.classes">
+                        <span class="badge class-teacher">Class Teacher</span>
+                        <span class="detail">Class: {{cls.class_name}}</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-footer">
+        <button mat-button [mat-dialog-close]="false">Close</button>
+    </div>
+</div>

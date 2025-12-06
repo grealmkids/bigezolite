@@ -99,7 +99,7 @@ export class StaffAssignmentDialogComponent implements OnInit {
         if (this.assignmentForm.valid) {
             this.isSubmitting = true;
             this.assignmentForm.disable(); // Disable form while submitting
-            const val = this.assignmentForm.value;
+            const val = this.assignmentForm.getRawValue(); // Use getRawValue() to include disabled fields
             console.log('Submitting Assignment:', { type: val.type, staffId: this.data.staffId, schoolId: this.data.schoolId, val });
 
             const observer = {

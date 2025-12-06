@@ -75,8 +75,14 @@ export class AuthService {
       const result = await signInWithPopup(this.auth, provider);
       const idToken = await result.user.getIdToken();
 
+      const payload = {
+        email: result.user.email,
+        googleUid: result.user.uid,
+        idToken // Keeping idToken just in case backend evolves to verify it
+      };
+
       try {
-        const resp: any = await this.http.post(`${this.apiUrl}/auth/staff/google`, { idToken }).toPromise();
+        const resp: any = await this.http.post(`${this.apiUrl}/auth/staff/google`, payload).toPromise();
         if (resp?.token) {
           this.saveToken(resp.token);
           return { user: result.user, token: resp.token };

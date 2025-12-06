@@ -60,7 +60,7 @@ export const updateStaff = async (staffId: number, schoolId: number, updates: Pa
     let idx = 1;
 
     // Allowed updates
-    const allowed = ['first_name', 'last_name', 'gender', 'phone', 'role', 'photo_url', 'allow_password_login', 'is_active'];
+    const allowed = ['first_name', 'last_name', 'gender', 'email', 'phone', 'role', 'photo_url', 'allow_password_login', 'is_active'];
 
     for (const key of allowed) {
         if (key in updates) {

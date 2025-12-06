@@ -2,6 +2,15 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap, BehaviorSubject } from 'rxjs';
 import { Auth, signInWithPopup, GoogleAuthProvider } from '@angular/fire/auth';
+import { jwtDecode } from 'jwt-decode';
+
+export interface User {
+  userId: number;
+  email: string;
+  role: string;
+  school_id: number;
+  // Add other fields from your JWT payload
+}
 
 @Injectable({
   providedIn: 'root'
@@ -13,7 +22,41 @@ export class AuthService {
   private authState = new BehaviorSubject<boolean>(!!this.getToken());
   public authState$ = this.authState.asObservable();
 
-  constructor(private http: HttpClient) { }
+  private currentUserSubject = new BehaviorSubject<User | null>(null);
+
+  constructor(private http: HttpClient) {
+    if (this.getToken()) {
+      this.decodeToken();
+    }
+  }
+
+  public get currentUserValue(): User | null {
+    if (!this.currentUserSubject.value) {
+      this.decodeToken();
+    }
+    return this.currentUserSubject.value;
+  }
+
+  private decodeToken(): void {
+    const token = this.getToken();
+    if (token) {
+      try {
+        const decoded: any = jwtDecode(token);
+        // Ensure field mapping matches your Backend JWT payload
+        this.currentUserSubject.next({
+          userId: decoded.userId || decoded.id,
+          email: decoded.email,
+          role: decoded.role,
+          school_id: decoded.school_id
+        });
+      } catch (e) {
+        console.error('Invalid token', e);
+        this.currentUserSubject.next(null);
+      }
+    } else {
+      this.currentUserSubject.next(null);
+    }
+  }
 
   register(userData: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/users/register`, userData);
@@ -100,6 +143,7 @@ export class AuthService {
 
   saveToken(token: string): void {
     localStorage.setItem(this.tokenKey, token);
+    this.decodeToken();
     this.authState.next(true);
   }
 

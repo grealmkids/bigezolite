@@ -136,6 +136,11 @@ export const routes: Routes = [
         component: HolisticFeedbackComponent,
         canActivate: [authGuard]
     },
+    {
+        path: 'teacher',
+        loadComponent: () => import('./pages/teacher-dashboard/teacher-dashboard.component').then(m => m.TeacherDashboardComponent),
+        canActivate: [authGuard]
+    },
     { path: 'terms', component: TermsComponent },
     // Add a catch-all route to redirect to dashboard or login
     { path: '**', redirectTo: '/dashboard' }

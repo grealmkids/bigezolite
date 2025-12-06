@@ -96,13 +96,33 @@ export class LoginComponent implements OnInit, OnDestroy {
     // After login, prefetch the schools for the user so dashboard buttons are ready.
     // Force refresh the cached list to ensure latest data.
     this.schoolService.listMySchools(true).subscribe({
-      next: () => this.router.navigate(['/dashboard']),
+      next: () => this.redirectBasedOnRole(),
       error: (err) => {
-        // If fetching schools fails, still navigate to dashboard but log the error.
+        // If fetching schools fails, still navigate but log the error.
         console.error('Failed to prefetch schools after login:', err);
-        this.router.navigate(['/dashboard']);
+        this.redirectBasedOnRole();
       }
     });
+  }
+
+  redirectBasedOnRole(): void {
+    const user = this.authService.currentUserValue;
+    if (user) {
+      if (user.role === 'Teacher') {
+        this.router.navigate(['/teacher']);
+      } else if (user.role === 'Admin' || user.role === 'admin') { // Handle legacy lowercase admin
+        this.router.navigate(['/dashboard']);
+      } else if (['Canteen', 'Accountant', 'IT', 'Other'].includes(user.role)) {
+        // Placeholder routes for now, or default to generic dashboard/profile
+        this.router.navigate([`/${user.role.toLowerCase()}`]).catch(() => {
+          this.router.navigate(['/dashboard']); // Fallback
+        });
+      } else {
+        this.router.navigate(['/dashboard']);
+      }
+    } else {
+      this.router.navigate(['/dashboard']);
+    }
   }
 
   handleLoginError(err: any): void {

@@ -1,0 +1,112 @@
+<div class="dashboard-container">
+    <div class="header">
+        <h1>Teacher Dashboard</h1>
+        <p class="school-name">{{schoolName}}</p>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="filters-card">
+        <div class="filter-row">
+            <div class="form-group">
+                <label>Class Level</label>
+                <select [(ngModel)]="selectedClass" (change)="onClassChange()" [disabled]="loading">
+                    <option value="" disabled selected>Select Class</option>
+                    <option *ngFor="let cls of availableClasses" [value]="cls">{{cls}}</option>
+                </select>
+                <small *ngIf="availableClasses.length === 0 && !loading" class="hint">No classes assigned.</small>
+            </div>
+
+            <div class="form-group">
+                <label>Year</label>
+                <select [(ngModel)]="selectedYear" (change)="onYearChange()" [disabled]="loading">
+                    <option *ngFor="let y of years" [value]="y">{{y}}</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Exam Set</label>
+                <select [(ngModel)]="selectedExamSetId" (change)="onExamSetChange($any($event.target).value)"
+                    [disabled]="!selectedClass || loading">
+                    <option [value]="null" disabled selected>Select Exam Set</option>
+                    <option *ngFor="let set of examSets" [value]="set.exam_set_id">
+                        {{set.set_name}} ({{set.term}})
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Subject</label>
+                <select [(ngModel)]="selectedSubjectId" (change)="onSubjectChange($any($event.target).value)"
+                    [disabled]="!selectedExamSetId || loading">
+                    <option [value]="null" disabled selected>Select Subject</option>
+                    <option *ngFor="let subj of subjects" [value]="subj.subject_id">{{subj.subject_name}}</option>
+                </select>
+                <small *ngIf="subjects.length === 0 && selectedClass" class="hint">No subjects assigned in this
+                    class.</small>
+            </div>
+
+            <div class="form-group">
+                <label>Assessment Element</label>
+                <select [(ngModel)]="selectedElementId" (change)="onElementChange($any($event.target).value)"
+                    [disabled]="!selectedSubjectId || loading">
+                    <option [value]="null" disabled selected>Select Element</option>
+                    <option *ngFor="let el of filteredElements" [value]="el.element_id">
+                        {{el.element_name}} (Max: {{el.max_score}})
+                    </option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Marks Entry Table -->
+    <div class="marks-card" *ngIf="selectedElementId">
+        <div class="card-header">
+            <h3>Entering Marks: {{selectedElement?.element_name}} (Max: {{selectedElement?.max_score}})</h3>
+            <div class="actions">
+                <input type="text" placeholder="Search student..." [(ngModel)]="searchTerm" (input)="filterStudents()"
+                    class="search-input">
+                <button class="save-btn" (click)="saveAllMarks()" [disabled]="!hasChanges || saving">
+                    {{ saving ? 'Saving...' : 'Save Changes' }}
+                </button>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="marks-table">
+                <thead>
+                    <tr>
+                        <th>Reg Number</th>
+                        <th>Student Name</th>
+                        <th>Mark Scored</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let student of students" [class.dirty]="student.markDirty">
+                        <td>{{student.reg_number}}</td>
+                        <td>{{student.student_name}}</td>
+                        <td>
+                            <input type="number" [(ngModel)]="student.mark" (ngModelChange)="onMarkChange(student)"
+                                [max]="selectedElement?.max_score || 100" min="0" class="mark-input">
+                        </td>
+                        <td>
+                            <span class="status-indicator" [class.saved]="!student.markDirty && student.mark !== null"
+                                [class.unsaved]="student.markDirty">
+                                {{ student.markDirty ? 'Unsaved' : (student.mark !== null ? 'Saved' : 'Pending') }}
+                            </span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div *ngIf="students.length === 0" class="empty-state">
+                No students found.
+            </div>
+        </div>
+    </div>
+
+    <div *ngIf="loading" class="loader-overlay">
+        <div class="spinner"></div>
+        <span>Loading...</span>
+    </div>
+</div>

@@ -13,93 +13,68 @@
 
   <div class="oc-card-wrap">
     <div class="oc-card">
-      <button (click)="onGoogleSignIn()" class="google-btn">
-        <svg
-          class="google-icon"
-          width="18"
-          height="18"
-          viewBox="0 0 533.5 544.3"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden
-        >
-          <path
-            fill="#4285F4"
-            d="M533.5 278.4c0-18.1-1.6-35.5-4.6-52.4H272v99.3h146.9c-6.3 34.2-25.1 63.2-53.4 82.7v68h86.2c50.4-46.5 80.8-114.7 80.8-197.6z"
-          />
-          <path
-            fill="#34A853"
-            d="M272 544.3c72.9 0 134.2-24.1 178.9-65.5l-86.2-68c-24 16.1-54.8 25.6-92.7 25.6-71 0-131.2-47.8-152.6-112.1h-89.6v70.5c44.8 88.4 137.6 149.6 242.2 149.6z"
-          />
-          <path
-            fill="#FBBC05"
-            d="M119.4 323.3c-10.3-30.8-10.3-63.9 0-94.7V158.1h-89.6C5.9 205.9 0 247.1 0 289.6s5.9 83.7 29.8 131.5l89.6-97.8z"
-          />
-          <path
-            fill="#EA4335"
-            d="M272 107.7c39.6 0 75.3 13.5 103.4 39.8l77.5-77.5C406.2 24.9 344.9 0 272 0 167.4 0 74.6 61.2 29.8 149.6l89.6 70.5C140.8 155.5 201 107.7 272 107.7z"
-          />
-        </svg>
-        Sign in with Google
-      </button>
 
-      <div class="divider">OR</div>
-
-      <form
-        (ngSubmit)="onSubmit()"
-        [formGroup]="loginForm"
-        class="form-compact"
-      >
-        <div class="form-row">
-          <input
-            id="email"
-            type="email"
-            formControlName="email"
-            placeholder="Email (optional)"
-          />
-        </div>
-        <div class="form-row">
-          <input
-            id="phoneNumber"
-            type="text"
-            formControlName="phoneNumber"
-            placeholder="Phone number (e.g. +2567...)"
-          />
-        </div>
-        <div class="form-row">
-          <input
-            id="password"
-            type="password"
-            formControlName="password"
-            placeholder="Password"
-            required
-          />
-        </div>
-
-        <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
-
-        <div *ngIf="showRegisterCTA" class="register-cta">
-          <p>No account found for this Google email.</p>
-          <button type="button" class="link-btn" (click)="navigateToRegister()">
-            Go to Sign Up
-          </button>
-        </div>
-
-        <button
-          type="submit"
-          class="submit-btn"
-          [disabled]="
-            loginForm.get('password')?.invalid ||
-            (!loginForm.get('email')?.value &&
-              !loginForm.get('phoneNumber')?.value)
-          "
-        >
-          Sign In
-        </button>
-      </form>
-
-      <div class="signup-row">
-        <a routerLink="/register" class="signup-link">Create an account</a>
+      <!-- Role Selection Tabs -->
+      <div class="role-tabs">
+        <button class="role-tab" [class.active]="role === 'admin'" (click)="setRole('admin')">Admin</button>
+        <button class="role-tab" [class.active]="role === 'staff'" (click)="setRole('staff')">Staff</button>
+        <button class="role-tab" [class.active]="role === 'parent'" (click)="setRole('parent')">Parent/Student</button>
       </div>
+
+      <div *ngIf="role === 'parent'" class="coming-soon">
+        <h3>Coming Soon</h3>
+        <p>Parent and Student portal is currently under development.</p>
+      </div>
+
+      <ng-container *ngIf="role !== 'parent'">
+        <button (click)="onGoogleSignIn()" class="google-btn">
+          <svg class="google-icon" width="18" height="18" viewBox="0 0 533.5 544.3" xmlns="http://www.w3.org/2000/svg"
+            aria-hidden>
+            <path fill="#4285F4"
+              d="M533.5 278.4c0-18.1-1.6-35.5-4.6-52.4H272v99.3h146.9c-6.3 34.2-25.1 63.2-53.4 82.7v68h86.2c50.4-46.5 80.8-114.7 80.8-197.6z" />
+            <path fill="#34A853"
+              d="M272 544.3c72.9 0 134.2-24.1 178.9-65.5l-86.2-68c-24 16.1-54.8 25.6-92.7 25.6-71 0-131.2-47.8-152.6-112.1h-89.6v70.5c44.8 88.4 137.6 149.6 242.2 149.6z" />
+            <path fill="#FBBC05"
+              d="M119.4 323.3c-10.3-30.8-10.3-63.9 0-94.7V158.1h-89.6C5.9 205.9 0 247.1 0 289.6s5.9 83.7 29.8 131.5l89.6-97.8z" />
+            <path fill="#EA4335"
+              d="M272 107.7c39.6 0 75.3 13.5 103.4 39.8l77.5-77.5C406.2 24.9 344.9 0 272 0 167.4 0 74.6 61.2 29.8 149.6l89.6 70.5C140.8 155.5 201 107.7 272 107.7z" />
+          </svg>
+          Sign in with Google
+        </button>
+
+        <div class="divider">OR</div>
+
+        <form (ngSubmit)="onSubmit()" [formGroup]="loginForm" class="form-compact">
+          <div class="form-row">
+            <input id="email" type="email" formControlName="email"
+              [placeholder]="role === 'staff' ? 'Email' : 'Email (optional)'" />
+          </div>
+          <div class="form-row" *ngIf="role === 'admin'">
+            <input id="phoneNumber" type="text" formControlName="phoneNumber"
+              placeholder="Phone number (e.g. +2567...)" />
+          </div>
+          <div class="form-row">
+            <input id="password" type="password" formControlName="password" placeholder="Password" required />
+          </div>
+
+          <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+
+          <div *ngIf="showRegisterCTA" class="register-cta">
+            <p>No account found for this Google email.</p>
+            <button type="button" class="link-btn" (click)="navigateToRegister()">
+              Go to Sign Up
+            </button>
+          </div>
+
+          <button type="submit" class="submit-btn" [disabled]="loginForm.invalid">
+            Sign In
+          </button>
+        </form>
+
+        <div class="signup-row" *ngIf="role === 'admin'">
+          <a routerLink="/register" class="signup-link">Create an account</a>
+        </div>
+      </ng-container>
 
       <div class="terms-link">
         <a routerLink="/terms">Terms / Policy (Data Security)</a>

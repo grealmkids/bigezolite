@@ -30,6 +30,12 @@ export class AuthService {
     );
   }
 
+  staffLogin(credentials: any): Observable<any> {
+    return this.http.post<{ token: string }>(`${this.apiUrl}/auth/staff/login`, credentials).pipe(
+      tap(response => this.saveToken(response.token))
+    );
+  }
+
   async googleSignIn() {
     const provider = new GoogleAuthProvider();
     try {
@@ -46,29 +52,42 @@ export class AuthService {
           this.saveToken(resp.token);
           return { user: result.user, token: resp.token };
         }
-  // Backend didn't return an app token. Do NOT save the raw Firebase ID token
-  // as the application's auth token — our server expects a HS256 app token and
-  // attempting to save the Firebase token causes server-side JWT verification
-  // to fail with algorithm errors. Instead, return the firebase user info so
-  // the caller can decide what to do (e.g., prompt to register).
-  return { user: result.user, idToken: null };
+        // Backend didn't return an app token.
+        return { user: result.user, idToken: null };
       } catch (err: any) {
         console.error('Failed to exchange ID token with backend:', err);
         if (err?.status === 404) {
-          // Signal to caller that the Google account has no corresponding app account
-          // Include the email so the UI can pre-fill registration.
           const email = result.user?.email || null;
-          // store temporarily in localStorage for navigation fallback
           if (email) localStorage.setItem('bigezo_google_email', email);
           throw { code: 'NO_ACCOUNT', message: 'No existing account found for this Google email.', email };
         }
-  // Do not persist the idToken when exchange fails; rethrow a clear error so
-  // the UI can surface the server response (if any) or a friendly generic error.
-  throw { code: 'EXCHANGE_FAILED', message: 'Failed to exchange ID token with backend.' };
+        throw { code: 'EXCHANGE_FAILED', message: 'Failed to exchange ID token with backend.' };
       }
     } catch (error) {
       console.error('Google sign-in error:', error);
-      // Re-throw so callers (components) can detect the error and handle it
+      throw error;
+    }
+  }
+
+  async staffGoogleSignIn() {
+    const provider = new GoogleAuthProvider();
+    try {
+      const result = await signInWithPopup(this.auth, provider);
+      const idToken = await result.user.getIdToken();
+
+      try {
+        const resp: any = await this.http.post(`${this.apiUrl}/auth/staff/google`, { idToken }).toPromise();
+        if (resp?.token) {
+          this.saveToken(resp.token);
+          return { user: result.user, token: resp.token };
+        }
+        return { user: result.user, idToken: null };
+      } catch (err: any) {
+        console.error('Failed to exchange ID token with backend (Staff):', err);
+        throw { code: 'EXCHANGE_FAILED', message: 'Failed to exchange ID token with backend.' };
+      }
+    } catch (error) {
+      console.error('Google sign-in error (Staff):', error);
       throw error;
     }
   }
@@ -87,52 +106,37 @@ export class AuthService {
   }
 
   logout(): void {
-    // Clear all localStorage
     localStorage.clear();
-    
-    // Clear all sessionStorage
     sessionStorage.clear();
-    
-    // Clear cookies (best effort - some cookies may be httpOnly)
     document.cookie.split(";").forEach((c) => {
       document.cookie = c
         .replace(/^ +/, "")
         .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
     });
-    
-    // Clear Cache Storage and unregister service workers (best-effort)
     if (typeof window !== 'undefined') {
       try {
         if ('caches' in window) {
-          caches.keys().then((names) => Promise.all(names.map((n) => caches.delete(n)))).catch(() => {});
+          caches.keys().then((names) => Promise.all(names.map((n) => caches.delete(n)))).catch(() => { });
         }
         if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) {
-          navigator.serviceWorker.getRegistrations().then((regs) => regs.forEach((r) => r.unregister())).catch(() => {});
+          navigator.serviceWorker.getRegistrations().then((regs) => regs.forEach((r) => r.unregister())).catch(() => { });
         }
       } catch (err) {
-        // ignore non-critical errors
         console.debug('Failed to clear caches/service-workers during logout:', err);
       }
     }
-
     this.authState.next(false);
   }
 
-  /**
-   * Clear local/session storage, cache storage and attempt to unregister service workers.
-   * Use on login page load to ensure a clean session before authentication.
-   */
   async clearClientData(): Promise<void> {
     try {
       localStorage.clear();
       sessionStorage.clear();
-      // Best-effort cookie clear
       document.cookie.split(";").forEach((c) => {
         document.cookie = c
           .replace(/^ +/, "")
           .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
       });
-
       if (typeof window !== 'undefined') {
         if ('caches' in window) {
           const keys = await caches.keys();

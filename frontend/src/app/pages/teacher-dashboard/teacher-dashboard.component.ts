@@ -334,4 +334,47 @@ export class TeacherDashboardComponent implements OnInit {
             }
         });
     }
+    downloadPdf(): void {
+        if (!this.selectedClass || !this.selectedExamSetId || !this.selectedElementId) {
+            this.snack.open('Please select all filters to download PDF', 'Close', { duration: 3000 });
+            return;
+        }
+
+        const examSet = this.examSets.find(e => e.exam_set_id == this.selectedExamSetId); // Loose equality just in case of string/number mismatch from select
+        const subjectName = this.subjects.find(s => s.subject_id == this.selectedSubjectId)?.subject_name || '-';
+        const elementName = this.selectedElement ? `${this.selectedElement.element_name} (Max: ${this.selectedElement.max_score})` : '-';
+
+        // Get badge URL from local storage
+        let badgeUrl: string | undefined;
+        try {
+            const schoolData = localStorage.getItem('bigezo_selected_school');
+            if (schoolData) {
+                const school = JSON.parse(schoolData);
+                badgeUrl = school?.badge_url;
+            }
+        } catch { }
+
+        const data = this.students.map(s => ({
+            reg: s.reg_number,
+            name: s.student_name,
+            mark: (s.mark !== null && s.mark !== undefined) ? s.mark : 'MISSING'
+        }));
+
+        this.pdfExportService.generateMarksListPDF(data, {
+            schoolName: this.schoolName || 'School Registry',
+            className: this.selectedClass,
+            subjectName: subjectName,
+            examSetName: examSet ? `${examSet.set_name} (${examSet.year})` : '-',
+            elementName: elementName,
+            generatedDate: new Date().toLocaleDateString('en-US', {
+                year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+            }),
+            badgeUrl: badgeUrl
+        }).then(() => {
+            this.snack.open('PDF downloaded successfully', 'Close', { duration: 3000 });
+        }).catch(err => {
+            console.error('Error generating PDF:', err);
+            this.snack.open('Failed to generate PDF', 'Close', { duration: 3000 });
+        });
+    }
 }

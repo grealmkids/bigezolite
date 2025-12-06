@@ -6,6 +6,11 @@
 
 .header {
     margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
 
     h1 {
         margin: 0;
@@ -15,6 +20,44 @@
     .school-name {
         color: #666;
         margin: 4px 0 0;
+    }
+
+    // New Download Button
+    .download-btn {
+        margin-left: auto;
+        background-color: #1a237e; // Brand Blue
+        color: white; // Brand White text
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: background-color 0.2s, transform 0.1s;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+
+        &:hover {
+            background-color: #0d1245; // Darker blue on hover
+            transform: translateY(-1px);
+        }
+
+        &:active {
+            transform: translateY(0);
+        }
+
+        &:disabled {
+            background-color: #9fa8da;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        i {
+            font-size: 16px;
+        }
     }
 }
 

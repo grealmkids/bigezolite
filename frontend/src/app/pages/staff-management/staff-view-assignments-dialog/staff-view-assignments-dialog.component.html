@@ -15,7 +15,8 @@
                 <div *ngIf="assignments.subjects.length === 0" class="empty-state">No subjects assigned.</div>
                 <ul class="assignment-list" *ngIf="assignments.subjects.length > 0">
                     <li *ngFor="let ass of assignments.subjects">
-                        <span class="badge subject">{{ass.subject_name}}</span>
+                        <span class="badge subject">{{ass.subject_name || 'Unknown Subject (ID: ' + ass.subject_id +
+                            ')'}}</span>
                         <span class="detail">Class: {{ass.class_level}}</span>
                     </li>
                 </ul>

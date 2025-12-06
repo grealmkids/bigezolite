@@ -224,9 +224,9 @@ export const getAssignments = async (req: AuthenticatedRequest, res: Response) =
 
         // Fetch Subject Assignments
         const subjectSql = `
-            SELECT ssa.*, s.name as subject_name 
+            SELECT ssa.*, s.subject_name as subject_name 
             FROM staff_subject_assignments ssa
-            JOIN subjects s ON ssa.subject_id = s.subject_id
+            LEFT JOIN config_subjects s ON ssa.subject_id = s.subject_id
             WHERE ssa.staff_id = $1 AND ssa.school_id = $2
         `;
         const subjects = await query(subjectSql, [staffId, schoolId]);
@@ -238,6 +238,10 @@ export const getAssignments = async (req: AuthenticatedRequest, res: Response) =
             WHERE sca.staff_id = $1 AND sca.school_id = $2
         `;
         const classes = await query(classSql, [staffId, schoolId]);
+
+        console.log(`[getAssignments] REQUEST: staffId=${staffId}, schoolId=${schoolId}`);
+        console.log(`[getAssignments] Subjects Found: ${subjects.rowCount}`);
+        console.log(`[getAssignments] Classes Found: ${classes.rowCount}`);
 
         return res.json({
             subjects: subjects.rows,

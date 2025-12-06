@@ -1,12 +1,13 @@
-<h2 mat-dialog-title>{{isEditMode ? 'Edit Staff' : 'Add New Staff'}}</h2>
+<h2 mat-dialog-title>{{isEditMode ? 'Edit Staff Profile' : 'Add New Staff Member'}}</h2>
 <mat-dialog-content>
     <form [formGroup]="staffForm" class="staff-form">
 
         <div class="photo-upload-section">
-            <div class="preview-container" (click)="fileInput.click()">
-                <img [src]="photoPreview || 'assets/default-avatar.png'" alt="Photo Preview">
+            <div class="preview-container" (click)="fileInput.click()" matTooltip="Click to upload photo">
+                <img [src]="photoPreview || 'assets/default-avatar.png'" alt="Staff Photo">
                 <div class="overlay">
-                    <mat-icon>camera_alt</mat-icon>
+                    <mat-icon>add_a_photo</mat-icon>
+                    <span>Upload</span>
                 </div>
             </div>
             <input #fileInput type="file" (change)="onFileSelected($event)" accept="image/*" hidden>
@@ -15,12 +16,14 @@
         <div class="row">
             <mat-form-field appearance="outline">
                 <mat-label>First Name</mat-label>
-                <input matInput formControlName="first_name" placeholder="John">
+                <input matInput formControlName="first_name" placeholder="e.g. John">
+                <mat-error *ngIf="staffForm.get('first_name')?.hasError('required')">Required</mat-error>
             </mat-form-field>
 
             <mat-form-field appearance="outline">
                 <mat-label>Last Name</mat-label>
-                <input matInput formControlName="last_name" placeholder="Doe">
+                <input matInput formControlName="last_name" placeholder="e.g. Doe">
+                <mat-error *ngIf="staffForm.get('last_name')?.hasError('required')">Required</mat-error>
             </mat-form-field>
         </div>
 
@@ -31,6 +34,7 @@
                     <mat-option value="Male">Male</mat-option>
                     <mat-option value="Female">Female</mat-option>
                 </mat-select>
+                <mat-error *ngIf="staffForm.get('gender')?.hasError('required')">Required</mat-error>
             </mat-form-field>
 
             <mat-form-field appearance="outline">
@@ -38,18 +42,22 @@
                 <mat-select formControlName="role">
                     <mat-option *ngFor="let role of roles" [value]="role">{{role}}</mat-option>
                 </mat-select>
+                <mat-error *ngIf="staffForm.get('role')?.hasError('required')">Required</mat-error>
             </mat-form-field>
         </div>
 
         <div class="row">
             <mat-form-field appearance="outline">
-                <mat-label>Email</mat-label>
-                <input matInput formControlName="email" type="email" placeholder="john.doe@example.com">
+                <mat-label>Email Address</mat-label>
+                <input matInput formControlName="email" type="email" placeholder="john.doe@school.com">
+                <mat-error *ngIf="staffForm.get('email')?.hasError('required')">Required</mat-error>
+                <mat-error *ngIf="staffForm.get('email')?.hasError('email')">Invalid email</mat-error>
             </mat-form-field>
 
             <mat-form-field appearance="outline">
-                <mat-label>Phone</mat-label>
-                <input matInput formControlName="phone" placeholder="+256...">
+                <mat-label>Phone Number</mat-label>
+                <input matInput formControlName="phone" placeholder="+256 700 000000">
+                <mat-error *ngIf="staffForm.get('phone')?.hasError('required')">Required</mat-error>
             </mat-form-field>
         </div>
 
@@ -57,7 +65,7 @@
 </mat-dialog-content>
 <mat-dialog-actions align="end">
     <button mat-button (click)="onCancel()">Cancel</button>
-    <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="staffForm.invalid">
-        {{isEditMode ? 'Update' : 'Create'}}
+    <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="staffForm.invalid || staffForm.pristine">
+        {{isEditMode ? 'Save Changes' : 'Create Staff'}}
     </button>
 </mat-dialog-actions>

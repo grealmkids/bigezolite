@@ -156,3 +156,57 @@ export const uploadStaffPhoto = async (req: AuthenticatedRequest, res: Response)
         res.status(500).json({ message: 'Internal server error' });
     }
 };
+
+export const assignSubject = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const { staff_id, school_id, subject_id, class_level_id } = req.body;
+
+        if (!staff_id || !school_id || !subject_id || !class_level_id) {
+            return res.status(400).json({ message: 'Missing required assignment fields' });
+        }
+
+        const { query } = await import('../../database/database');
+
+        const sql = `
+            INSERT INTO staff_subject_assignments (staff_id, class_level_id, subject_id)
+            VALUES ($1, $2, $3)
+            RETURNING *
+        `;
+        const result = await query(sql, [staff_id, class_level_id, subject_id]);
+        res.status(201).json(result.rows[0]);
+
+    } catch (error: any) {
+        console.error('[assignSubject] Error:', error);
+        if (error.code === '23505') {
+            return res.status(409).json({ message: 'Assignment already exists.' });
+        }
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+export const assignClass = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const { staff_id, school_id, class_id } = req.body;
+
+        if (!staff_id || !school_id || !class_id) {
+            return res.status(400).json({ message: 'Missing required assignment fields' });
+        }
+
+        const { query } = await import('../../database/database');
+
+        const sql = `
+            INSERT INTO staff_class_assignments (staff_id, class_id)
+            VALUES ($1, $2)
+            RETURNING *
+        `;
+        const result = await query(sql, [staff_id, class_id]);
+        res.status(201).json(result.rows[0]);
+
+    } catch (error: any) {
+        console.error('[assignClass] Error:', error);
+        if (error.code === '23505') {
+            return res.status(409).json({ message: 'Class already has a class teacher.' });
+        }
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};

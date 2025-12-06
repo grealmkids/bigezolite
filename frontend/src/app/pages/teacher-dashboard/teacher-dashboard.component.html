@@ -120,7 +120,8 @@
                         </td>
                         <td>
                             <span class="status-indicator" [class.saved]="!student.markDirty && student.mark !== null"
-                                [class.unsaved]="student.markDirty">
+                                [class.unsaved]="student.markDirty"
+                                [class.pending]="!student.markDirty && student.mark === null">
                                 {{ student.markDirty ? 'Unsaved' : (student.mark !== null ? 'Saved' : 'Pending') }}
                             </span>
                         </td>

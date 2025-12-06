@@ -194,20 +194,21 @@
         font-size: 12px;
         padding: 4px 8px;
         border-radius: 12px;
+        font-weight: 500;
 
         &.saved {
-            background-color: #e8f5e9;
-            color: #2e7d32;
+            background-color: #66bb6a; // Green 400 - Softer
+            color: #ffffff;
         }
 
         &.unsaved {
-            background-color: #fff3e0;
-            color: #ef6c00;
+            background-color: #ef6c00; // Orange 800
+            color: #ffffff;
         }
 
         &.pending {
-            background-color: #f5f5f5;
-            color: #757575;
+            background-color: #ef5350; // Red 400 - Softer
+            color: #ffffff;
         }
     }
 }

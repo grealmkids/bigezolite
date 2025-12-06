@@ -8,10 +8,10 @@
 
             <div class="form-row">
                 <div class="form-group">
-                    <label>Assignment Type</label>
+                    <label>Task</label>
                     <select formControlName="type" required>
-                        <option value="subject">Subject Teacher</option>
-                        <option value="class">Class Teacher</option>
+                        <option value="subject">Assign Subject</option>
+                        <option value="class">Assign as Class Teacher</option>
                     </select>
                 </div>
             </div>
@@ -37,16 +37,6 @@
                         <mat-progress-bar mode="indeterminate" class="subject-loader"></mat-progress-bar>
                         <small style="color: #666;">Fetching subjects...</small>
                     </div>
-                </div>
-            </div>
-
-            <div class="form-row" *ngIf="type === 'class'">
-                <div class="form-group">
-                    <label>Role</label>
-                    <select formControlName="role" required>
-                        <option value="Class Teacher">Class Teacher</option>
-                        <option value="Assistant">Assistant</option>
-                    </select>
                 </div>
             </div>
 

@@ -48,21 +48,17 @@ export class StaffAssignmentDialogComponent implements OnInit {
         this.assignmentForm = this.fb.group({
             type: ['subject', Validators.required],
             class_id: ['', Validators.required],
-            subject_id: [''], // Required if type is subject
-            role: ['Class Teacher'] // Required if type is class
+            subject_id: [''] // Required if type is subject
         });
 
         this.assignmentForm.get('type')?.valueChanges.subscribe(val => {
             this.type = val;
             if (val === 'subject') {
                 this.assignmentForm.get('subject_id')?.setValidators(Validators.required);
-                this.assignmentForm.get('role')?.clearValidators();
             } else {
                 this.assignmentForm.get('subject_id')?.clearValidators();
-                this.assignmentForm.get('role')?.setValidators(Validators.required);
             }
             this.assignmentForm.get('subject_id')?.updateValueAndValidity();
-            this.assignmentForm.get('role')?.updateValueAndValidity();
         });
 
         // Dynamic Subject Loading
@@ -114,7 +110,8 @@ export class StaffAssignmentDialogComponent implements OnInit {
                         error: (err) => console.error(err)
                     });
             } else {
-                this.staffService.assignClass(this.data.staffId, this.data.schoolId, val.class_id, val.role)
+                // Class Teacher assignment (No role)
+                this.staffService.assignClass(this.data.staffId, this.data.schoolId, val.class_id)
                     .subscribe({
                         next: () => this.dialogRef.close(true),
                         error: (err) => console.error(err)

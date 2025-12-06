@@ -4,18 +4,6 @@ import { AuthenticatedRequest } from '../../middleware/auth.middleware';
 
 export const createStaff = async (req: AuthenticatedRequest, res: Response) => {
     try {
-        // Only Admin can create staff (checked by middleware or here)
-        // Assuming req.user contains school_id for Admin
-        // Wait, Admin is in `users` table and linked to `schools`.
-        // We need to fetch the school_id associated with the Admin user.
-        // For now, let's assume the frontend sends school_id or we fetch it.
-        // Better: Admin manages THEIR school. So we need to get school_id from Admin's context.
-
-        // In `user.controller.ts`, `me` returns user info.
-        // We need a helper to get school_id for the current Admin user.
-        // Let's assume the request body contains school_id for now, but we should validate it belongs to the admin.
-        // OR, we can rely on the fact that this is an Admin route.
-
         const { school_id, first_name, last_name, gender, email, phone, role } = req.body;
 
         if (!school_id || !first_name || !last_name || !gender || !email || !phone || !role) {
@@ -120,10 +108,7 @@ export const uploadStaffPhoto = async (req: AuthenticatedRequest, res: Response)
 
         // We need the school_id to verify ownership and for the bucket path.
         // Fetch the staff member to get their school_id
-        const staffMember = await staffService.getStaffById(staffId, 0); // 0 or null if we don't have schoolId yet, need to be careful.
-        // Actually, getStaffById currently requires schoolId for safety. 
-        // Let's use a lower-level find or just trust the admin check if we had one.
-        // Better: Query DB directly to get school_id and verify user owns that school.
+        const staffMember = await staffService.getStaffById(staffId, 0);
 
         const { query } = await import('../../database/database');
 
@@ -186,27 +171,31 @@ export const assignSubject = async (req: AuthenticatedRequest, res: Response) =>
 
 export const assignClass = async (req: AuthenticatedRequest, res: Response) => {
     try {
-        const { staff_id, school_id, class_id } = req.body;
+        const { staff_id, school_id, class_name } = req.body;
 
-        if (!staff_id || !school_id || !class_id) {
+        if (!staff_id || !school_id || !class_name) {
             return res.status(400).json({ message: 'Missing required assignment fields' });
         }
 
         const { query } = await import('../../database/database');
 
+        // Check if class already has a teacher
+        const checkSql = `SELECT * FROM staff_class_assignments WHERE school_id = $1 AND class_name = $2`;
+        const check = await query(checkSql, [school_id, class_name]);
+        if (check.rows.length > 0) {
+            return res.status(409).json({ message: `Class ${class_name} already has a Class Teacher assigned.` });
+        }
+
         const sql = `
-            INSERT INTO staff_class_assignments (staff_id, class_id)
-            VALUES ($1, $2)
+            INSERT INTO staff_class_assignments (staff_id, school_id, class_name)
+            VALUES ($1, $2, $3)
             RETURNING *
         `;
-        const result = await query(sql, [staff_id, class_id]);
+        const result = await query(sql, [staff_id, school_id, class_name]);
         res.status(201).json(result.rows[0]);
 
     } catch (error: any) {
         console.error('[assignClass] Error:', error);
-        if (error.code === '23505') {
-            return res.status(409).json({ message: 'Class already has a class teacher.' });
-        }
         res.status(500).json({ message: 'Internal server error' });
     }
 };

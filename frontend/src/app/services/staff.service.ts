@@ -54,8 +54,8 @@ export class StaffService {
         return this.http.post(`${this.apiUrl}/assignments/subject`, { staff_id: staffId, school_id: schoolId, subject_id: subjectId, class_level: classLevel });
     }
 
-    assignClass(staffId: number, schoolId: number, className: string, role: 'Class Teacher' | 'Assistant'): Observable<any> {
-        return this.http.post(`${this.apiUrl}/assignments/class`, { staff_id: staffId, school_id: schoolId, class_name: className, role });
+    assignClass(staffId: number, schoolId: number, className: string): Observable<any> {
+        return this.http.post(`${this.apiUrl}/assignments/class`, { staff_id: staffId, school_id: schoolId, class_name: className });
     }
 
     getAssignments(staffId: number, schoolId: number): Observable<any> {

@@ -97,3 +97,62 @@ export const deleteStaff = async (req: AuthenticatedRequest, res: Response) => {
         return res.status(500).json({ message: 'Internal server error' });
     }
 };
+
+export const uploadStaffPhoto = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const userId = req.user?.userId;
+        if (!userId) {
+            return res.status(403).json({ message: 'Forbidden: User not authenticated.' });
+        }
+
+        const staffId = parseInt(req.params.id, 10);
+        const file = (req as any).file;
+
+        console.log('[uploadStaffPhoto] staffId:', staffId, 'file:', file ? file.originalname : 'none');
+
+        if (!file) {
+            return res.status(400).json({ message: 'No file uploaded.' });
+        }
+
+        if (!staffId) {
+            return res.status(400).json({ message: 'Invalid staff ID.' });
+        }
+
+        // We need the school_id to verify ownership and for the bucket path.
+        // Fetch the staff member to get their school_id
+        const staffMember = await staffService.getStaffById(staffId, 0); // 0 or null if we don't have schoolId yet, need to be careful.
+        // Actually, getStaffById currently requires schoolId for safety. 
+        // Let's use a lower-level find or just trust the admin check if we had one.
+        // Better: Query DB directly to get school_id and verify user owns that school.
+
+        const { query } = await import('../../database/database');
+
+        // 1. Get staff's school_id
+        const staffRes = await query('SELECT school_id FROM staff WHERE staff_id = $1', [staffId]);
+        if (staffRes.rows.length === 0) {
+            return res.status(404).json({ message: 'Staff member not found.' });
+        }
+        const schoolId = staffRes.rows[0].school_id;
+
+        // 2. Verify user owns this school
+        const authSql = `SELECT school_id FROM schools WHERE school_id = $1 AND user_id = $2`;
+        const auth = await query(authSql, [schoolId, userId]);
+        if (auth.rows.length === 0) {
+            return res.status(403).json({ message: 'Forbidden: You do not have access to this school.' });
+        }
+
+        // 3. Upload to Backblaze
+        const storageService = require('../../services/storage/storage.service');
+        const photoUrl = await storageService.uploadFileForSchool(schoolId, file.buffer, file.mimetype, `staff_${staffId}_${file.originalname}`);
+
+        // 4. Update staff record
+        const updated = await staffService.updateStaff(staffId, schoolId, { photo_url: photoUrl });
+
+        console.log('[uploadStaffPhoto] Success. URL:', photoUrl);
+        res.status(200).json({ photo_url: photoUrl, staff: updated });
+
+    } catch (error) {
+        console.error('[uploadStaffPhoto] Error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};

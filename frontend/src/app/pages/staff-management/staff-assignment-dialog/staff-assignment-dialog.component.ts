@@ -81,14 +81,8 @@ export class StaffAssignmentDialogComponent implements OnInit {
         this.isLoadingSubjects = true;
         this.subjects = []; // Clear previous
 
-        let level = 'Primary';
-        if (className.startsWith('S') || className.startsWith('Year 7') || className.startsWith('Year 8')) {
-            level = 'Secondary';
-        } else if (className.startsWith('K') || className.startsWith('Top') || className.startsWith('Middle') || className.startsWith('Baby')) {
-            level = 'Nursery';
-        }
-
-        this.marksService.getSubjects(this.data.schoolId, level).subscribe({
+        // Pass the exact class name (e.g. 'P.1') because subjects are stored with specific class levels
+        this.marksService.getSubjects(this.data.schoolId, className).subscribe({
             next: (subs) => {
                 this.subjects = subs.map(s => ({ id: s.subject_id, name: s.subject_name }));
                 this.isLoadingSubjects = false;

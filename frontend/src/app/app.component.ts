@@ -110,6 +110,11 @@ export class AppComponent implements OnInit {
     return this.authService.isLoggedIn();
   }
 
+  get isTeacher(): boolean {
+    const user = this.authService.currentUserValue;
+    return user?.role === 'Teacher';
+  }
+
   logout(): void {
     this.authService.logout();
     this.router.navigate(['/login']);

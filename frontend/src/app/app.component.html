@@ -20,7 +20,7 @@
             </div>
           </div>
 
-          <button mat-stroked-button color="primary" class="edit-school-btn" routerLink="/dashboard"
+          <button mat-stroked-button color="primary" class="edit-school-btn" routerLink="/dashboard" *ngIf="!isTeacher"
             (click)="onNavItemClicked()" style="width: 100%; margin-top: 15px;">
             <mat-icon>edit</mat-icon>
             Edit School
@@ -28,37 +28,44 @@
         </div>
         <mat-nav-list>
           <!-- removed Manage School from sidenav - Create is still available via Dashboard -->
-          <a mat-list-item routerLink="/students" routerLinkActive="active-link" (click)="onNavItemClicked()">
+          <a mat-list-item routerLink="/students" routerLinkActive="active-link" (click)="onNavItemClicked()"
+            *ngIf="!isTeacher">
             <mat-icon mat-list-icon>people</mat-icon>
             <span mat-line>Students</span>
           </a>
-          <a mat-list-item routerLink="/staff-management" routerLinkActive="active-link" (click)="onNavItemClicked()">
+          <a mat-list-item routerLink="/staff-management" routerLinkActive="active-link" (click)="onNavItemClicked()"
+            *ngIf="!isTeacher">
             <mat-icon mat-list-icon>badge</mat-icon>
             <span mat-line>Staff Management</span>
           </a>
-          <a mat-list-item routerLink="/communications" routerLinkActive="active-link" (click)="onNavItemClicked()">
+          <a mat-list-item routerLink="/communications" routerLinkActive="active-link" (click)="onNavItemClicked()"
+            *ngIf="!isTeacher">
             <mat-icon mat-list-icon>email</mat-icon>
             <span mat-line>Bulk SMS</span>
           </a>
-          <a mat-list-item routerLink="/bulk-fees-reminders" routerLinkActive="active-link"
-            (click)="onNavItemClicked()">
+          <a mat-list-item routerLink="/bulk-fees-reminders" routerLinkActive="active-link" (click)="onNavItemClicked()"
+            *ngIf="!isTeacher">
             <mat-icon mat-list-icon>notifications_active</mat-icon>
             <span mat-line>Bulk Fees Reminders</span>
           </a>
-          <a mat-list-item routerLink="/analytics" routerLinkActive="active-link" (click)="onNavItemClicked()">
+          <a mat-list-item routerLink="/analytics" routerLinkActive="active-link" (click)="onNavItemClicked()"
+            *ngIf="!isTeacher">
             <mat-icon mat-list-icon>analytics</mat-icon>
             <span mat-line>Analytics</span>
           </a>
-          <a mat-list-item routerLink="/fees-to-track" routerLinkActive="active-link" (click)="onNavItemClicked()">
+          <a mat-list-item routerLink="/fees-to-track" routerLinkActive="active-link" (click)="onNavItemClicked()"
+            *ngIf="!isTeacher">
             <mat-icon mat-list-icon>playlist_add</mat-icon>
             <span mat-line>Fees to Track</span>
           </a>
-          <a mat-list-item routerLink="/marks" routerLinkActive="active-link" (click)="onNavItemClicked()">
+          <a mat-list-item [routerLink]="isTeacher ? ['/teacher'] : ['/marks']" routerLinkActive="active-link"
+            (click)="onNavItemClicked()">
             <mat-icon mat-list-icon>school</mat-icon>
             <span mat-line>Exams</span>
           </a>
 
-          <a mat-list-item routerLink="/subscription" routerLinkActive="active-link" (click)="onNavItemClicked()">
+          <a mat-list-item routerLink="/subscription" routerLinkActive="active-link" (click)="onNavItemClicked()"
+            *ngIf="!isTeacher">
             <mat-icon mat-list-icon>card_membership</mat-icon>
             <span mat-line>Subscription</span>
           </a>

@@ -46,9 +46,16 @@ import { updateStudentFeesStatus } from '../fees/fees.service';
  * Returns true if the user owns the school, false otherwise.
  */
 export const verifyUserSchoolAccess = async (userId: number, schoolId: number): Promise<boolean> => {
-    const sql = 'SELECT school_id FROM schools WHERE user_id = $1 AND school_id = $2';
-    const result = await query(sql, [userId, schoolId]);
-    return result.rows.length > 0;
+    // Check if user owns the school (Director/Admin)
+    const schoolSql = 'SELECT school_id FROM schools WHERE user_id = $1 AND school_id = $2';
+    const schoolResult = await query(schoolSql, [userId, schoolId]);
+    if (schoolResult.rows.length > 0) return true;
+
+    // Check if user is an active Staff member of the school
+    // Note: userId here comes from the JWT. For staff, we mapped 'staff_id' to 'userId' in the token payload.
+    const staffSql = 'SELECT staff_id FROM staff WHERE staff_id = $1 AND school_id = $2 AND is_active = TRUE';
+    const staffResult = await query(staffSql, [userId, schoolId]);
+    return staffResult.rows.length > 0;
 };
 
 /**

@@ -44,7 +44,7 @@ export class AuthService {
         const decoded: any = jwtDecode(token);
         // Ensure field mapping matches your Backend JWT payload
         this.currentUserSubject.next({
-          userId: decoded.userId || decoded.id,
+          userId: decoded.userId || decoded.id || decoded.staff_id,
           email: decoded.email,
           role: decoded.role,
           school_id: decoded.school_id

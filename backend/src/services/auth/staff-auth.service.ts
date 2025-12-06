@@ -10,8 +10,11 @@ import { config } from '../../config';
 const generateToken = (staff: staffService.Staff) => {
     const payload = {
         staff_id: staff.staff_id,
+        userId: staff.staff_id, // Standardize for frontend
+        uniqueId: staff.staff_id,
         school_id: staff.school_id,
         role: staff.role,
+        email: staff.email,
         type: 'staff' // Distinguish from admin users
     };
     return jwt.sign(payload, process.env.JWT_SECRET || 'default_secret', { expiresIn: '8h' });

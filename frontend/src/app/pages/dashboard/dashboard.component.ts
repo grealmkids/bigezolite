@@ -25,6 +25,13 @@ export class DashboardComponent implements OnInit {
   constructor(private schoolService: SchoolService, public router: Router) { }
 
   ngOnInit(): void {
+    const user = this.authService.currentUserValue;
+    if (user && user.role === 'Teacher') {
+      // Fail-safe: If a teacher lands here, redirect immediately to their dashboard
+      this.router.navigate(['/teacher']);
+      return;
+    }
+
     this.school$ = this.schoolService.getMySchool();
     // Force refresh schools list to ensure fresh data from API
     this.refreshSchools(true);

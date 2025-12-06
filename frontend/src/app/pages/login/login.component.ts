@@ -93,8 +93,14 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   handleLoginSuccess(): void {
-    // After login, prefetch the schools for the user so dashboard buttons are ready.
-    // Force refresh the cached list to ensure latest data.
+    // If staff, we don't need to list "my schools" as they don't own any.
+    // Just redirect immediately.
+    if (this.role === 'staff') {
+      this.redirectBasedOnRole();
+      return;
+    }
+
+    // For admins, prefetch schools.
     this.schoolService.listMySchools(true).subscribe({
       next: () => this.redirectBasedOnRole(),
       error: (err) => {
@@ -107,8 +113,11 @@ export class LoginComponent implements OnInit, OnDestroy {
 
   redirectBasedOnRole(): void {
     const user = this.authService.currentUserValue;
+    console.log('Redirecting based on role. User:', user); // DEBUG LOG
+
     if (user) {
       if (user.role === 'Teacher') {
+        console.log('Redirecting to /teacher');
         this.router.navigate(['/teacher']);
       } else if (user.role === 'Admin' || user.role === 'admin') { // Handle legacy lowercase admin
         this.router.navigate(['/dashboard']);
@@ -118,9 +127,11 @@ export class LoginComponent implements OnInit, OnDestroy {
           this.router.navigate(['/dashboard']); // Fallback
         });
       } else {
+        console.warn(`Unknown role: ${user.role}, defaulting to /dashboard`);
         this.router.navigate(['/dashboard']);
       }
     } else {
+      console.warn('No user found in AuthService, defaulting to /dashboard');
       this.router.navigate(['/dashboard']);
     }
   }

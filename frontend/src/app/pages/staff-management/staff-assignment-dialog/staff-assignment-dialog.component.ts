@@ -5,8 +5,8 @@ import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/materia
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { StaffService } from '../../../services/staff.service';
-// import { ClassService } from '../../services/class.service'; // Assuming exists
 import { ClassCategorizationService } from '../../../services/class-categorization.service';
 import { MarksService } from '../../../services/marks.service';
 import { SchoolService } from '../../../services/school.service';
@@ -20,7 +20,8 @@ import { SchoolService } from '../../../services/school.service';
         MatDialogModule,
         MatFormFieldModule,
         MatSelectModule,
-        MatButtonModule
+        MatButtonModule,
+        MatProgressBarModule
     ],
     templateUrl: './staff-assignment-dialog.component.html',
     styleUrls: ['./staff-assignment-dialog.component.scss']
@@ -28,6 +29,7 @@ import { SchoolService } from '../../../services/school.service';
 export class StaffAssignmentDialogComponent implements OnInit {
     assignmentForm: FormGroup;
     type: 'subject' | 'class' = 'subject';
+    isLoadingSubjects = false;
 
     // Real data
     classes: { id: string, name: string }[] = [];
@@ -62,49 +64,44 @@ export class StaffAssignmentDialogComponent implements OnInit {
             this.assignmentForm.get('subject_id')?.updateValueAndValidity();
             this.assignmentForm.get('role')?.updateValueAndValidity();
         });
+
+        // Dynamic Subject Loading
+        this.assignmentForm.get('class_id')?.valueChanges.subscribe(className => {
+            if (className && this.type === 'subject') {
+                this.fetchSubjects(className);
+            } else {
+                this.subjects = [];
+            }
+        });
     }
 
     ngOnInit(): void {
-        const schoolType = this.schoolService.getSelectedSchoolType() || 'Primary (Local)'; // Fallback
+        const schoolType = this.schoolService.getSelectedSchoolType() || 'Primary (Local)';
         const rawClasses = this.classService.getClassesForSchoolType(schoolType);
+        this.classes = rawClasses.map((c, i) => ({ id: c, name: c }));
+    }
 
-        // Map string classes to objects, assuming "id" is just the name for now if we don't have a real classes table ID mapping.
-        // Wait, backend expects `class_id` as INT ?
-        // Controller: `INSERT INTO staff_class_assignments (staff_id, class_id)`. `class_id` is INT.
-        // But `ClassCategorizationService` returns strings ['P.1', 'P.2']...
-        // We have a problem. The backend schema expects IDs but frontend service works with static strings.
-        // CHECK: Does `classes` table exist?
-        // PRD Schema: `staff_class_assignments` -> `class_id` FK `classes`.
-        // So we MUST fetch from `classes` table, not static strings.
-        // Do we have a service to fetch real classes from DB?
-        // `SchoolService`? `StudentService`?
-        // Let's check `class.service.ts` or similar... Wait `ClassCategorizationService` is static.
+    fetchSubjects(className: string): void {
+        this.isLoadingSubjects = true;
+        this.subjects = []; // Clear previous
 
-        // CRITICAL DEVIATION: I plan to mock the IDs for now since we might not have a full classes table endpoint exposed yet.
-        // OR I should use `class_level_id` logic. 
-        // Let's assume for this task I will fetch SUBJECTS from `MarksService`.
-        // For CLASSES, if I don't have a real endpoint, I might fail FK constraint.
-        // But user said "analyze my marks/exams/subjects module".
-        // Let's try to fetch subjects at least.
+        let level = 'Primary';
+        if (className.startsWith('S') || className.startsWith('Year 7') || className.startsWith('Year 8')) {
+            level = 'Secondary';
+        } else if (className.startsWith('K') || className.startsWith('Top') || className.startsWith('Middle') || className.startsWith('Baby')) {
+            level = 'Nursery';
+        }
 
-        this.marksService.getSubjects(this.data.schoolId, 'Primary').subscribe(subs => {
-            this.subjects = subs.map(s => ({ id: s.subject_id, name: s.subject_name }));
+        this.marksService.getSubjects(this.data.schoolId, level).subscribe({
+            next: (subs) => {
+                this.subjects = subs.map(s => ({ id: s.subject_id, name: s.subject_name }));
+                this.isLoadingSubjects = false;
+            },
+            error: (err) => {
+                console.error('Failed to load subjects', err);
+                this.isLoadingSubjects = false;
+            }
         });
-
-        // For classes, I will map them but warning: IDs might be wrong if DB expects real IDs.
-        // I will trust the user has `classes` table populated?
-        // Actually, let's look at `student.routes.ts`. It inserts `class_name_at_term` as STRING.
-        // But `staff` schema says `class_id` INT.
-        // Is there a `classes` table?
-        // `staff_class_assignments` -> `class_id` INT references `classes`.
-        // If `classes` table exists, I need to fetch it.
-        // If not, schema is wrong or not implemented.
-        // I will assume for now I can just use strings and maybe backend accepts strings? 
-        // No, `class_id` INT. 
-        // I'll leave the static mapping but I suspect this might fail if DB has no classes.
-        // Let's just proceed with enabling the UI first.
-
-        this.classes = rawClasses.map((c, i) => ({ id: (i + 1).toString(), name: c }));
     }
 
     onSubmit(): void {

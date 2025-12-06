@@ -1,71 +1,110 @@
-<h2 mat-dialog-title>{{isEditMode ? 'Edit Staff Profile' : 'Add New Staff Member'}}</h2>
-<mat-dialog-content>
-    <form [formGroup]="staffForm" class="staff-form">
+<div class="modal-overlay" (click)="onCancel()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <h2>{{ isEditMode ? 'Edit Staff Application' : 'Add New Staff' }} <small
+                    style="font-size:0.5em; color: gray;">(Upload: {{canUploadPhoto}})</small></h2>
+            <button class="close-btn" (click)="onCancel()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form (ngSubmit)="onSubmit()" [formGroup]="staffForm">
+                <!-- Staff Details -->
+                <div class="form-section">Staff Details</div>
 
-        <div class="photo-upload-section">
-            <div class="preview-container" (click)="fileInput.click()" matTooltip="Click to upload photo">
-                <img [src]="photoPreview || 'assets/default-avatar.png'" alt="Staff Photo">
-                <div class="overlay">
-                    <mat-icon>add_a_photo</mat-icon>
-                    <span>Upload</span>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="first_name">First Name</label>
+                        <input id="first_name" type="text" formControlName="first_name" placeholder="e.g. John"
+                            required />
+                    </div>
+                    <div class="form-group">
+                        <label for="last_name">Last Name</label>
+                        <input id="last_name" type="text" formControlName="last_name" placeholder="e.g. Doe" required />
+                    </div>
                 </div>
-            </div>
-            <input #fileInput type="file" (change)="onFileSelected($event)" accept="image/*" hidden>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="gender">Gender</label>
+                        <select id="gender" formControlName="gender" required>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="role">Role</label>
+                        <select id="role" formControlName="role" required>
+                            <option value="" disabled>Select Role</option>
+                            <option value="Teacher">Teacher</option>
+                            <option value="Class Teacher">Class Teacher</option>
+                            <option value="Accountant">Accountant</option>
+                            <option value="IT">IT</option>
+                            <option value="Canteen">Canteen</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input id="email" type="email" formControlName="email" placeholder="john.doe@school.com"
+                            required />
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Phone Number</label>
+                        <input id="phone" type="text" formControlName="phone" placeholder="+256..." required />
+                    </div>
+                </div>
+
+                <!-- Photo Upload (Active Schools Only) -->
+                <div class="form-section" *ngIf="canUploadPhoto">Staff Photo</div>
+                <div class="form-row" *ngIf="canUploadPhoto">
+                    <div class="form-group photo-upload-group">
+                        <div class="photo-preview" *ngIf="photoPreview">
+                            <img [src]="photoPreview" alt="Staff Photo Preview">
+                        </div>
+
+                        <!-- Fallback if no preview -->
+                        <div class="photo-preview" *ngIf="!photoPreview"
+                            style="display: flex; align-items: center; justify-content: center; background: #f8f9fa; color: #6c757d;">
+                            <span>No Photo</span>
+                        </div>
+
+                        <div class="upload-actions">
+                            <input type="file" (change)="onFileSelected($event)" accept="image/*">
+
+                            <!-- Separate actions for Edit Mode -->
+                            <div class="action-buttons" *ngIf="isEditMode"
+                                style="margin-top: 10px; display: flex; gap: 10px; justify-content: center;">
+                                <button type="button" class="btn-upload" *ngIf="selectedFile" (click)="uploadPhoto()"
+                                    [disabled]="isUploading">
+                                    Upload New
+                                </button>
+                                <!-- We need to implement deletePhoto in TS if we want this button -->
+                                <!-- <button type="button" class="btn-remove" *ngIf="photoPreview && !selectedFile" (click)="deletePhoto()"
+                   [disabled]="isUploading">
+                   Remove Photo
+                 </button> -->
+                            </div>
+                        </div>
+
+                        <div class="progress-bar" *ngIf="isUploading">
+                            <div class="progress-fill" [style.width.%]="uploadProgress"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div *ngIf="errorMessage" class="error-message">
+                    {{ errorMessage }}
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="cancel-btn" (click)="onCancel()">Cancel</button>
+                    <button type="submit" class="submit-btn" [disabled]="staffForm.invalid || isUploading">
+                        {{ isEditMode ? 'Save Changes' : 'Create Staff' }}
+                    </button>
+                </div>
+            </form>
         </div>
-
-        <div class="row">
-            <mat-form-field appearance="outline">
-                <mat-label>First Name</mat-label>
-                <input matInput formControlName="first_name" placeholder="e.g. John">
-                <mat-error *ngIf="staffForm.get('first_name')?.hasError('required')">Required</mat-error>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-                <mat-label>Last Name</mat-label>
-                <input matInput formControlName="last_name" placeholder="e.g. Doe">
-                <mat-error *ngIf="staffForm.get('last_name')?.hasError('required')">Required</mat-error>
-            </mat-form-field>
-        </div>
-
-        <div class="row">
-            <mat-form-field appearance="outline">
-                <mat-label>Gender</mat-label>
-                <mat-select formControlName="gender">
-                    <mat-option value="Male">Male</mat-option>
-                    <mat-option value="Female">Female</mat-option>
-                </mat-select>
-                <mat-error *ngIf="staffForm.get('gender')?.hasError('required')">Required</mat-error>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-                <mat-label>Role</mat-label>
-                <mat-select formControlName="role">
-                    <mat-option *ngFor="let role of roles" [value]="role">{{role}}</mat-option>
-                </mat-select>
-                <mat-error *ngIf="staffForm.get('role')?.hasError('required')">Required</mat-error>
-            </mat-form-field>
-        </div>
-
-        <div class="row">
-            <mat-form-field appearance="outline">
-                <mat-label>Email Address</mat-label>
-                <input matInput formControlName="email" type="email" placeholder="john.doe@school.com">
-                <mat-error *ngIf="staffForm.get('email')?.hasError('required')">Required</mat-error>
-                <mat-error *ngIf="staffForm.get('email')?.hasError('email')">Invalid email</mat-error>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-                <mat-label>Phone Number</mat-label>
-                <input matInput formControlName="phone" placeholder="+256 700 000000">
-                <mat-error *ngIf="staffForm.get('phone')?.hasError('required')">Required</mat-error>
-            </mat-form-field>
-        </div>
-
-    </form>
-</mat-dialog-content>
-<mat-dialog-actions align="end">
-    <button mat-button (click)="onCancel()">Cancel</button>
-    <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="staffForm.invalid || staffForm.pristine">
-        {{isEditMode ? 'Save Changes' : 'Create Staff'}}
-    </button>
-</mat-dialog-actions>
+    </div>
+</div>

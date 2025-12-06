@@ -1,239 +1,193 @@
-@use "sass:color";
-
-// Variables for Light Theme
-$primary-color: #ff7a00; // Darker orange for better contrast on white
-$primary-light: #ffb36b;
-$bg-white: #ffffff;
-$bg-gray: #f8fafc;
-$text-dark: #0f172a;
-$text-muted: #64748b;
-$border-color: #e2e8f0;
-
-:host {
-    display: block;
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
 }
 
-// Override MatDialog container styles
-h2[mat-dialog-title] {
-    margin: 0;
-    padding: 24px 24px 0;
-    font-family: 'Inter', sans-serif;
-    font-weight: 700;
-    font-size: 1.5rem;
-    color: $text-dark;
-    background-color: $bg-white; // Explicitly white
-    border-bottom: none;
-}
-
-mat-dialog-content {
-    background-color: $bg-white; // Explicitly white
-    color: $text-dark;
-    padding: 24px !important;
-    max-height: 80vh;
-
-    // Custom scrollbar
-    &::-webkit-scrollbar {
-        width: 8px;
-    }
-
-    &::-webkit-scrollbar-track {
-        background: #f1f1f1;
-    }
-
-    &::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
-        border-radius: 4px;
-
-        &:hover {
-            background: #94a3b8;
-        }
-    }
-}
-
-mat-dialog-actions {
-    background-color: $bg-white; // Changed to white as per user preference for clean look, or keep gray if preferred. 
-    // User asked for "white for the modal's background", usually implies the whole thing or at least the main content.
-    // Let's make the actions area white too for a cleaner look, or very light gray.
-    // The previous code had $bg-gray. I'll switch to $bg-white to be safe with "use white for the modal's background".
-    padding: 16px 24px 24px !important;
-    margin: 0 !important;
-    border-top: 1px solid $border-color;
-}
-
-.staff-form {
+.modal-card {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    width: 100%;
+    max-width: 800px;
+    max-height: 90vh;
     display: flex;
     flex-direction: column;
-    gap: 24px;
+}
 
-    // Photo Upload Section
-    .photo-upload-section {
-        display: flex;
-        justify-content: center;
-        margin-bottom: 10px;
+.modal-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 
-        .preview-container {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            position: relative;
-            cursor: pointer;
-            border: 3px solid $border-color;
-            background: $bg-gray;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-
-            &:hover {
-                border-color: $primary-color;
-                transform: scale(1.02);
-
-                .overlay {
-                    opacity: 1;
-                }
-            }
-
-            img {
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-                border-radius: 50%;
-            }
-
-            .overlay {
-                position: absolute;
-                inset: 0;
-                border-radius: 50%;
-                background: rgba(0, 0, 0, 0.5);
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                align-items: center;
-                opacity: 0;
-                transition: opacity 0.2s ease;
-                backdrop-filter: blur(1px);
-
-                mat-icon {
-                    color: white;
-                    font-size: 28px;
-                    height: 28px;
-                    width: 28px;
-                    margin-bottom: 4px;
-                }
-
-                span {
-                    color: white;
-                    font-size: 10px;
-                    font-weight: 600;
-                    text-transform: uppercase;
-                    letter-spacing: 0.5px;
-                }
-            }
-        }
+    h2 {
+        margin: 0;
+        font-size: 1.5rem;
     }
 
-    .row {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
-
-        @media (max-width: 600px) {
-            grid-template-columns: 1fr;
-            gap: 16px;
-        }
-    }
-
-    // Customizing Mat Form Fields for Light Theme
-    ::ng-deep .mat-mdc-form-field {
-        width: 100%;
-
-        .mat-mdc-text-field-wrapper {
-            background-color: $bg-gray !important; // Light gray background for inputs
-            border-radius: 8px;
-            border: 1px solid transparent;
-            transition: border-color 0.2s, background-color 0.2s;
-        }
-
-        // Hover state
-        &:hover .mat-mdc-text-field-wrapper {
-            background-color: color.adjust($bg-gray, $lightness: -2%);
-        }
-
-        // Label colors
-        .mat-mdc-floating-label {
-            color: $text-muted;
-        }
-
-        &.mat-focused .mat-mdc-floating-label {
-            color: $primary-color;
-        }
-
-        // Input text color
-        input.mat-mdc-input-element,
-        .mat-mdc-select-value {
-            color: $text-dark;
-        }
-
-        // Outline/Underline colors
-        .mdc-notched-outline__leading,
-        .mdc-notched-outline__notch,
-        .mdc-notched-outline__trailing {
-            border-color: $border-color !important;
-        }
-
-        &.mat-focused {
-            .mat-mdc-text-field-wrapper {
-                background-color: $bg-white !important;
-                border-color: $primary-color;
-            }
-
-            .mdc-notched-outline__leading,
-            .mdc-notched-outline__notch,
-            .mdc-notched-outline__trailing {
-                border-color: $primary-color !important;
-                border-width: 2px;
-            }
-        }
-
-        // Error state
-        &.mat-form-field-invalid {
-
-            .mdc-notched-outline__leading,
-            .mdc-notched-outline__notch,
-            .mdc-notched-outline__trailing {
-                border-color: #ef4444 !important; // Red
-            }
-
-            .mat-mdc-floating-label {
-                color: #ef4444;
-            }
-        }
+    .close-btn {
+        background: none;
+        border: none;
+        font-size: 2rem;
+        font-weight: 300;
+        cursor: pointer;
+        line-height: 1;
     }
 }
 
-// Buttons
-button[mat-button] {
-    color: $text-muted;
-
-    &:hover {
-        color: $text-dark;
-        background: rgba(0, 0, 0, 0.05);
-    }
+.modal-body {
+    padding: 1.5rem;
+    overflow-y: auto;
 }
 
-button[mat-raised-button] {
-    background: $primary-color;
-    color: #ffffff; // White text on dark orange
+.form-section {
+    font-size: 1.2rem;
     font-weight: 600;
-    padding: 0 24px;
-    box-shadow: 0 4px 6px -1px rgba($primary-color, 0.3);
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e9ecef;
+}
 
-    &:hover {
-        background: color.adjust($primary-color, $lightness: -5%);
-        box-shadow: 0 6px 8px -1px rgba($primary-color, 0.4);
+.form-row {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.form-group {
+    flex: 1;
+    text-align: left;
+
+    label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
     }
+
+    input,
+    select {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        box-sizing: border-box;
+        font-size: 1rem;
+        color: #333;
+        /* Force text color */
+        background-color: #fff;
+    }
+}
+
+.modal-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #e9ecef;
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+}
+
+.submit-btn,
+.cancel-btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.submit-btn {
+    background-color: var(--color-primary);
+    color: white;
 
     &:disabled {
-        background: #cbd5e1;
-        color: #94a3b8;
-        box-shadow: none;
+        background-color: #ffc993;
+        cursor: not-allowed;
+    }
+}
+
+.cancel-btn {
+    background-color: #f8f9fa;
+    border: 1px solid #ced4da;
+    color: #212529;
+}
+
+.error-message {
+    color: #dc3545;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.photo-upload-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+
+    .photo-preview {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 3px solid #e9ecef;
+
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+    }
+
+    .progress-bar {
+        width: 100%;
+        height: 10px;
+        background-color: #e9ecef;
+        border-radius: 5px;
+        overflow: hidden;
+        margin-top: 0.5rem;
+
+        .progress-fill {
+            height: 100%;
+            background-color: var(--color-primary);
+            transition: width 0.3s ease;
+        }
+    }
+
+    .btn-upload {
+        background-color: #28a745;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        border-radius: 4px;
+        cursor: pointer;
+
+        &:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+    }
+
+    .btn-remove {
+        background-color: #dc3545;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        border-radius: 4px;
+        cursor: pointer;
+
+        &:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
     }
 }

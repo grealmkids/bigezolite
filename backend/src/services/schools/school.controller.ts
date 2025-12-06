@@ -1,6 +1,7 @@
 
 import { Response } from 'express';
 import * as schoolService from './school.service';
+import * as staffService from '../staff/staff.service';
 import { AuthenticatedRequest } from '../../middleware/auth.middleware';
 
 export const createSchool = async (req: AuthenticatedRequest, res: Response) => {
@@ -75,7 +76,16 @@ export const getMySchool = async (req: AuthenticatedRequest, res: Response) => {
             return res.status(403).json({ message: 'Forbidden: User not authenticated.' });
         }
 
-        const school = await schoolService.findSchoolByUserId(userId);
+        let school = await schoolService.findSchoolByUserId(userId);
+
+        // If not found as owner, check if user is staff (using req.user.schoolId from token)
+        if (!school && req.user?.schoolId) {
+            const staff = await staffService.getStaffById(userId, req.user.schoolId);
+            if (staff && staff.is_active) {
+                school = await schoolService.findSchoolById(req.user.schoolId);
+            }
+        }
+
         if (!school) {
             return res.status(404).json({ message: 'No school found for this user.' });
         }
@@ -106,8 +116,20 @@ export const getSchoolById = async (req: AuthenticatedRequest, res: Response) =>
         const school = await schoolService.findSchoolById(id);
         if (!school) return res.status(404).json({ message: 'School not found' });
 
-        // enforce ownership
-        if (school.user_id !== req.user?.userId) return res.status(403).json({ message: 'Forbidden' });
+        // enforce ownership OR staff membership
+        if (school.user_id !== req.user?.userId) {
+            // Check if active staff
+            let isStaff = false;
+            // req.user.userId is staff_id for staff users
+            const staff = await staffService.getStaffById(req.user?.userId!, id);
+            if (staff && staff.is_active) {
+                isStaff = true;
+            }
+
+            if (!isStaff) {
+                return res.status(403).json({ message: 'Forbidden' });
+            }
+        }
 
         res.status(200).json(school);
     } catch (error) {

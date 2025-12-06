@@ -69,6 +69,11 @@ export const authenticateToken = async (req: AuthenticatedRequest, res: Response
     // Attach the user ID from the token to the request
     req.user = { userId: payload.userId };
 
+    // If payload has school_id (e.g. staff token), use it
+    if (payload.school_id) {
+      req.user.schoolId = payload.school_id;
+    }
+
     // Prioritize schoolId from header (explicit selection)
     const headerSchoolId = req.headers['x-school-id'];
     if (headerSchoolId) {

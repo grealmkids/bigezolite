@@ -1,0 +1,84 @@
+.staff-container {
+    padding: 20px;
+
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+
+        h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 500;
+        }
+    }
+
+    .table-container {
+        overflow: auto;
+        background: white;
+        border-radius: 8px;
+    }
+
+    table {
+        width: 100%;
+    }
+
+    .staff-photo {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin: 5px 0;
+    }
+
+    .role-badge {
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 500;
+
+        &.teacher {
+            background-color: #e3f2fd;
+            color: #1976d2;
+        }
+
+        &.class-teacher {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        &.accountant {
+            background-color: #fff3e0;
+            color: #f57c00;
+        }
+
+        &.it {
+            background-color: #f3e5f5;
+            color: #7b1fa2;
+        }
+    }
+
+    .status-badge {
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 12px;
+
+        &.active {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        &.inactive {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+    }
+
+    .no-data {
+        padding: 40px;
+        text-align: center;
+        color: #666;
+        font-style: italic;
+    }
+}

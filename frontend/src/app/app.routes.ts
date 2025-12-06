@@ -24,6 +24,7 @@ import { StudentMarksViewerComponent } from './pages/marks/student-marks-viewer.
 import { StudentReportComponent } from './pages/marks/student-report.component';
 import { HolisticFeedbackComponent } from './pages/marks/holistic-feedback.component';
 import { ManageAssessmentElementsComponent } from './pages/marks/manage-assessment-elements.component';
+import { StaffListComponent } from './pages/staff-management/staff-list.component';
 
 export const routes: Routes = [
     { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -57,6 +58,11 @@ export const routes: Routes = [
     {
         path: 'manage-school',
         component: ManageSchoolComponent,
+        canActivate: [authGuard]
+    },
+    {
+        path: 'staff-management',
+        component: StaffListComponent,
         canActivate: [authGuard]
     },
     {

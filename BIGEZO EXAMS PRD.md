@@ -1,5 +1,5 @@
 🚀 Bigezo Product Requirements Document (PRD)  
-Module: Student Assessment and Reporting (SAR) \- Update 1.3: Finalized Subject Logic & Comprehensive Reporting Version: 1.3 (Final Draft) Date: 2024-05-24 Target Audience: Senior Development Team (Backend/Frontend/GitHub Copilot)
+Module: Student Assessment and Reporting (SAR) \- Update 1.4: Teacher Dashboard & Enhancements Version: 1.4 (Updated Post-Implementation) Date: December 2025 Target Audience: Senior Development Team (Backend/Frontend/GitHub Copilot)
 
 \--------------------------------------------------------------------------------  
 1\. Goals and Objectives  
@@ -139,6 +139,17 @@ Individual report cards for single students with full assessment details:
 • PDF Download: "Download PDF Report" button exports formatted report for printing/archival
 • Professional Layout: Print-optimized styling with clear visual hierarchy
 • Route: `/marks/student-report/:examSetId/:studentId`, Component: `StudentReportComponent`
+
+4.7. Teacher Marks Dashboard (Staff View) 🍎 NEW
+A specialized, simplified interface for staff members (Teachers/Class Teachers):
+• **Route**: `/teacher-dashboard`, Component: `TeacherDashboardComponent`
+• **Paginated List**: Client-side pagination for manageable student lists with row numbering.
+• **Status Badges**: Clear visual indicators for mark status:
+  - **Saved** (Green/Soft Green): Mark is safely stored.
+  - **Pending** (Red/Soft Red): Mark entered but not yet saved (or null entry).
+  - **Unsaved** (Orange): Local changes pending save.
+• **Always-Active Save**: "Save Changes" button remains enabled to allow retry/confirmation at any time.
+• **PDF Export**: Teachers can download a "Marks List" PDF for their assigned classes, styled with the school badge.
 
 --------------------------------------------------------------------------------
 5\. Summary of Deliverables for Copilot 💻  

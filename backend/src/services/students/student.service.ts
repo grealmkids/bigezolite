@@ -101,7 +101,7 @@ export const createStudent = async (student: Omit<Student, 'student_id' | 'reg_n
         const ftParams: any[] = [schoolId, student.year_enrolled, student.class_name];
         let ftSql = `SELECT fee_id, term, year, total_due, due_date FROM fees_to_track WHERE school_id = $1 AND year = $2 AND (class_name IS NULL OR class_name = $3)`;
         if (joiningTerm) {
-            ftSql += ' AND term = $4';
+            ftSql += ' AND term >= $4';
             ftParams.push(joiningTerm);
         }
         const fts = await query(ftSql, ftParams);

@@ -1,6 +1,6 @@
 -- ===================================================================
 -- BIGEZO: STAFF MODULE SCHEMA (Implemented)
--- Version: 1.1
+-- Version: 1.2 (Updated Post-Implementation)
 -- Purpose: create staff, RBAC support, assignments
 -- DB: PostgreSQL
 -- ===================================================================
@@ -22,6 +22,7 @@ END$$ LANGUAGE plpgsql;
 -- - email is globally unique
 -- - password is nullable (supports Google login)
 -- - photo_url for Backblaze integration
+-- - Strict enforcement: One Staff = One School (via school_id FK)
 -- -----------------------------------------------------------
 CREATE TABLE IF NOT EXISTS staff (
   staff_id            SERIAL PRIMARY KEY,

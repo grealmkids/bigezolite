@@ -1,10 +1,10 @@
 # **BIGEZO STAFF MODULE — PRODUCT REQUIREMENTS DOCUMENT (PRD)**
 
-**Version:** 5.0 (Updated for Current App State)
+**Version:** 5.1 (Updated Post-Implementation)
 **Module:** STAFF MANAGEMENT, AUTHENTICATION, RBAC, PASSWORD RESET, INTEGRATIONS
 **Prepared For:** BIGEZO Platform (Admin, Teachers, Class Teachers, Accountants, IT Staff)
 **Prepared By:** G-Realm Studio & Antigravity
-**Date:** 2025
+**Date:** December 2025
 
 ---
 
@@ -148,7 +148,9 @@ Staff may log in via:
     *   Verify staff exists.
     *   Verify `is_active` is true.
     *   Generate JWT with `school_id` claim.
-    *   Redirect to role-based dashboard.
+    *   Redirect to role-based dashboard:
+        *   **Teachers** -> `/teacher-dashboard`
+        *   **Admins/Others** -> `/dashboard`
 
 ---
 
@@ -164,10 +166,15 @@ Staff may log in via:
 
 # **9.0 ROLE-BASED DASHBOARDS**
 
-## **9.1 Teacher Dashboard**
-*   Assigned subjects
-*   Marks entry tasks
-*   Profile view
+## **9.1 Teacher Dashboard (`/teacher-dashboard`)**
+*   **Dedicated Interface**: Streamlined view focusing solely on assigned subjects and classes.
+*   **Marks Entry**:
+    *   **Pagination & Numbering**: Client-side pagination for student lists with row numbering.
+    *   **Status Indicators**: Visual badges for mark status (Saved = Green, Pending = Red, Unsaved = Orange).
+    *   **Save Functionality**: "Save Changes" button is always enabled for clear affordance; provides feedback if no changes exist.
+*   **Exports**:
+    *   **PDF Download**: Ability to export the current marks list to a branded PDF (referencing correct school name).
+*   **Profile**: View and manage personal profile (photo, password).
 
 ## **9.2 Class Teacher Dashboard**
 *   Everything in Teacher PLUS:

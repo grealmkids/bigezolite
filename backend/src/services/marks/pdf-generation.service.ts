@@ -163,21 +163,21 @@ export class PdfGenerationService {
         .map((scale: any) => {
           return `<span style="display: inline-block; margin-right: 15px; white-space: nowrap;">
                 <strong style="color: ${this.getGradeColor(scale.grade_letter)}">${scale.grade_letter}</strong> 
-                <span style="color: #666; font-size: 10px;">(${Math.round(scale.min_score_percent)}% - 100%)</span>
+                <span style="color: #000; font-size: 10px;">(${Math.round(scale.min_score_percent)}% - 100%)</span>
              </span>`;
         })
         .join('')
-      : '<span style="font-size: 10px; color: #999;">Grading system not configured.</span>';
+      : '<span style="font-size: 10px; color: #000;">Grading system not configured.</span>';
 
     // Badge Handling
     const badgeHtml = student.badge_url
-      ? `<img src="${student.badge_url}" alt="School Badge" style="height: 80px; width: auto; object-fit: contain;">`
-      : `<div style="width: 80px; height: 80px; background: #f0f0f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #999; font-weight: bold; font-size: 24px;">${student.school_name.charAt(0)}</div>`;
+      ? `<img src="${student.badge_url}" alt="School Badge" style="height: 70px; width: auto; object-fit: contain;">`
+      : `<div style="width: 70px; height: 70px; background: #f0f0f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #000; font-weight: bold; font-size: 24px;">${student.school_name.charAt(0)}</div>`;
 
     // Student Photo Handling
     const photoHtml = student.student_photo_url
-      ? `<img src="${student.student_photo_url}" alt="Student Photo" style="width: 100px; height: 100px; object-fit: cover; border-radius: 6px; border: 1px solid #ddd;">`
-      : `<div style="width: 100px; height: 100px; background: #f0f0f0; border-radius: 6px; border: 1px solid #ddd; display: flex; align-items: center; justify-content: center; color: #aaa; font-size: 40px;">👤</div>`;
+      ? `<img src="${student.student_photo_url}" alt="Student Photo" style="width: 90px; height: 90px; object-fit: cover; border-radius: 6px; border: 1px solid #000;">`
+      : `<div style="width: 90px; height: 90px; background: #f0f0f0; border-radius: 6px; border: 1px solid #000; display: flex; align-items: center; justify-content: center; color: #000; font-size: 30px;">👤</div>`;
 
     return `
       <!DOCTYPE html>
@@ -190,16 +190,15 @@ export class PdfGenerationService {
           * { margin: 0; padding: 0; box-sizing: border-box; }
           body {
             font-family: 'Inter', sans-serif;
-            color: #1a1a1a;
-            line-height: 1.4;
+            color: #000; /* Default to black */
+            line-height: 1.3;
             background: #ffffff;
             -webkit-print-color-adjust: exact;
           }
           .report-container {
             width: 210mm;
-            /* Allow height to grow naturally for pagination, Puppeteer handles page cuts */
             margin: 0 auto;
-            padding: 15mm;
+            padding: 10mm 15mm; /* Reduced top padding */
             background: white;
             position: relative;
           }
@@ -219,25 +218,25 @@ export class PdfGenerationService {
             justify-content: space-between;
             align-items: center;
             border-bottom: 2px solid #000;
-            padding-bottom: 20px;
-            margin-bottom: 30px;
+            padding-bottom: 10px; /* Reduced */
+            margin-bottom: 20px; /* Reduced */
           }
           
           .header-left-section {
              display: flex;
              align-items: center;
-             gap: 20px;
+             gap: 15px;
           }
           
           .header-center-section {
              text-align: center;
              flex: 1;
-             padding: 0 20px;
+             padding: 0 15px;
           }
           
           .header-right-section {
              text-align: right;
-             min-width: 120px;
+             min-width: 100px;
           }
 
           .school-name {
@@ -246,21 +245,21 @@ export class PdfGenerationService {
             color: #000;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            margin-bottom: 5px;
-            line-height: 1.2;
+            margin-bottom: 2px;
+            line-height: 1.1;
           }
           
           .report-title-main {
             font-size: 16px;
             font-weight: 700;
-            color: #0056D2; /* Brand Blue */
+            color: #000; /* Black as requested */
             text-transform: uppercase;
-            margin-top: 5px;
+            margin-top: 2px;
           }
 
           .meta-text {
             font-size: 11px;
-            color: #666;
+            color: #000; /* Black */
             text-transform: uppercase;
             letter-spacing: 0.5px;
             margin-top: 2px;
@@ -270,7 +269,7 @@ export class PdfGenerationService {
           .term-label {
              font-size: 12px;
              font-weight: 600;
-             color: #666; /* Visible Grey */
+             color: #000; /* Black */
              text-transform: uppercase;
              display: block;
              margin-bottom: 2px;
@@ -278,7 +277,7 @@ export class PdfGenerationService {
           .year-label {
              font-size: 20px;
              font-weight: 800;
-             color: #000; /* Black */
+             color: #000;
              display: block;
              line-height: 1;
           }
@@ -286,16 +285,16 @@ export class PdfGenerationService {
           /* Student Details Strip */
           .student-strip {
              display: flex;
-             gap: 20px;
-             margin-bottom: 30px;
+             gap: 15px;
+             margin-bottom: 20px; /* Reduced */
              background: #f8f9fa;
-             border: 1px solid #e9ecef;
-             border-radius: 8px;
+             border: 1px solid #000; /* Black border for contrast */
+             border-radius: 6px;
              overflow: hidden;
           }
           
           .student-photo-box {
-             padding: 15px;
+             padding: 10px;
              background: #fff;
              border-right: 1px solid #e9ecef;
              display: flex;
@@ -307,8 +306,8 @@ export class PdfGenerationService {
              flex: 1;
              display: grid;
              grid-template-columns: repeat(2, 1fr);
-             gap: 15px 30px;
-             padding: 15px 20px;
+             gap: 10px 20px; /* Reduced gap */
+             padding: 10px 15px;
              align-content: center;
           }
           
@@ -316,12 +315,12 @@ export class PdfGenerationService {
             display: block;
             font-size: 10px;
             text-transform: uppercase;
-            color: #666;
-            font-weight: 600;
-            margin-bottom: 4px;
+            color: #000; /* Black */
+            font-weight: 700;
+            margin-bottom: 2px;
           }
           .detail-item span {
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 600;
             color: #000;
           }
@@ -330,12 +329,12 @@ export class PdfGenerationService {
           .data-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 13px;
+            font-size: 12px; /* Slightly smaller font to fit more */
           }
           .data-table th {
             background: #000;
             color: white;
-            padding: 12px 15px;
+            padding: 8px 12px; /* Reduced padding */
             text-align: left;
             font-weight: 600;
             text-transform: uppercase;
@@ -343,29 +342,33 @@ export class PdfGenerationService {
             letter-spacing: 0.5px;
             border-bottom: 2px solid #000;
           }
+          .data-table td {
+            padding: 8px 12px; /* Reduced padding */
+            border-bottom: 1px solid #e0e0e0;
+          }
           
           .section-header {
-             font-size: 14px;
+             font-size: 13px;
              font-weight: 700;
-             color: #0056D2;
+             color: #000; /* Black */
              text-transform: uppercase;
-             border-left: 4px solid #0056D2;
+             border-left: 4px solid #000; /* Black */
              padding-left: 10px;
-             margin: 30px 0 15px 0;
+             margin: 20px 0 10px 0; /* Reduced margins */
           }
           
           .remarks-box {
-             border: 1px solid #ddd;
-             border-radius: 6px;
-             padding: 15px;
-             height: 80px;
-             margin-top: 10px;
+             border: 1px solid #000;
+             border-radius: 4px;
+             padding: 10px;
+             height: 60px; /* Reduced height */
+             margin-top: 5px;
           }
 
           /* Footer (Signatures) */
           .footer {
-            margin-top: 25px;
-            padding-top: 20px;
+            margin-top: 20px;
+            padding-top: 15px;
             border-top: 2px solid #000;
             display: flex;
             justify-content: space-between;
@@ -378,23 +381,24 @@ export class PdfGenerationService {
              width: 180px;
           }
           .sign-line {
-             border-bottom: 1px solid #ccc;
-             height: 40px;
-             margin-bottom: 8px;
+             border-bottom: 1px solid #000;
+             height: 30px; /* Reduced height */
+             margin-bottom: 5px;
           }
-          .sign-label { font-size: 10px; color: #666; text-transform: uppercase; font-weight: 600; }
+          .sign-label { font-size: 10px; color: #000; text-transform: uppercase; font-weight: 700; }
           
           /* Grading Key (Now at bottom) */
           .grading-key-section {
-             margin-top: 20px;
-             padding-top: 10px;
-             border-top: 1px dashed #eee;
-             font-size: 11px; 
-             line-height: 1.6;
+             margin-top: 15px;
+             padding-top: 8px;
+             border-top: 1px dashed #000;
+             font-size: 10px; 
+             line-height: 1.4;
              break-inside: avoid;
              page-break-inside: avoid;
              display: flex;
              flex-direction: column;
+             color: #000;
           }
 
         </style>
@@ -466,11 +470,11 @@ export class PdfGenerationService {
           </table>
 
           <!-- Summary Section -->
-          <div style="margin-top: 25px; page-break-inside: avoid; break-inside: avoid;">
+          <div style="margin-top: 20px; page-break-inside: avoid; break-inside: avoid;">
              <div class="section-header" style="margin-top: 0;">Class Teacher's Remarks</div>
              <div class="remarks-box"></div>
              
-             <div class="section-header">Head Teacher's Remarks</div>
+             <div class="section-header" style="margin-top: 15px;">Head Teacher's Remarks</div>
              <div class="remarks-box"></div>
           </div>
           
@@ -481,7 +485,7 @@ export class PdfGenerationService {
                 <div class="sign-label">Class Teacher Signature</div>
              </div>
              
-             <div style="font-size: 9px; color: #aaa; text-align: center;">
+             <div style="font-size: 9px; color: #000; text-align: center;">
                 Generated on ${new Date().toLocaleDateString('en-GB')} at ${new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
              </div>
 
@@ -493,7 +497,7 @@ export class PdfGenerationService {
 
           <!-- Grading Scale Key (Moved Down) -->
           <div class="grading-key-section">
-             <div style="font-size: 10px; color: #888; text-transform: uppercase; margin-bottom: 3px;">Grading Key</div>
+             <div style="font-size: 10px; color: #000; text-transform: uppercase; margin-bottom: 3px; font-weight: 700;">Grading Key</div>
              <div>${gradingKeyHtml}</div>
           </div>
 

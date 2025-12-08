@@ -75,7 +75,7 @@ export class CalculationService {
    */
   async getGradeForScore(score: number, school_id: number): Promise<GradingScale | null> {
     const scales = await this.getGradingScales(school_id);
-    
+
     if (scales.length === 0) {
       return null;
     }
@@ -101,12 +101,14 @@ export class CalculationService {
   async calculateStudentSubjectMarks(
     student_id: number,
     exam_set_id: number,
-    subject_id: number
+    subject_id: number,
+    subject_name?: string
   ): Promise<any> {
     console.log('[CalculationService.calculateStudentSubjectMarks] Starting', {
       student_id,
       exam_set_id,
-      subject_id
+      subject_id,
+      subject_name
     });
 
     // Get all assessment elements for this subject/exam set
@@ -152,6 +154,7 @@ export class CalculationService {
         student_id,
         exam_set_id,
         subject_id,
+        subject_name,
         total_marks_obtained: 0,
         total_max_marks: 0,
         percentage: 0,
@@ -184,6 +187,7 @@ export class CalculationService {
       student_id,
       exam_set_id,
       subject_id,
+      subject_name,
       total_marks_obtained: total_marks,
       total_max_marks,
       percentage: Math.round(percentage * 100) / 100,
@@ -243,9 +247,10 @@ export class CalculationService {
 
     // Get all subjects for this exam set
     const subjectsQuery = `
-      SELECT DISTINCT subject_id
-      FROM config_assessment_elements
-      WHERE exam_set_id = $1
+      SELECT DISTINCT cae.subject_id, cs.subject_name
+      FROM config_assessment_elements cae
+      JOIN config_subjects cs ON cae.subject_id = cs.subject_id
+      WHERE cae.exam_set_id = $1
     `;
     console.log('[CalculationService] Fetching subjects for exam set:', exam_set_id);
     const subjectsResult = await pool.query(subjectsQuery, [exam_set_id]);
@@ -258,12 +263,14 @@ export class CalculationService {
       console.log('[CalculationService] Calculating marks for subject:', {
         student_id,
         exam_set_id,
-        subject_id: subject.subject_id
+        subject_id: subject.subject_id,
+        subject_name: subject.subject_name
       });
       const marks = await this.calculateStudentSubjectMarks(
         student_id,
         exam_set_id,
-        subject.subject_id
+        subject.subject_id,
+        subject.subject_name
       );
       if (marks) {
         subjectMarks.push(marks);
@@ -282,7 +289,7 @@ export class CalculationService {
     // Get assessment weights for the school
     const weightConfig = await this.getGradingConfig(school_id);
     console.log('[CalculationService] Weight config retrieved:', weightConfig);
-    
+
     // Determine weights based on curriculum type
     let formativeWeight = 20; // Default LSC
     let summativeWeight = 80;
@@ -341,7 +348,7 @@ export class CalculationService {
       WHERE student_id = $1
     `;
     const result = await pool.query(query, [student_id]);
-    
+
     for (const row of result.rows) {
       await this.calculateStudentReport(student_id, row.exam_set_id, school_id);
     }

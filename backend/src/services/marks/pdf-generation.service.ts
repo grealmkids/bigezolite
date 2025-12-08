@@ -114,14 +114,26 @@ export class PdfGenerationService {
     // Build subject rows
     const subjectRows = reportData.subjects
       .map((subject: any, index: number) => {
-        const percentage = subject.percentage.toFixed(2);
-        const letterGrade = this.getLetterGrade(parseFloat(percentage), reportData.grading_scales);
+        // Use Math.round for whole numbers as requested
+        // Handle NaN/Missing scores
+        const isMissing = isNaN(subject.percentage) || subject.percentage === null || subject.percentage === undefined;
+
+        let percentageDisplay = 'Missing';
+        let marksDisplay = 'Missing';
+        let letterGrade = 'N/A';
+
+        if (!isMissing) {
+          percentageDisplay = Math.round(subject.percentage) + '%';
+          marksDisplay = `${Math.round(subject.total_marks_obtained)} / ${Math.round(subject.total_max_marks)}`;
+          letterGrade = this.getLetterGrade(Math.round(subject.percentage), reportData.grading_scales);
+        }
+
         const rowBg = index % 2 === 0 ? '#ffffff' : '#f8f9fa';
         return `
           <tr style="background-color: ${rowBg};">
-            <td style="padding: 10px 15px; border-bottom: 1px solid #e0e0e0; font-weight: 500; font-size: 13px;">${subject.subject_id}</td>
-            <td style="padding: 10px 15px; border-bottom: 1px solid #e0e0e0; text-align: center; font-size: 13px;">${subject.total_marks_obtained} / ${subject.total_max_marks}</td>
-            <td style="padding: 10px 15px; border-bottom: 1px solid #e0e0e0; text-align: right; font-family: 'Roboto Mono', monospace; font-size: 13px;">${percentage}%</td>
+            <td style="padding: 10px 15px; border-bottom: 1px solid #e0e0e0; font-weight: 500; font-size: 13px;">${subject.subject_name || subject.subject_id}</td>
+            <td style="padding: 10px 15px; border-bottom: 1px solid #e0e0e0; text-align: center; font-size: 13px;">${marksDisplay}</td>
+            <td style="padding: 10px 15px; border-bottom: 1px solid #e0e0e0; text-align: right; font-family: 'Roboto Mono', monospace; font-size: 13px;">${percentageDisplay}</td>
             <td style="padding: 10px 15px; border-bottom: 1px solid #e0e0e0; text-align: center; font-weight: bold; color: ${this.getGradeColor(letterGrade)}; font-size: 13px;">${letterGrade}</td>
           </tr>
         `;
@@ -129,17 +141,19 @@ export class PdfGenerationService {
       .join('');
 
     // Build grading scales
-    const gradeScalesRows = reportData.grading_scales
-      .map((scale: any, index: number) => {
-        const rowBg = index % 2 === 0 ? '#ffffff' : '#f8f9fa';
-        return `
-        <tr style="background-color: ${rowBg};">
-          <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: center; font-weight: bold; font-size: 11px; color: ${this.getGradeColor(scale.grade_letter)};">${scale.grade_letter}</td>
-          <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: center; font-size: 11px;">${scale.min_score_percent}%</td>
-          <td style="padding: 8px; border-bottom: 1px solid #eee; font-size: 11px;">${scale.descriptor || '-'}</td>
-        </tr>
-      `})
-      .join('');
+    const gradeScalesRows = reportData.grading_scales && reportData.grading_scales.length > 0
+      ? reportData.grading_scales
+        .map((scale: any, index: number) => {
+          const rowBg = index % 2 === 0 ? '#ffffff' : '#f8f9fa';
+          return `
+          <tr style="background-color: ${rowBg};">
+            <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: center; font-weight: bold; font-size: 11px; color: ${this.getGradeColor(scale.grade_letter)};">${scale.grade_letter}</td>
+            <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: center; font-size: 11px;">${Math.round(scale.min_score_percent)}% - 100%</td>
+            <td style="padding: 8px; border-bottom: 1px solid #eee; font-size: 11px;">${scale.descriptor || '-'}</td>
+          </tr>
+        `})
+        .join('')
+      : '<tr><td colspan="3" style="padding: 10px; text-align: center; font-size: 11px; color: #999;">Grading system not configured.</td></tr>';
 
     // Badge Handling
     const badgeHtml = student.badge_url

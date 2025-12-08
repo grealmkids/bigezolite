@@ -252,7 +252,7 @@ export class PdfGenerationService {
           .report-title-main {
             font-size: 16px;
             font-weight: 700;
-            color: #000; /* Black as requested */
+            color: #0059b3; /* Brand Blue */
             text-transform: uppercase;
             margin-top: 2px;
           }
@@ -325,6 +325,12 @@ export class PdfGenerationService {
             color: #000;
           }
           
+          /* Specific styling for Student Name to be Blue */
+          .detail-item.student-name-item label,
+          .detail-item.student-name-item span {
+             color: #0059b3 !important;
+          }
+
           /* Tables */
           .data-table {
             width: 100%;
@@ -350,9 +356,9 @@ export class PdfGenerationService {
           .section-header {
              font-size: 13px;
              font-weight: 700;
-             color: #000; /* Black */
+             color: #0059b3; /* Brand Blue */
              text-transform: uppercase;
-             border-left: 4px solid #000; /* Black */
+             border-left: 4px solid #0059b3; /* Brand Blue */
              padding-left: 10px;
              margin: 20px 0 10px 0; /* Reduced margins */
           }
@@ -369,7 +375,7 @@ export class PdfGenerationService {
           .footer {
             margin-top: 20px;
             padding-top: 15px;
-            border-top: 2px solid #000;
+            border-top: none; /* Removed horizontal line */
             display: flex;
             justify-content: space-between;
             align-items: flex-end;
@@ -433,7 +439,7 @@ export class PdfGenerationService {
                 ${photoHtml}
              </div>
              <div class="student-details-grid">
-                <div class="detail-item">
+                <div class="detail-item student-name-item">
                   <label>Student Name</label>
                   <span>${student.student_name}</span>
                 </div>

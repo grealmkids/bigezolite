@@ -8,7 +8,7 @@ export interface Staff {
     gender: 'Male' | 'Female';
     email: string;
     phone: string;
-    role: 'Teacher' | 'Class Teacher' | 'Accountant' | 'IT' | 'Canteen' | 'Other';
+    role: 'Teacher' | 'Class Teacher' | 'Head Teacher' | 'Accountant' | 'IT' | 'Canteen' | 'Other';
     photo_url?: string;
     password_hash?: string;
     google_uid?: string;

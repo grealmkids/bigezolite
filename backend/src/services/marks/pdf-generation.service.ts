@@ -66,12 +66,21 @@ export class PdfGenerationService {
         WHERE sca.school_id = $1 AND sca.class_name = $2
         LIMIT 1
       `;
-      // Use examSet.class_level for class name matching
       const teacherResult = await pool.query(teacherQuery, [school_id, examSet.class_level]);
       const classTeacher = teacherResult.rows[0] || null;
 
+      // Get Head Teacher details
+      const headTeacherQuery = `
+        SELECT first_name, last_name 
+        FROM staff 
+        WHERE school_id = $1 AND role = 'Head Teacher' 
+        LIMIT 1
+      `;
+      const headTeacherResult = await pool.query(headTeacherQuery, [school_id]);
+      const headTeacher = headTeacherResult.rows[0] || null;
+
       // Generate HTML content
-      const htmlContent = this.generateReportHtml(student, examSet, reportData, classTeacher);
+      const htmlContent = this.generateReportHtml(student, examSet, reportData, classTeacher, headTeacher);
 
       // Launch Puppeteer
       const browser = await puppeteer.launch({
@@ -120,7 +129,7 @@ export class PdfGenerationService {
   /**
    * Generate HTML report content
    */
-  private generateReportHtml(student: any, examSet: any, reportData: any, classTeacher: any): string {
+  private generateReportHtml(student: any, examSet: any, reportData: any, classTeacher: any, headTeacher: any): string {
     const termNames = ['', 'Term 1', 'Term 2', 'Term 3'];
     const currentYear = examSet.year || new Date().getFullYear();
     const termDisplay = termNames[examSet.term] || 'Term 1';
@@ -337,10 +346,12 @@ export class PdfGenerationService {
             color: #000;
           }
           
-          /* Specific styling for Student Name to be Blue */
-          .detail-item.student-name-item label,
+          /* Specific styling for Student Name Label to be BLACK, but Name to be Blue */
+          .detail-item.student-name-item label {
+             color: #000 !important; /* Force Black for label */
+          }
           .detail-item.student-name-item span {
-             color: #0059b3 !important;
+             color: #0059b3 !important; /* Blue for name */
           }
 
           /* Tables */
@@ -515,6 +526,9 @@ export class PdfGenerationService {
              <div class="sign-box">
                 <div class="sign-line"></div>
                 <div class="sign-label">Head Teacher Signature</div>
+                <div style="font-size: 10px; color: #000; margin-top: 5px; font-weight: 600;">
+                   ${headTeacher ? `${headTeacher.first_name} ${headTeacher.last_name}` : ''}
+                </div>
              </div>
           </div>
 

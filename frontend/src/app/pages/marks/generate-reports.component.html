@@ -10,11 +10,7 @@
     <div class="filters-grid">
       <div class="form-group">
         <label>Class Level *</label>
-        <select
-          [(ngModel)]="selectedClass"
-          (change)="onClassChange()"
-          name="classLevel"
-        >
+        <select [(ngModel)]="selectedClass" (change)="onClassChange()" name="classLevel">
           <option value="" disabled>Select Class Level</option>
           <option *ngFor="let cls of classes" [value]="cls">{{ cls }}</option>
         </select>
@@ -22,11 +18,7 @@
 
       <div class="form-group">
         <label>Year *</label>
-        <select
-          [(ngModel)]="selectedYear"
-          (change)="onYearChange()"
-          name="year"
-        >
+        <select [(ngModel)]="selectedYear" (change)="onYearChange()" name="year">
           <option *ngFor="let year of years" [value]="year">{{ year }}</option>
         </select>
       </div>
@@ -35,10 +27,7 @@
         <label>Exam Set (Optional)</label>
         <select [(ngModel)]="selectedExamSetId" name="examSetId">
           <option [value]="null">All Exams</option>
-          <option
-            *ngFor="let examSet of examSets"
-            [value]="examSet.exam_set_id"
-          >
+          <option *ngFor="let examSet of examSets" [value]="examSet.exam_set_id">
             {{ examSet.set_name }} (Term {{ examSet.term }})
           </option>
         </select>
@@ -54,6 +43,14 @@
   <!-- Students List Section -->
   <div class="students-section" *ngIf="selectedClass">
     <h2>Students in {{ selectedClass }}</h2>
+
+    <!-- Bulk Generation Button -->
+    <div class="bulk-actions" *ngIf="students.length > 0">
+      <button class="btn-generate-all" (click)="openBulkConfirmation()"
+        [disabled]="!selectedExamSetId || isBulkGenerating">
+        Generate All <span class="material-icons">download</span>
+      </button>
+    </div>
 
     <div *ngIf="loadingStudents" class="info-message">Loading students...</div>
 
@@ -77,11 +74,8 @@
             <td>{{ student.reg_number }}</td>
             <td>{{ student.class_name }}</td>
             <td>
-              <button
-                (click)="createStudentReport(student)"
-                [disabled]="generatingReport || !selectedExamSetId"
-                class="btn-create-report"
-              >
+              <button (click)="createStudentReport(student)" [disabled]="generatingReport || !selectedExamSetId"
+                class="btn-create-report">
                 {{ generatingReport ? "Generating..." : "Create Report" }}
               </button>
             </td>
@@ -90,4 +84,36 @@
       </table>
     </div>
   </div>
+
+  <!-- Confirmation Modal -->
+  <div class="modal-overlay" *ngIf="showConfirmationModal">
+    <div class="modal-content confirmation-modal">
+      <h3>Bulk Report Generation</h3>
+      <p>Download all <strong>{{ students.length }}</strong> reports for <strong>{{ selectedClass }}</strong>?</p>
+
+      <div class="modal-actions">
+        <button class="btn-cancel" (click)="cancelBulkGeneration()">Cancel</button>
+        <button class="btn-confirm" (click)="startBulkGeneration()">Yes, Download</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Progress Overlay -->
+  <div class="progress-overlay" *ngIf="isBulkGenerating">
+    <div class="progress-content">
+      <h2>Creating Reports...</h2>
+
+      <div class="progress-stats">
+        <span class="count-text">{{ bulkProgressCount }} out of {{ totalStudentsToGenerate }}</span>
+      </div>
+
+      <div class="progress-bar-container">
+        <div class="progress-bar" [style.width.%]="bulkProgressPercent"></div>
+      </div>
+
+      <div class="percentage-text">{{ bulkProgressPercent }}%</div>
+      <div class="current-student">Processing: {{ currentStudentName }}</div>
+    </div>
+  </div>
+
 </div>

@@ -14,6 +14,10 @@ interface StudentReport {
   class_name: string;
 }
 
+import JSZip from 'jszip';
+// Since file-saver is not installed, I'll stick to anchor tag trick or use a helper. 
+// Actually, standard anchor download is fine.
+
 @Component({
   selector: 'app-generate-reports',
   standalone: true,
@@ -27,14 +31,22 @@ export class GenerateReportsComponent implements OnInit {
   selectedClass: string = '';
   years: number[] = [];
   selectedYear: number = new Date().getFullYear();
-  
+
   examSets: ExamSet[] = [];
   selectedExamSetId: number | null = null;
   students: StudentReport[] = [];
-  
+
   loading = false;
   loadingStudents = false;
   generatingReport = false;
+
+  // Bulk Generation State
+  showConfirmationModal = false;
+  isBulkGenerating = false;
+  bulkProgressPercent = 0;
+  bulkProgressCount = 0;
+  totalStudentsToGenerate = 0;
+  currentStudentName = '';
 
   constructor(
     private marksService: MarksService,
@@ -42,7 +54,7 @@ export class GenerateReportsComponent implements OnInit {
     private schoolService: SchoolService,
     private classCategorizationService: ClassCategorizationService,
     private studentService: StudentService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.schoolService.getMySchool().subscribe({
@@ -87,7 +99,7 @@ export class GenerateReportsComponent implements OnInit {
     if (this.selectedClass) {
       filters.class_level = this.selectedClass;
     }
-    
+
     this.marksService.getExamSets(this.schoolId, filters).subscribe({
       next: (data) => {
         this.examSets = data;
@@ -111,7 +123,7 @@ export class GenerateReportsComponent implements OnInit {
 
   loadStudents(): void {
     if (!this.selectedClass) return;
-    
+
     this.loadingStudents = true;
     // Use StudentService to fetch students filtered by class
     this.studentService.getStudents(this.schoolId, undefined, this.selectedClass).subscribe({
@@ -144,7 +156,7 @@ export class GenerateReportsComponent implements OnInit {
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `Report_${student.student_name}_${this.selectedYear}.pdf`;
+        link.download = `Report_${student.student_name.replace(/[^a-z0-9]/gi, '_')}_${this.selectedYear}.pdf`;
         link.click();
         window.URL.revokeObjectURL(url);
         this.generatingReport = false;
@@ -154,6 +166,88 @@ export class GenerateReportsComponent implements OnInit {
         alert('Failed to generate report');
         this.generatingReport = false;
       }
+    });
+  }
+
+  // --- Bulk Generation Logic ---
+
+  openBulkConfirmation(): void {
+    if (!this.selectedExamSetId) {
+      alert('Please select an exam to generate reports for.');
+      return;
+    }
+    if (this.students.length === 0) {
+      alert('No students found in the selected class.');
+      return;
+    }
+    this.showConfirmationModal = true;
+  }
+
+  cancelBulkGeneration(): void {
+    this.showConfirmationModal = false;
+    this.isBulkGenerating = false;
+  }
+
+  async startBulkGeneration(): Promise<void> {
+    if (!this.selectedExamSetId) return;
+
+    this.showConfirmationModal = false;
+    this.isBulkGenerating = true;
+    this.bulkProgressCount = 0;
+    this.totalStudentsToGenerate = this.students.length;
+    this.bulkProgressPercent = 0;
+
+    const zip = new JSZip();
+    const folderName = `${this.selectedClass}_Reports_${this.selectedYear}`;
+    const folder = zip.folder(folderName);
+
+    try {
+      for (let i = 0; i < this.students.length; i++) {
+        const student = this.students[i];
+        this.currentStudentName = student.student_name;
+
+        // Generate PDF Promise
+        const pdfBlob = await this.generateReportPromise(this.selectedExamSetId, student.student_id);
+
+        if (pdfBlob && folder) {
+          const safeName = student.student_name.replace(/[^a-z0-9]/gi, '_');
+          folder.file(`${safeName}.pdf`, pdfBlob);
+        }
+
+        // Update Progress
+        this.bulkProgressCount++;
+        this.bulkProgressPercent = Math.round((this.bulkProgressCount / this.totalStudentsToGenerate) * 100);
+      }
+
+      // Generate Zip and Download
+      this.currentStudentName = 'Compressing...';
+      const zipContent = await zip.generateAsync({ type: 'blob' });
+
+      const url = window.URL.createObjectURL(zipContent);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${folderName}.zip`;
+      link.click();
+      window.URL.revokeObjectURL(url);
+
+    } catch (error) {
+      console.error('Error in bulk generation:', error);
+      alert('An error occurred while generating reports. Some reports may not have been downloaded.');
+    } finally {
+      this.isBulkGenerating = false;
+      this.currentStudentName = '';
+    }
+  }
+
+  generateReportPromise(examSetId: number, studentId: number): Promise<Blob | null> {
+    return new Promise((resolve) => {
+      this.marksService.generateStudentReportPDF(examSetId, studentId).subscribe({
+        next: (blob) => resolve(blob),
+        error: (err) => {
+          console.error(`Failed to generate for student ${studentId}`, err);
+          resolve(null); // Resolve null to continue loop
+        }
+      });
     });
   }
 

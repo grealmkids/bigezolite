@@ -161,9 +161,9 @@ export class PdfGenerationService {
       ? reportData.grading_scales
         .sort((a: any, b: any) => b.min_score_percent - a.min_score_percent)
         .map((scale: any) => {
-          return `<span style="margin-right: 15px; font-size: 10px; color: #444;">
+          return `<span style="display: inline-block; margin-right: 15px; white-space: nowrap;">
                 <strong style="color: ${this.getGradeColor(scale.grade_letter)}">${scale.grade_letter}</strong> 
-                (${Math.round(scale.min_score_percent)}% - 100%)
+                <span style="color: #666; font-size: 10px;">(${Math.round(scale.min_score_percent)}% - 100%)</span>
              </span>`;
         })
         .join('')
@@ -193,15 +193,25 @@ export class PdfGenerationService {
             color: #1a1a1a;
             line-height: 1.4;
             background: #ffffff;
+            -webkit-print-color-adjust: exact;
           }
           .report-container {
             width: 210mm;
-            min-height: 297mm;
+            /* Allow height to grow naturally for pagination, Puppeteer handles page cuts */
             margin: 0 auto;
             padding: 15mm;
             background: white;
             position: relative;
           }
+          
+          /* Page Break Rules */
+          table { page-break-inside: auto; }
+          tr { page-break-inside: avoid; break-inside: avoid; }
+          thead { display: table-header-group; }
+          tfoot { display: table-footer-group; }
+          .section-header { page-break-after: avoid; break-after: avoid; }
+          .student-strip { page-break-inside: avoid; break-inside: avoid; }
+          .footer { page-break-inside: avoid; break-inside: avoid; }
           
           /* Header Layout */
           .header {
@@ -331,6 +341,7 @@ export class PdfGenerationService {
             text-transform: uppercase;
             font-size: 11px;
             letter-spacing: 0.5px;
+            border-bottom: 2px solid #000;
           }
           
           .section-header {
@@ -351,14 +362,16 @@ export class PdfGenerationService {
              margin-top: 10px;
           }
 
-          /* Footer */
+          /* Footer (Signatures) */
           .footer {
-            margin-top: 50px;
+            margin-top: 25px;
             padding-top: 20px;
             border-top: 2px solid #000;
             display: flex;
             justify-content: space-between;
             align-items: flex-end;
+            page-break-inside: avoid;
+            break-inside: avoid;
           }
           .sign-box {
              text-align: center;
@@ -371,10 +384,17 @@ export class PdfGenerationService {
           }
           .sign-label { font-size: 10px; color: #666; text-transform: uppercase; font-weight: 600; }
           
+          /* Grading Key (Now at bottom) */
           .grading-key-section {
-             margin-top: 40px;
-             padding-top: 15px;
-             border-top: 1px dashed #ddd;
+             margin-top: 20px;
+             padding-top: 10px;
+             border-top: 1px dashed #eee;
+             font-size: 11px; 
+             line-height: 1.6;
+             break-inside: avoid;
+             page-break-inside: avoid;
+             display: flex;
+             flex-direction: column;
           }
 
         </style>
@@ -431,7 +451,7 @@ export class PdfGenerationService {
           <!-- Academic Table -->
           <div class="section-header">Academic Performance</div>
           <table class="data-table">
-            <thead>
+             <thead>
               <tr>
                 <th style="width: 30%;">Subject</th>
                 <th style="width: 15%; text-align: center;">Score</th>
@@ -445,8 +465,8 @@ export class PdfGenerationService {
             </tbody>
           </table>
 
-          <!-- Summary Section (Optional but good for layout) -->
-          <div style="margin-top: 30px;">
+          <!-- Summary Section -->
+          <div style="margin-top: 25px; page-break-inside: avoid; break-inside: avoid;">
              <div class="section-header" style="margin-top: 0;">Class Teacher's Remarks</div>
              <div class="remarks-box"></div>
              
@@ -454,14 +474,7 @@ export class PdfGenerationService {
              <div class="remarks-box"></div>
           </div>
           
-          <!-- Grading Scale Key (Inline) -->
-          <div class="grading-key-section">
-             <div style="font-size: 10px; color: #888; text-transform: uppercase; margin-bottom: 5px;">Grading Key</div>
-             <div>${gradingKeyHtml}</div>
-          </div>
-
-
-          <!-- Signature Footer -->
+          <!-- Signature Footer (Moved Up) -->
           <div class="footer">
              <div class="sign-box">
                 <div class="sign-line"></div>
@@ -476,6 +489,12 @@ export class PdfGenerationService {
                 <div class="sign-line"></div>
                 <div class="sign-label">Head Teacher Signature</div>
              </div>
+          </div>
+
+          <!-- Grading Scale Key (Moved Down) -->
+          <div class="grading-key-section">
+             <div style="font-size: 10px; color: #888; text-transform: uppercase; margin-bottom: 3px;">Grading Key</div>
+             <div>${gradingKeyHtml}</div>
           </div>
 
         </div>

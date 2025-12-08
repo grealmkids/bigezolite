@@ -24,7 +24,7 @@ import { StaffService, Staff } from '../../../services/staff.service';
 export class StaffEditModalComponent implements OnInit {
     staffForm: FormGroup;
     isEditMode = false;
-    roles: string[] = ['Teacher', 'Class Teacher', 'Accountant', 'IT', 'Canteen', 'Other'];
+    roles: string[] = ['Teacher', 'Class Teacher', 'Head Teacher', 'Accountant', 'IT', 'Canteen', 'Other'];
     selectedFile: File | null = null;
     photoPreview: string | null = null;
     uploadProgress: number = 0;

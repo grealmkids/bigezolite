@@ -58,8 +58,20 @@ export class PdfGenerationService {
       }
       const examSet = examSetResult.rows[0];
 
+      // Get class teacher details
+      const teacherQuery = `
+        SELECT st.first_name, st.last_name, st.phone
+        FROM staff_class_assignments sca
+        JOIN staff st ON sca.staff_id = st.staff_id
+        WHERE sca.school_id = $1 AND sca.class_name = $2
+        LIMIT 1
+      `;
+      // Use examSet.class_level for class name matching
+      const teacherResult = await pool.query(teacherQuery, [school_id, examSet.class_level]);
+      const classTeacher = teacherResult.rows[0] || null;
+
       // Generate HTML content
-      const htmlContent = this.generateReportHtml(student, examSet, reportData);
+      const htmlContent = this.generateReportHtml(student, examSet, reportData, classTeacher);
 
       // Launch Puppeteer
       const browser = await puppeteer.launch({
@@ -108,7 +120,7 @@ export class PdfGenerationService {
   /**
    * Generate HTML report content
    */
-  private generateReportHtml(student: any, examSet: any, reportData: any): string {
+  private generateReportHtml(student: any, examSet: any, reportData: any, classTeacher: any): string {
     const termNames = ['', 'Term 1', 'Term 2', 'Term 3'];
     const currentYear = examSet.year || new Date().getFullYear();
     const termDisplay = termNames[examSet.term] || 'Term 1';
@@ -358,8 +370,7 @@ export class PdfGenerationService {
              font-weight: 700;
              color: #0059b3; /* Brand Blue */
              text-transform: uppercase;
-             border-left: 4px solid #0059b3; /* Brand Blue */
-             padding-left: 10px;
+             padding-left: 0; /* Removed left padding/border */
              margin: 20px 0 10px 0; /* Reduced margins */
           }
           
@@ -489,10 +500,16 @@ export class PdfGenerationService {
              <div class="sign-box">
                 <div class="sign-line"></div>
                 <div class="sign-label">Class Teacher Signature</div>
+                <div style="font-size: 10px; color: #000; margin-top: 5px; font-weight: 600;">
+                   ${classTeacher ? `${classTeacher.first_name} ${classTeacher.last_name}` : ''}
+                </div>
+                <div style="font-size: 9px; color: #000;">
+                   ${classTeacher ? classTeacher.phone : ''}
+                </div>
              </div>
              
              <div style="font-size: 9px; color: #000; text-align: center;">
-                Generated on ${new Date().toLocaleDateString('en-GB')} at ${new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+                Generated using Bigezo on ${new Date().toLocaleDateString('en-GB')} at ${new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
              </div>
 
              <div class="sign-box">
@@ -512,7 +529,6 @@ export class PdfGenerationService {
       </html>
     `;
   }
-
   private getLetterGrade(percentage: number, scales: any[]): string {
     for (const scale of scales) {
       if (percentage >= scale.min_score_percent) return scale.grade_letter;

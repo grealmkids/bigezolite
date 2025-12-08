@@ -334,7 +334,7 @@ router.get('/reports/:examSetId/student/:studentId/pdf', async (req: Request, re
 
     // Verify student exists and belongs to this school
     const studentQuery = `
-      SELECT student_id, full_name, reg_number, class_name
+      SELECT student_id, student_name, reg_number, class_name
       FROM students
       WHERE student_id = $1 AND school_id = $2
     `;
@@ -349,7 +349,7 @@ router.get('/reports/:examSetId/student/:studentId/pdf', async (req: Request, re
     }
 
     const student = studentResult.rows[0];
-    console.log('[PDF Report] Student found', { studentId, name: student.full_name });
+    console.log('[PDF Report] Student found', { studentId, name: student.student_name });
 
     // Check if student has any marks for this exam set
     const marksCheckQuery = `

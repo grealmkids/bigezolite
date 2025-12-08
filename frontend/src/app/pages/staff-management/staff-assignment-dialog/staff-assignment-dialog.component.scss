@@ -1,5 +1,5 @@
 /* Staff Assignment Dialog Styles */
-@import '../staff-edit-modal/staff-edit-modal.component.scss'; // Inherit base styles
+@use '../staff-edit-modal/staff-edit-modal.component.scss'; // Inherit base styles
 
 .modal-card {
     width: 100%;

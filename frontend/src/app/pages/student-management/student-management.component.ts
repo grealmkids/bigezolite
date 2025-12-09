@@ -82,7 +82,7 @@ export class StudentManagementComponent implements OnInit {
   selectedStudent: Student | null = null;
 
   classes: string[] = [];
-  years = ['2023', '2024', '2025']; // This can also be dynamic
+  years: string[] = [];
   loadingClasses = false;
 
   constructor(
@@ -95,7 +95,16 @@ export class StudentManagementComponent implements OnInit {
     private dialog: MatDialog,
     private feesService: FeesService,
     private feesToTrackService: FeesToTrackService
-  ) { }
+  ) {
+    // Generate years: Current year down to 9 years ago, plus "All years"
+    const currentYear = new Date().getFullYear();
+    this.years = ['All years'];
+    for (let i = 0; i < 10; i++) {
+      this.years.push((currentYear - i).toString());
+    }
+    // Default year filter to current year
+    this.yearFilter.next(currentYear.toString());
+  }
 
   onSearch(term: string): void {
     // Reset to first page whenever filters/search changes

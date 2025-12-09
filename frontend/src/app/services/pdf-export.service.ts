@@ -372,9 +372,10 @@ export class PdfExportService {
     // ========== TABLE SECTION (Adobe-quality styling) ==========
 
     // Prepare columns
+    // Prepare columns
     const columns = ['#'];
     if (header.includePhotos) columns.push('Photo');
-    columns.push('Reg Number', 'LIN', 'Student Name', 'Class', 'Status', 'Fees Status', 'Parent Phone');
+    columns.push('Reg Number', 'Student Name', 'LIN', 'Class', 'Status', 'Fees Status', 'Parent Phone');
 
     // Prepare table data
     const tableData = students.map((student, index) => {
@@ -387,8 +388,8 @@ export class PdfExportService {
       }
       row.push(
         student.reg_number?.replace(/-/g, '') || '',
-        student.lin || '-',
         student.student_name || '',
+        student.lin || '-',
         student.class_name || '',
         student.student_status || '',
         feesLabel,
@@ -408,9 +409,9 @@ export class PdfExportService {
     }
     colStyles[colIdx] = { halign: 'left', cellWidth: 30, fontStyle: 'bold', valign: 'middle' }; // Reg Number
     colIdx++;
-    colStyles[colIdx] = { halign: 'left', cellWidth: 30, valign: 'middle' }; // LIN
-    colIdx++;
     colStyles[colIdx] = { halign: 'left', cellWidth: 'auto', fontStyle: 'normal', valign: 'middle' }; // Name
+    colIdx++;
+    colStyles[colIdx] = { halign: 'left', cellWidth: 30, valign: 'middle' }; // LIN
     colIdx++;
     colStyles[colIdx] = { halign: 'left', cellWidth: 22, valign: 'middle' }; // Class
     colIdx++;
@@ -420,9 +421,9 @@ export class PdfExportService {
     colIdx++;
     colStyles[colIdx] = { halign: 'left', cellWidth: 35, valign: 'middle' }; // Phone
 
-    // Indices for status coloring (Account for #, Photo?, Reg, LIN, Name, Class -> Status is next)
-    // If Photos: # (0), Photo (1), Reg (2), LIN (3), Name (4), Class (5), Status (6), Fees (7)
-    // No Photos: # (0), Reg (1), LIN (2), Name (3), Class (4), Status (5), Fees (6)
+    // Indices for status coloring (Account for #, Photo?, Reg, Name, LIN, Class -> Status is next)
+    // If Photos: # (0), Photo (1), Reg (2), Name (3), LIN (4), Class (5), Status (6), Fees (7)
+    // No Photos: # (0), Reg (1), Name (2), LIN (3), Class (4), Status (5), Fees (6)
     const statusColIdx = header.includePhotos ? 6 : 5;
     const feesStatusColIdx = header.includePhotos ? 7 : 6;
     const photoColIdx = 1;

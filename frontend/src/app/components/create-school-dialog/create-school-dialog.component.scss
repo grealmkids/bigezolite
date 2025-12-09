@@ -33,6 +33,9 @@
     .cancel-btn {
         text-transform: uppercase;
         font-weight: 600;
+        color: #d32f2f; // Mat-red
+        border: 1px solid #d32f2f;
+        padding: 0 16px;
     }
 
     .confirm-btn {

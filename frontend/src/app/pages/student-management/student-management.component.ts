@@ -49,7 +49,7 @@ export class StudentManagementComponent implements OnInit {
   students$: Observable<{ items: Student[]; total: number }> | undefined;
   displayedStudents: Student[] = [];
   // When fees filter is selected, we build fee rows for the current page
-  displayedFeeRows: Array<{ reg: string; name: string; klass: string; category: string; feesStatus: string; term?: number; year?: number; total?: number; paid?: number; balance?: number; phone: string }> = [];
+  displayedFeeRows: Array<{ reg: string; lin?: string; name: string; klass: string; category: string; feesStatus: string; term?: number; year?: number; total?: number; paid?: number; balance?: number; phone: string }> = [];
   loadingFees = false;
   isLoading = false;
   private searchTerms = new Subject<string>();
@@ -355,7 +355,7 @@ export class StudentManagementComponent implements OnInit {
     forkJoin(requests).pipe(take(1)).subscribe({
       next: (recordsList: any[]) => {
         const filter = (this.feesStatusFilter.value || '').toLowerCase();
-        const rows: Array<{ reg: string; name: string; klass: string; category: string; feesStatus: string; term?: number; year?: number; total?: number; paid?: number; balance?: number; phone: string }> = [];
+        const rows: Array<{ reg: string; lin?: string; name: string; klass: string; category: string; feesStatus: string; term?: number; year?: number; total?: number; paid?: number; balance?: number; phone: string }> = [];
         students.forEach((s, idx) => {
           const fees = (recordsList[idx] || []) as FeeRecord[];
           // filter by selected year and term (if provided)
@@ -375,6 +375,7 @@ export class StudentManagementComponent implements OnInit {
             if (include) {
               rows.push({
                 reg: (s.reg_number || '').replace(/-/g, ''),
+                lin: s.lin,
                 name: s.student_name || '',
                 klass: s.class_name || '',
                 category: s.student_status || '',
@@ -562,7 +563,7 @@ export class StudentManagementComponent implements OnInit {
           forkJoin(requests).pipe(take(1)).subscribe({
             next: async (allFeeRecords: any[]) => {
               // Build per-term rows and filter per selected status, year, and term
-              type Row = { reg: string; name: string; klass: string; feesStatus: string; feeName?: string; term: number | undefined; year: number | undefined; total: number | undefined; paid: number | undefined; balance: number | undefined; phone: string };
+              type Row = { reg: string; lin?: string; name: string; klass: string; feesStatus: string; feeName?: string; term: number | undefined; year: number | undefined; total: number | undefined; paid: number | undefined; balance: number | undefined; phone: string };
               const rows: Row[] = [];
               const filter = (feesStatusTerm || '').toLowerCase();
               const ySel = yearTerm ? Number(yearTerm) : new Date().getFullYear(); // enforce one year (default current)
@@ -585,6 +586,7 @@ export class StudentManagementComponent implements OnInit {
                     if (fr.fee_id) neededFeeIds.add(fr.fee_id as number);
                     rows.push({
                       reg: (s.reg_number || '').replace(/-/g, ''),
+                      lin: s.lin,
                       name: s.student_name || '',
                       klass: s.class_name || '',
                       feesStatus: status,

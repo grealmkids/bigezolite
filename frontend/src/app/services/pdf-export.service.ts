@@ -25,7 +25,7 @@ export class PdfExportService {
 
   constructor() { }
 
-  generateFeesDetailsPDF(rows: Array<{ reg: string; name: string; klass: string; feesStatus: string; feeName?: string; term?: number; year?: number; total?: number; paid?: number; balance?: number; phone: string }>, header: PDFHeader): void {
+  generateFeesDetailsPDF(rows: Array<{ reg: string; lin?: string; name: string; klass: string; feesStatus: string; feeName?: string; term?: number; year?: number; total?: number; paid?: number; balance?: number; phone: string }>, header: PDFHeader): void {
     const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
@@ -97,7 +97,7 @@ export class PdfExportService {
     const includeTerm = !header.hideTerm;
     const includeYear = !header.hideYear;
     const head = [[
-      '#', 'Reg Number', 'Student Name', 'Class', 'Fees Status', 'Fee',
+      '#', 'Reg Number', 'LIN', 'Student Name', 'Class', 'Fees Status', 'Fee',
       ...(includeTerm ? ['Term'] : []),
       ...(includeYear ? ['Year'] : []),
       'Total Due', 'Paid', 'Balance', 'Parent Phone'
@@ -110,6 +110,7 @@ export class PdfExportService {
       const base: any[] = [
         i + 1,
         r.reg,
+        r.lin || '-',
         r.name,
         r.klass,
         (r.feesStatus || '').toLowerCase() === 'pending' ? 'Partially Paid' : (r.feesStatus || ''),
@@ -135,23 +136,24 @@ export class PdfExportService {
       headStyles: { fillColor: [52, 73, 94], textColor: [255, 255, 255], fontSize: 12, fontStyle: 'bold', halign: 'left', cellPadding: 4 },
       columnStyles: {
         0: { cellWidth: 8 }, // #
-        1: { cellWidth: 28 }, // Reg
-        2: { cellWidth: 48 }, // Name
-        3: { cellWidth: 20 }, // Class
-        4: { cellWidth: 24 }, // Status
-        5: { cellWidth: 30 }, // Fee
-        6: { cellWidth: includeTerm ? 14 : (includeYear ? 20 : 24) }, // Term or Total Due depending on shifts
+        1: { cellWidth: 24 }, // Reg
+        2: { cellWidth: 24 }, // LIN
+        3: { cellWidth: 44 }, // Name
+        4: { cellWidth: 18 }, // Class
+        5: { cellWidth: 20 }, // Status
+        6: { cellWidth: 26 }, // Fee
+        7: { cellWidth: includeTerm ? 14 : (includeYear ? 18 : 22) }, // Term or Total Due depending on shifts
       },
       alternateRowStyles: { fillColor: [245, 247, 250] },
       didParseCell: (data) => {
-        if (data.column.index === 9 && data.section === 'body') {
+        if (data.column.index === 10 && data.section === 'body') {
           // Balance color: red if > 0 else green
           const raw = (data.cell.raw as string) || '0';
           const numeric = Number(String(raw).replace(/[^0-9.-]/g, '')) || 0;
           data.cell.styles.textColor = numeric > 0 ? [198, 40, 40] : [46, 125, 50];
           data.cell.styles.fontStyle = 'bold';
         }
-        if (data.column.index === 4 && data.section === 'body') {
+        if (data.column.index === 5 && data.section === 'body') {
           const status = (data.cell.raw as string || '').toLowerCase();
           let bg: [number, number, number] = [255, 255, 255]; let tx: [number, number, number] = [40, 40, 40];
           if (status === 'paid') { bg = [198, 246, 213]; tx = [22, 163, 74]; }

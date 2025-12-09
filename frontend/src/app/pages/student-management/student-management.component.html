@@ -211,6 +211,7 @@
               <tr>
                 <th style="width: 50px">#</th>
                 <th>Reg Number</th>
+                <th>LIN</th>
                 <th>Student Name</th>
                 <th>Class</th>
                 <th>Category</th>
@@ -232,6 +233,7 @@
               <tr *ngFor="let row of displayedFeeRows; let i = index">
                 <td>{{ pageEvent.pageIndex * pageEvent.pageSize + i + 1 }}</td>
                 <td>{{ row.reg }}</td>
+                <td>{{ row.lin || "-" }}</td>
                 <td>{{ row.name }}</td>
                 <td>{{ row.klass }}</td>
                 <td>{{ row.category }}</td>

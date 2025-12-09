@@ -1,0 +1,75 @@
+.summary-text {
+    font-size: 16px;
+    color: #555;
+    margin-bottom: 20px;
+}
+
+.details-container {
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 20px;
+    border: 1px solid #eee;
+
+    .row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 12px;
+        font-size: 15px;
+
+        &:last-child {
+            margin-bottom: 0;
+        }
+
+        .label {
+            color: #777;
+            font-weight: 500;
+        }
+
+        .value {
+            color: #333;
+            font-weight: 600;
+        }
+    }
+
+    .price-row {
+        margin-top: 16px;
+        padding-top: 12px;
+        border-top: 1px solid #ddd;
+
+        .label {
+            color: #000;
+            font-size: 16px;
+        }
+
+        .value {
+            color: #FE5722;
+            /* Vivid Orange for price */
+            font-weight: 700;
+            font-size: 18px;
+        }
+    }
+}
+
+.confirm-text {
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 0;
+}
+
+div[mat-dialog-actions] {
+    padding-bottom: 0;
+    margin-bottom: 0;
+
+    button {
+        text-transform: uppercase;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+
+    button[mat-flat-button] {
+        background-color: #003366 !important;
+        /* Brand Dark Blue */
+        color: white !important;
+    }
+}

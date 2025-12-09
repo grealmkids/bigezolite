@@ -2,17 +2,19 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { SubscriptionService } from '../../services/subscription.service';
 import { SchoolService, School } from '../../services/school.service';
 import { CommunicationService } from '../../services/communication.service';
 import { LoadingService } from '../../services/loading.service';
 import { Observable } from 'rxjs';
 import { take } from 'rxjs/operators';
+import { OrderConfirmationDialogComponent } from '../../components/order-confirmation-dialog/order-confirmation-dialog.component';
 
 @Component({
   selector: 'app-subscription',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatSnackBarModule],
+  imports: [CommonModule, FormsModule, MatSnackBarModule, MatDialogModule],
   templateUrl: './subscription.component.html',
   styleUrls: ['./subscription.component.scss']
 })
@@ -35,17 +37,17 @@ export class SubscriptionComponent implements OnInit {
     private subscriptionService: SubscriptionService,
     private schoolService: SchoolService,
     private snackBar: MatSnackBar,
-    private communicationService: CommunicationService
-    ,
-    private loadingService: LoadingService
+    private communicationService: CommunicationService,
+    private loadingService: LoadingService,
+    private dialog: MatDialog
   ) {
     this.selectedSchool$ = this.schoolService.selectedSchool$;
   }
 
   showSuccessMessage() {
     this.snackBar.open(
-      '✓ Your subscription order was successful! Call 0773913902 in case of delayed response.', 
-      'Close', 
+      '✓ Your subscription order was successful! Call 0773913902 in case of delayed response.',
+      'Close',
       {
         duration: 10000,
         horizontalPosition: 'center',
@@ -76,7 +78,7 @@ export class SubscriptionComponent implements OnInit {
 
   purchasePackage(packageType: string): void {
     // Show purchase form prefilled with selected school and package details
-  this.selectedSchool$.pipe(take(1)).subscribe(s => {
+    this.selectedSchool$.pipe(take(1)).subscribe(s => {
       if (!s) return;
       this.form.schoolName = s.school_name || '';
       this.form.contactPhone = s.admin_phone || '';
@@ -121,20 +123,39 @@ export class SubscriptionComponent implements OnInit {
   }
 
   confirmPurchase(): void {
+    // Confirm via dialog first
+    const dialogRef = this.dialog.open(OrderConfirmationDialogComponent, {
+      width: '450px',
+      disableClose: true,
+      data: {
+        packageType: this.form.selectedPackage,
+        smsCount: this.form.numberOfSms,
+        price: this.selectedPrice
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === true) {
+        this.submitOrder();
+      }
+    });
+  }
+
+  private submitOrder(): void {
     // send order to backend which will notify via SMS and email
     // show global loading indicator (if not already shown by interceptor)
-    try { this.loadingService.show(); } catch (e) {}
+    try { this.loadingService.show(); } catch (e) { }
     this.subscriptionService.order({ ...this.form, price: this.selectedPrice }).subscribe({
       next: (res) => {
         console.log('Order sent', res);
         // stop any loading spinner and show success
-        try { this.loadingService.hide(); } catch (e) {}
+        try { this.loadingService.hide(); } catch (e) { }
         this.showSuccessMessage();
         this.showPurchase = false;
       },
       error: (err) => {
         console.error('Order failed', err);
-        try { this.loadingService.hide(); } catch (e) {}
+        try { this.loadingService.hide(); } catch (e) { }
         this.snackBar.open('Failed to place order. Please try again.', 'Close', {
           duration: 5000,
           horizontalPosition: 'center',

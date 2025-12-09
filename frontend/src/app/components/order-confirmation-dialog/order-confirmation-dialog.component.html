@@ -1,0 +1,25 @@
+<h2 mat-dialog-title>Confirm Order</h2>
+<div mat-dialog-content>
+    <p class="summary-text">You are about to place an order for the following subscription package:</p>
+
+    <div class="details-container">
+        <div class="row">
+            <span class="label">Package:</span>
+            <span class="value">{{ data.packageType }}</span>
+        </div>
+        <div class="row">
+            <span class="label">SMS Bundle:</span>
+            <span class="value">{{ formatNumber(data.smsCount) }} SMS</span>
+        </div>
+        <div class="row price-row">
+            <span class="label">Total Price:</span>
+            <span class="value">UGX {{ formatNumber(data.price) }}</span>
+        </div>
+    </div>
+
+    <p class="confirm-text">Do you want to proceed?</p>
+</div>
+<div mat-dialog-actions align="end">
+    <button mat-button (click)="onCancel()">Cancel</button>
+    <button mat-flat-button color="primary" (click)="onConfirm()">Confirm Order</button>
+</div>

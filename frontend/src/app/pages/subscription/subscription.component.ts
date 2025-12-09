@@ -49,7 +49,7 @@ export class SubscriptionComponent implements OnInit {
       '✓ Your subscription order was successful! Call 0773913902 in case of delayed response.',
       'Close',
       {
-        duration: 10000,
+        duration: 0, // Manual close
         horizontalPosition: 'center',
         verticalPosition: 'top',
         panelClass: ['success-snackbar']

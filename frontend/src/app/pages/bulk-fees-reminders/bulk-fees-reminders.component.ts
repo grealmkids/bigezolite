@@ -265,7 +265,7 @@ export class BulkFeesRemindersComponent implements OnInit {
         const deadlineText = dueDateText ? ` before ${dueDateText}` : '';
         const feeLabel = recipient.feeName || 'School Fees';
         const termYear = recipient.term && recipient.year ? ` Term ${recipient.term}, ${recipient.year}` : '';
-        message = `Dear parent of ${recipient.studentName}, you have paid ${fmt(recipient.amountPaid)} out of ${fmt(recipient.totalDue)} for ${feeLabel}. Please pay Balance ${fmt(recipient.balance)}${deadlineText}. Thank you.${termYear}`;
+        message = `Dear parent of ${recipient.studentName}, you have paid ${fmt(recipient.amountPaid)} out of ${fmt(recipient.totalDue)} for ${feeLabel}${termYear ? ',' + termYear : ''}. Please pay Balance ${fmt(recipient.balance)}${deadlineText}. Thank you. ${schoolName}, R.S.V.P ${rsvpNumber}.`;
 
       } else if (this.messageType === 'generic') {
         const fmt = (n: number) => new Intl.NumberFormat('en-UG', { style: 'currency', currency: 'UGX', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n);

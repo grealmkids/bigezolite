@@ -320,11 +320,23 @@ export class PdfExportService {
     doc.setTextColor(100, 100, 100);
     doc.text(`Generated: ${header.generatedDate}`, leftX, metaY);
 
-    // Right side - Total Students (more vivid and larger)
+    // Right side - Total Students (Split styling)
+    const countStr = String(header.totalStudents);
+
+    // Draw Number first (to align right correctly)
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
-    doc.setTextColor(0, 89, 179); // Blue color to match header
-    doc.text(`Total Records: ${header.totalStudents}`, rightX, metaY, { align: 'right' });
+    doc.setTextColor(0, 89, 179); // Blue color
+    doc.text(countStr, rightX, metaY, { align: 'right' });
+
+    // Calculate width to position label
+    const countWidth = doc.getTextWidth(countStr);
+
+    // Draw Label
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(0, 0, 0); // Black text for label
+    doc.text('Total Records:', rightX - countWidth - 2, metaY, { align: 'right' });
 
     if (header.filterInfo) {
       doc.setFontSize(8);
@@ -469,68 +481,39 @@ export class PdfExportService {
         }
       },
       didParseCell: (data) => {
-        // Color-code status columns
+        // Color-code status columns (TEXT only, no background)
         if (data.column.index === statusColIdx && data.section === 'body') { // Student Status
-          const status = data.cell.raw as string;
-          let bgColor: [number, number, number] = [255, 255, 255];
-          let textColor: [number, number, number] = [40, 40, 40];
+          const status = (data.cell.raw as string || '').toLowerCase();
+          let textColor: [number, number, number] = [0, 0, 0]; // Default Black
 
-          switch (status?.toLowerCase()) {
-            case 'active':
-              bgColor = [212, 237, 218]; // Light green
-              textColor = [25, 135, 84];
-              break;
-            case 'inactive':
-              bgColor = [248, 215, 218]; // Light red
-              textColor = [220, 53, 69];
-              break;
-            case 'suspended':
-              bgColor = [255, 243, 205]; // Light orange
-              textColor = [255, 140, 0];
-              break;
-            case 'expelled':
-              bgColor = [240, 128, 128]; // Darker red
-              textColor = [139, 0, 0];
-              break;
-            case 'alumni':
-              bgColor = [209, 231, 221]; // Light teal
-              textColor = [32, 201, 151];
-              break;
-            case 'sick':
-              bgColor = [255, 229, 204]; // Light peach
-              textColor = [255, 102, 0];
-              break;
+          if (status === 'active') {
+            textColor = [0, 153, 51]; // Bright Green
+          } else if (['inactive', 'expelled', 'suspended', 'sick'].includes(status)) {
+            textColor = [220, 53, 69]; // Red
+          } else if (status === 'alumni') {
+            textColor = [25, 118, 210]; // Blue
           }
 
-          data.cell.styles.fillColor = bgColor;
           data.cell.styles.textColor = textColor;
-          data.cell.styles.fontStyle = 'bold';
+          if (status !== '') data.cell.styles.fontStyle = 'bold';
         }
 
         if (data.column.index === feesStatusColIdx && data.section === 'body') { // Fees Status
-          const status = data.cell.raw as string;
-          let bgColor: [number, number, number] = [255, 255, 255];
-          let textColor: [number, number, number] = [40, 40, 40];
+          const status = (data.cell.raw as string || '').toLowerCase();
+          let textColor: [number, number, number] = [0, 0, 0]; // Default Black (empty)
 
-          switch (status?.toLowerCase()) {
-            case 'paid':
-              bgColor = [198, 246, 213]; // Green tint
-              textColor = [22, 163, 74];
-              break;
-            case 'pending':
-            case 'partially paid':
-              bgColor = [227, 242, 253]; // Light blue
-              textColor = [25, 118, 210]; // Brand blue
-              break;
-            case 'defaulter':
-              bgColor = [254, 202, 202]; // Vivid red
-              textColor = [220, 38, 38];
-              break;
+          if (status === 'paid') {
+            textColor = [0, 153, 51]; // Visible Bright Green
+          } else if (status === 'pending' || status === 'partially paid') {
+            textColor = [25, 118, 210]; // Blue
+          } else if (status === 'defaulter') {
+            textColor = [220, 38, 38]; // Red
           }
 
-          data.cell.styles.fillColor = bgColor;
-          data.cell.styles.textColor = textColor;
-          data.cell.styles.fontStyle = 'bold';
+          if (status) {
+            data.cell.styles.textColor = textColor;
+            data.cell.styles.fontStyle = 'bold';
+          }
         }
       },
       margin: { left: 14, right: 14 },

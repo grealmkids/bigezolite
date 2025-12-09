@@ -2,64 +2,54 @@ import { Component } from '@angular/core';
 import { MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-pdf-options-dialog',
   standalone: true,
-  imports: [CommonModule, MatDialogModule, MatButtonModule],
+  imports: [CommonModule, MatDialogModule, MatButtonModule, FormsModule, MatIconModule],
   templateUrl: './pdf-options-dialog.component.html',
   styles: [`
-    .options-container {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      padding: 1rem 0;
-    }
-    .option-btn {
-      text-align: left;
-      padding: 1.5rem;
-      border: 2px solid #e0e0e0;
-      border-radius: 8px;
-      background: white;
+    .section-label { font-size: 0.9rem; font-weight: 600; color: #555; margin: 0 0 0.5rem 0; }
+    .compact-options { display: flex; gap: 1rem; }
+    .compact-btn {
+      flex: 1; padding: 0.75rem; border: 1px solid #ddd; border-radius: 6px; 
+      background: white; cursor: pointer; font-weight: 500; color: #444;
       transition: all 0.2s;
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      cursor: pointer;
-      width: 100%;
     }
-    .option-btn:hover {
-      border-color: #2962ff;
-      background-color: #f5f9ff;
+    .compact-btn.selected { border-color: #2962ff; background: #e3f2fd; color: #2962ff; font-weight: 600; }
+    
+    .color-grid { display: flex; flex-wrap: wrap; gap: 1rem; }
+    .color-item { cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .color-circle {
+      width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      transition: transform 0.2s;
     }
-    .option-btn.selected {
-      border-color: #2962ff;
-      background-color: #e3f2fd;
-    }
-    .option-content {
-      display: flex;
-      flex-direction: column;
-    }
-    .option-title {
-      font-weight: 600;
-      font-size: 1.1rem;
-      color: #333;
-    }
-    .option-desc {
-      font-size: 0.9rem;
-      color: #666;
-      margin-top: 0.25rem;
-    }
-    .download-btn {
-      width: 100%;
-      padding: 0.75rem;
-      font-size: 1.1rem;
-      margin-top: 1rem;
-    }
+    .color-item:hover .color-circle { transform: scale(1.1); }
+    .check-icon { font-size: 18px; color: white; width: 18px; height: 18px; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+    .color-name { font-size: 0.75rem; color: #666; }
   `]
 })
 export class PdfOptionsDialogComponent {
   selectedOption: 'with-photos' | 'no-photos' = 'no-photos';
+  selectedColor: string = 'White';
+  customColor: string = '#000000';
+
+  availableColors: string[] = ['White', 'Black', 'Blue', 'Red', 'Green', 'Yellow', 'Brown', 'Purple', 'Custom'];
+
+  // Map friendly names to hex for preview/logic where needed, though we pass the name or hex code
+  colorMap: Record<string, string> = {
+    'White': '#FFFFFF',
+    'Black': '#000000',
+    'Blue': '#1976D2',
+    'Red': '#D32F2F',
+    'Green': '#388E3C',
+    'Yellow': '#FBC02D',
+    'Brown': '#795548',
+    'Purple': '#7B1FA2',
+    'Custom': 'transparent'
+  };
 
   constructor(public dialogRef: MatDialogRef<PdfOptionsDialogComponent>) { }
 
@@ -67,8 +57,16 @@ export class PdfOptionsDialogComponent {
     this.selectedOption = option;
   }
 
+  selectColor(color: string) {
+    this.selectedColor = color;
+  }
+
   onDownload() {
-    this.dialogRef.close(this.selectedOption === 'with-photos');
+    const finalColor = this.selectedColor === 'Custom' ? this.customColor : this.colorMap[this.selectedColor];
+    this.dialogRef.close({
+      includePhotos: this.selectedOption === 'with-photos',
+      themeColor: finalColor
+    });
   }
 
   onCancel() {

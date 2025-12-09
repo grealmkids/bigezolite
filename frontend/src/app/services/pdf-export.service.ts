@@ -16,6 +16,7 @@ interface PDFHeader {
   hideYear?: boolean;
   badgeUrl?: string;
   includePhotos?: boolean;
+  themeColor?: string;
 }
 
 @Injectable({
@@ -187,13 +188,24 @@ export class PdfExportService {
 
     // ========== HEADER SECTION (Professional Adobe-style) ==========
 
+    // Theme Logic
+    const themeColor = header.themeColor || '#ffffff'; // Default to white as requested
+    const isWhite = themeColor.toLowerCase() === '#ffffff' || themeColor.toLowerCase() === 'white';
+
     // Background gradient effect (simulated with filled rectangles)
-    doc.setFillColor(0, 89, 179); // #0059b3
+    doc.setFillColor(themeColor);
     doc.rect(0, 0, pageWidth, 35, 'F');
 
-    // Accent stripe
-    doc.setFillColor(255, 193, 7); // Gold accent
-    doc.rect(0, 35, pageWidth, 2, 'F');
+    // Set text color based on background (Dark text for white bg, White text for colored bg)
+    if (isWhite) {
+      doc.setTextColor(0, 0, 0);
+    } else {
+      doc.setTextColor(255, 255, 255);
+    }
+
+    // Accent stripe - REMOVED as per user request
+    // doc.setFillColor(255, 193, 7);
+    // doc.rect(0, 35, pageWidth, 2, 'F');
 
     let textStartX = pageWidth / 2;
     let align: 'center' | 'left' | 'right' | 'justify' = 'center';
@@ -268,8 +280,8 @@ export class PdfExportService {
       }
     }
 
-    // School Name - Large, Bold, White
-    doc.setTextColor(255, 255, 255);
+    // School Name - Large, Bold
+    // Text color already set above based on theme
     doc.setFontSize(24);
     doc.setFont('helvetica', 'bold');
     doc.text(header.schoolName, textStartX, 14, { align: align });
@@ -417,8 +429,8 @@ export class PdfExportService {
         overflow: 'linebreak' // Ensure text wraps
       },
       headStyles: {
-        fillColor: [52, 73, 94], // Professional dark blue-gray
-        textColor: [255, 255, 255],
+        fillColor: themeColor,
+        textColor: isWhite ? [40, 40, 40] : [255, 255, 255],
         fontSize: 12,
         fontStyle: 'bold',
         halign: 'left',

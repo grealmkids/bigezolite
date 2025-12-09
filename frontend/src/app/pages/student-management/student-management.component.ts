@@ -486,9 +486,9 @@ export class StudentManagementComponent implements OnInit {
         disableClose: true
       });
 
-      dialogRef.afterClosed().subscribe(includePhotos => {
-        if (includePhotos !== undefined) {
-          this.proceedWithDownload(includePhotos);
+      dialogRef.afterClosed().subscribe(result => {
+        if (result) {
+          this.proceedWithDownload(result.includePhotos, result.themeColor);
         }
       });
     } else {
@@ -497,7 +497,7 @@ export class StudentManagementComponent implements OnInit {
     }
   }
 
-  proceedWithDownload(includePhotos: boolean): void {
+  proceedWithDownload(includePhotos: boolean, themeColor?: string): void {
     this.isGeneratingPdf = true;
 
     const schoolId = this.schoolService.getSelectedSchoolId();
@@ -663,7 +663,8 @@ export class StudentManagementComponent implements OnInit {
           totalStudents: allStudents.length,
           filterInfo: filterInfo,
           badgeUrl: badgeUrl,
-          includePhotos: includePhotos
+          includePhotos: includePhotos,
+          themeColor: themeColor
         }).then(() => {
           this.isGeneratingPdf = false;
           this.snack.open(`PDF downloaded successfully (${allStudents.length} students)`, 'Close', {

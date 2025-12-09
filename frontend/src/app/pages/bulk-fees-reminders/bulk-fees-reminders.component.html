@@ -167,3 +167,22 @@
     </mat-card>
   </div>
 </div>
+
+
+<!-- Progress Overlay -->
+<div class="progress-overlay" *ngIf="isSending">
+  <div class="progress-content">
+    <h2>Sending Reminders...</h2>
+
+    <div class="progress-bar-container">
+      <div class="progress-bar" [style.width.%]="progressPercent"></div>
+    </div>
+
+    <div class="progress-stats">
+      <span class="count-text">{{ progressCount }} out of {{ totalCount }}</span>
+    </div>
+
+    <div class="percentage-text">{{ progressPercent }}%</div>
+    <div class="current-recipient">Sending to: {{ currentRecipientName }}</div>
+  </div>
+</div>

@@ -15,16 +15,24 @@ export const getSmsCredits = async (schoolId: number): Promise<number> => {
 
 export const previewBulkSmsData = async (schoolId: number, recipientFilter: any): Promise<{ recipientCount: number; estimatedCost: number; currentBalance: number; costPerSms: number }> => {
     const params: any[] = [schoolId];
-    let query = 'SELECT parent_phone_sms FROM students WHERE school_id = $1';
+    let query = 'SELECT student_id, student_name, parent_phone_sms FROM students WHERE school_id = $1';
     if (recipientFilter && typeof recipientFilter === 'string' && recipientFilter !== 'All Students') {
-        query = 'SELECT parent_phone_sms FROM students WHERE school_id = $1 AND class_name = $2';
+        query = 'SELECT student_id, student_name, parent_phone_sms FROM students WHERE school_id = $1 AND class_name = $2';
         params.push(recipientFilter);
     }
     const studentsResult = await pool.query(query, params);
-    const phoneNumbers: string[] = studentsResult.rows.map((row: any) => row.parent_phone_sms).filter(Boolean);
-    const recipientCount = phoneNumbers.length;
+
+    const recipients = studentsResult.rows.map((row: any) => ({
+        phoneNumber: row.parent_phone_sms,
+        studentName: row.student_name,
+        studentId: row.student_id
+    })).filter(r => r.phoneNumber);
+
+    // Compute display balance using configured COST_PER_SMS (reseller price)
+    const recipientCount = recipients.length;
     const costPerSms = Number(config.costPerSms || 50);
     const estimatedCost = recipientCount * costPerSms;
+
     const creds = await getSmsCredentialsForSchool(schoolId);
     if (!creds) {
         const err: any = new Error('Missing SMS credentials. Subscribe or Contact Support');
@@ -32,9 +40,9 @@ export const previewBulkSmsData = async (schoolId: number, recipientFilter: any)
         throw err;
     }
     const providerBalance = await checkBalance(creds.username, creds.password);
-    // Compute display balance using configured COST_PER_SMS (reseller price)
+
     const displayBalance = Math.round((Number(providerBalance) || 0) * (config.costPerSms || 35) / 35);
-    return { recipientCount, estimatedCost, currentBalance: providerBalance, costPerSms: costPerSms, balance: displayBalance } as any;
+    return { recipientCount, estimatedCost, currentBalance: providerBalance, costPerSms: costPerSms, balance: displayBalance, recipients } as any;
 };
 
 export const processBulkSms = async (schoolId: number, recipientFilter: any, message: string): Promise<{ sentCount: number; failedCount: number; failures: Array<{ phone: string; error: string }> }> => {
@@ -507,10 +515,16 @@ export const previewBulkFeesRemindersData = async (
         messageLength: sampleMessage.length,
         smsUnits,
         recipients: rows.map((s: any) => ({
+            studentId: s.student_id,
             studentName: s.student_name,
             phoneNumber: s.parent_phone_sms,
             balance: Number(s.balance_due || 0),
-            amountPaid: Number(s.amount_paid || 0)
+            amountPaid: Number(s.amount_paid || 0),
+            totalDue: Number(s.total_fees_due || 0),
+            feeName: s.fee_name,
+            dueDate: s.due_date,
+            term: s.term,
+            year: s.year
         }))
     } as any;
     console.debug('[BulkFeesPreview] preview summary:', { recipientCount: preview.recipientCount, totalBalance: preview.totalBalance, smsUnits: preview.smsUnits });

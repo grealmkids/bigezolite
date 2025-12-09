@@ -33,18 +33,18 @@ export class CommunicationsComponent implements OnInit {
     public router: Router
   ) { }
 
-   ngOnInit(): void {
-     // Populate classes dropdown based on localStorage schoolType only
-     try {
-       const schoolType = this.schoolService.getSelectedSchoolType();
-       if (schoolType) {
-         this.classes = this.classCategorizationService.getClassesForSchoolType(schoolType);
-       } else {
-         this.classes = [];
-       }
-     } catch (err) {
-       this.classes = [];
-     }
+  ngOnInit(): void {
+    // Populate classes dropdown based on localStorage schoolType only
+    try {
+      const schoolType = this.schoolService.getSelectedSchoolType();
+      if (schoolType) {
+        this.classes = this.classCategorizationService.getClassesForSchoolType(schoolType);
+      } else {
+        this.classes = [];
+      }
+    } catch (err) {
+      this.classes = [];
+    }
   }
 
   onMessageChange(message: string): void {
@@ -63,7 +63,7 @@ export class CommunicationsComponent implements OnInit {
         this.isPreview = true;
         this.communicationService.fetchSmsCreditBalance();
       },
-      error: (err:any) => {
+      error: (err: any) => {
         console.error('[BulkSMS][calc][error]', err);
         this.snack.open(err?.error?.message || 'Failed to calculate bulk SMS', 'Close', { duration: 4000, panelClass: ['error-snackbar'], verticalPosition: 'top', horizontalPosition: 'center' });
       }
@@ -75,28 +75,71 @@ export class CommunicationsComponent implements OnInit {
     this.preview = null;
   }
 
+
+  // Progress State
+  progressCount: number = 0;
+  totalCount: number = 0;
+  progressPercent: number = 0;
+  currentRecipientName: string = '';
+
   sendBulkSms(): void {
     if (!this.message) return;
+
     this.isSending = true;
-    console.log('[BulkSMS][payload]', { recipientFilter: this.recipientFilter, message: this.message });
-    this.communicationService.sendBulkSms(this.recipientFilter, this.message).subscribe({
+    this.progressCount = 0;
+    this.progressPercent = 0;
+
+    // 1. Fetch Recipients
+    // We use previewBulkSms which now returns 'recipients' array
+    this.communicationService.previewBulkSms(this.recipientFilter).subscribe({
       next: (resp: any) => {
-        this.isSending = false;
-        console.log('[BulkSMS][response]', resp);
-        const sent = resp?.sentCount ?? 0;
-        const failed = resp?.failedCount ?? 0;
-        this.snack.open(`Sent ${sent} SMS${failed ? `, ${failed} failed` : ''}.`, 'Close', { duration: 4000, panelClass: ['success-snackbar'], verticalPosition: 'top', horizontalPosition: 'center' });
-        this.message = '';
-        this.recipientFilter = 'All Students';
-        this.isPreview = false;
-        this.preview = null;
-        this.communicationService.fetchSmsCreditBalance();
+        if (!resp || !resp.recipients || resp.recipients.length === 0) {
+          this.isSending = false;
+          this.snack.open('No recipients found.', 'Close', { duration: 3000, panelClass: ['error-snackbar'] });
+          return;
+        }
+
+        this.processQueue(resp.recipients);
       },
-      error: (err) => {
+      error: (err: any) => {
         this.isSending = false;
-        console.error('[BulkSMS][error]', err);
-        this.snack.open(err?.error?.message || 'Failed to send bulk SMS', 'Close', { duration: 4000, panelClass: ['error-snackbar'], verticalPosition: 'top', horizontalPosition: 'center' });
+        console.error(err);
+        this.snack.open('Failed to fetch recipient list.', 'Close', { duration: 3000, panelClass: ['error-snackbar'] });
       }
     });
+  }
+
+  async processQueue(recipients: any[]) {
+    this.totalCount = recipients.length;
+    let sentCount = 0;
+    let failedCount = 0;
+
+    for (const r of recipients) {
+      this.currentRecipientName = r.studentName || r.phoneNumber;
+
+      try {
+        if (r.phoneNumber) {
+          // If simple bulk message (no placeholders) sending 1-by-1
+          await this.communicationService.sendSingleSms(r.studentId, this.message).toPromise();
+          sentCount++;
+        } else {
+          failedCount++;
+        }
+      } catch (e) {
+        failedCount++;
+      }
+
+      this.progressCount++;
+      this.progressPercent = Math.round((this.progressCount / this.totalCount) * 100);
+    }
+
+    this.isSending = false;
+    this.isPreview = false;
+    this.preview = null;
+    this.message = '';
+    this.recipientFilter = 'All Students';
+
+    this.snack.open(`Sent ${sentCount} SMS, Failed ${failedCount}.`, 'Close', { duration: 4000, panelClass: ['success-snackbar'], verticalPosition: 'top', horizontalPosition: 'center' });
+    this.communicationService.fetchSmsCreditBalance();
   }
 }

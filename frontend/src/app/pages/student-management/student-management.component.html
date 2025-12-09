@@ -85,7 +85,7 @@
         <option value="2">2</option>
         <option value="3">3</option>
       </select>
-      <select #yearFilter (change)="onYearChange(yearFilter.value)">
+      <select [(ngModel)]="selectedYear" (change)="onYearChange(selectedYear)">
         <option value="">All Years</option>
         <option *ngFor="let year of years" [value]="year">{{ year }}</option>
       </select>

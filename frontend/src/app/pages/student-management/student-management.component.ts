@@ -28,11 +28,14 @@ import { FeesToTrackService } from '../../services/fees-to-track.service';
 import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-dialog.component';
 import { PdfOptionsDialogComponent } from '../../components/pdf-options-dialog/pdf-options-dialog.component';
 
+import { FormsModule } from '@angular/forms';
+
 @Component({
   selector: 'app-student-management',
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     StudentModalComponent,
     FeesManagementModalComponent,
     SmsStudentModalComponent,
@@ -80,6 +83,7 @@ export class StudentManagementComponent implements OnInit {
   isFeesModalOpen = false;
   isSmsModalOpen = false;
   selectedStudent: Student | null = null;
+  selectedYear: string = '';
 
   classes: string[] = [];
   years: string[] = [];
@@ -96,14 +100,15 @@ export class StudentManagementComponent implements OnInit {
     private feesService: FeesService,
     private feesToTrackService: FeesToTrackService
   ) {
-    // Generate years: Current year down to 9 years ago, plus "All years"
+    // Generate years: Current year down to 9 years ago
     const currentYear = new Date().getFullYear();
-    this.years = ['All years'];
+    this.years = [];
     for (let i = 0; i < 10; i++) {
       this.years.push((currentYear - i).toString());
     }
     // Default year filter to current year
-    this.yearFilter.next(currentYear.toString());
+    this.selectedYear = currentYear.toString();
+    this.yearFilter.next(this.selectedYear);
   }
 
   onSearch(term: string): void {

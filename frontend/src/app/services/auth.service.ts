@@ -102,13 +102,28 @@ export class AuthService {
         if (err?.status === 404) {
           const email = result.user?.email || null;
           if (email) localStorage.setItem('bigezo_google_email', email);
-          throw { code: 'NO_ACCOUNT', message: 'No existing account found for this Google email.', email };
+          // Pass idToken so we can replay the request with createAccount: true
+          throw { code: 'NO_ACCOUNT', message: 'No existing account found for this Google email.', email, idToken };
         }
         throw { code: 'EXCHANGE_FAILED', message: 'Failed to exchange ID token with backend.' };
       }
     } catch (error) {
       console.error('Google sign-in error:', error);
       throw error;
+    }
+  }
+
+  async completeGoogleSignUp(idToken: string) {
+    try {
+      const resp: any = await this.http.post(`${this.apiUrl}/auth/google`, { idToken, createAccount: true }).toPromise();
+      if (resp?.token) {
+        this.saveToken(resp.token);
+        return { token: resp.token };
+      }
+      throw new Error('No token returned from backend creation.');
+    } catch (err: any) {
+      console.error('Failed to complete google sign up:', err);
+      throw err;
     }
   }
 

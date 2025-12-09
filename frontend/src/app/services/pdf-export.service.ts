@@ -420,9 +420,11 @@ export class PdfExportService {
     colIdx++;
     colStyles[colIdx] = { halign: 'left', cellWidth: 35, valign: 'middle' }; // Phone
 
-    // Indices for status coloring
-    const statusColIdx = header.includePhotos ? 5 : 4;
-    const feesStatusColIdx = header.includePhotos ? 6 : 5;
+    // Indices for status coloring (Account for #, Photo?, Reg, LIN, Name, Class -> Status is next)
+    // If Photos: # (0), Photo (1), Reg (2), LIN (3), Name (4), Class (5), Status (6), Fees (7)
+    // No Photos: # (0), Reg (1), LIN (2), Name (3), Class (4), Status (5), Fees (6)
+    const statusColIdx = header.includePhotos ? 6 : 5;
+    const feesStatusColIdx = header.includePhotos ? 7 : 6;
     const photoColIdx = 1;
 
     // Table styling with vivid colors and professional design

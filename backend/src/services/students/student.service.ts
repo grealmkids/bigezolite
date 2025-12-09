@@ -4,7 +4,7 @@ export const updateStudentById = async (schoolId: number, studentId: number, upd
     const allowedFields: (keyof Student)[] = [
         'student_name', 'class_name', 'year_enrolled', 'student_status', 'gender',
         'parent_primary_name', 'parent_phone_sms', 'parent_name_mother', 'parent_name_father', 'residence_district',
-        'student_photo_url'
+        'student_photo_url', 'lin', 'joining_term'
     ];
     const setClauses: string[] = [];
     const params: any[] = [];
@@ -25,7 +25,17 @@ export const updateStudentById = async (schoolId: number, studentId: number, upd
 };
 // Find a single student by school and student ID
 export const findStudentById = async (schoolId: number, studentId: number) => {
-    const sql = 'SELECT * FROM students WHERE school_id = $1 AND student_id = $2';
+    const sql = `
+        SELECT s.*,
+        COALESCE(s.joining_term, (
+            SELECT term FROM student_terms st
+            WHERE st.student_id = s.student_id
+            ORDER BY year ASC, term ASC
+            LIMIT 1
+        )) as joining_term
+        FROM students s
+        WHERE s.school_id = $1 AND s.student_id = $2
+    `;
     const result = await query(sql, [schoolId, studentId]);
     return result.rows[0] || null;
 };
@@ -72,8 +82,8 @@ export const createStudent = async (student: Omit<Student, 'student_id' | 'reg_n
     const reg_number = `${schoolId}${phoneLastSix}${counter}`;
 
     const sql = `
-        INSERT INTO students (school_id, reg_number, student_name, class_name, year_enrolled, student_status, gender, parent_primary_name, parent_phone_sms, parent_name_mother, parent_name_father, residence_district)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+        INSERT INTO students (school_id, reg_number, student_name, class_name, year_enrolled, student_status, gender, parent_primary_name, parent_phone_sms, parent_name_mother, parent_name_father, residence_district, lin, joining_term)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
         RETURNING *
     `;
 
@@ -89,7 +99,9 @@ export const createStudent = async (student: Omit<Student, 'student_id' | 'reg_n
         student.parent_phone_sms,
         student.parent_name_mother,
         student.parent_name_father,
-        student.residence_district
+        student.residence_district,
+        student.lin || null,
+        student.joining_term || null
     ];
 
     const result = await query(sql, params);

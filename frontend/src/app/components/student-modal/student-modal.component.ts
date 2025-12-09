@@ -80,6 +80,7 @@ export class StudentModalComponent implements OnInit, OnChanges {
       year_enrolled: [new Date().getFullYear(), Validators.required],
       student_status: ['Active', Validators.required],
       gender: ['', Validators.required],
+      lin: [''],
       parent_primary_name: ['', Validators.required],
       parent_phone_sms: ['', Validators.required],
       parent_name_mother: [''],
@@ -115,11 +116,13 @@ export class StudentModalComponent implements OnInit, OnChanges {
           year_enrolled: (this.student as any)?.year_enrolled || new Date().getFullYear(),
           student_status: this.student?.student_status || 'Active',
           gender: (this.student as any)?.gender || '',
+          lin: (this.student as any)?.lin || '',
           parent_primary_name: (this.student as any)?.parent_primary_name || '',
           parent_phone_sms: this.student?.parent_phone_sms || '',
           parent_name_mother: (this.student as any)?.parent_name_mother || '',
           parent_name_father: (this.student as any)?.parent_name_father || '',
           residence_district: (this.student as any)?.residence_district || '',
+          joining_term: (this.student as any)?.joining_term || '',
         });
         // Existing photo
         if ((this.student as any).student_photo_url) {

@@ -13,6 +13,8 @@ export interface Student {
   fees_status: 'Paid' | 'Pending' | 'Defaulter';
   parent_phone_sms: string;
   student_photo_url?: string;
+  lin?: string;
+  joining_term?: number;
 }
 
 export interface StudentData {
@@ -21,6 +23,7 @@ export interface StudentData {
   year_enrolled: number;
   student_status: 'Active' | 'Inactive' | 'Expelled' | 'Alumni' | 'Suspended' | 'Sick';
   gender?: string;
+  lin?: string;
   parent_primary_name: string;
   parent_phone_sms: string;
   parent_name_mother?: string;

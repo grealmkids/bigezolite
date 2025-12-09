@@ -12,6 +12,8 @@ export interface Student {
     year_enrolled: number;
     student_status: 'Active' | 'Inactive' | 'Expelled' | 'Alumni' | 'Suspended' | 'Sick';
     gender?: string;
+    lin?: string; // Learner Identification Number
+    joining_term?: number; // The term the student joined (archived in student record)
     parent_primary_name: string;
     parent_phone_sms: string;
     parent_name_mother?: string;

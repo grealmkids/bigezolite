@@ -17,55 +17,28 @@
       </button>
       <div class="divider">OR</div>
 
-      <form
-        (ngSubmit)="onSubmit()"
-        [formGroup]="registerForm"
-        class="form-compact"
-      >
+      <form (ngSubmit)="onSubmit()" [formGroup]="registerForm" class="form-compact">
         <div class="form-row">
-          <input
-            id="fullName"
-            type="text"
-            formControlName="fullName"
-            placeholder="Full name"
-            required
-          />
+          <input id="fullName" type="text" formControlName="fullName" placeholder="Full name" required />
         </div>
         <div class="form-row">
-          <input
-            id="email"
-            type="email"
-            formControlName="email"
-            placeholder="Email address"
-            required
-          />
+          <input id="email" type="email" formControlName="email" placeholder="Email address" required />
         </div>
         <div class="form-row">
-          <input
-            id="phoneNumber"
-            type="text"
-            formControlName="phoneNumber"
-            placeholder="Phone number"
-            required
-          />
+          <input id="phoneNumber" type="text" formControlName="phoneNumber" placeholder="Phone number" required />
         </div>
-        <div class="form-row">
-          <input
-            id="password"
-            type="password"
-            formControlName="password"
-            placeholder="Password"
-            required
-          />
+        <div class="form-row password-row">
+          <input id="password" [type]="hidePassword ? 'password' : 'text'" formControlName="password"
+            placeholder="Password" required />
+          <button type="button" mat-icon-button (click)="hidePassword = !hidePassword"
+            [attr.aria-label]="'Hide password'" [attr.aria-pressed]="hidePassword" class="password-toggle">
+            <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+          </button>
         </div>
 
         <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
 
-        <button
-          type="submit"
-          class="submit-btn"
-          [disabled]="registerForm.invalid"
-        >
+        <button type="submit" class="submit-btn" [disabled]="registerForm.invalid">
           Create Account
         </button>
       </form>

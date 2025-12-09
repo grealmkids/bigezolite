@@ -8,6 +8,8 @@ import { SchoolService } from '../../services/school.service';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { CreateSchoolDialogComponent } from '../../components/create-school-dialog/create-school-dialog.component';
 
+import { MatButtonModule } from '@angular/material/button';
+
 @Component({
   selector: 'app-login',
   standalone: true,
@@ -16,7 +18,8 @@ import { CreateSchoolDialogComponent } from '../../components/create-school-dial
     ReactiveFormsModule,
     RouterLink,
     MatIconModule,
-    MatDialogModule
+    MatDialogModule,
+    MatButtonModule
   ],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
@@ -26,6 +29,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   errorMessage: string | null = null;
   showRegisterCTA = false;
   role: 'admin' | 'staff' | 'parent' = 'admin';
+  hidePassword = true;
 
   constructor(
     private fb: FormBuilder,

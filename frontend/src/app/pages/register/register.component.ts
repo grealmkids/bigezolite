@@ -3,6 +3,8 @@ import { Router, RouterLink } from '@angular/router';
 import { ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
@@ -11,7 +13,9 @@ import { AuthService } from '../../services/auth.service';
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    RouterLink
+    RouterLink,
+    MatButtonModule,
+    MatIconModule
   ],
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.scss']
@@ -19,6 +23,7 @@ import { AuthService } from '../../services/auth.service';
 export class RegisterComponent implements OnInit, OnDestroy {
   registerForm: FormGroup;
   errorMessage: string | null = null;
+  hidePassword = true;
 
   constructor(
     private fb: FormBuilder,

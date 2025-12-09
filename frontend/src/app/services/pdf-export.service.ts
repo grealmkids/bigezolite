@@ -17,6 +17,7 @@ interface PDFHeader {
   badgeUrl?: string;
   includePhotos?: boolean;
   themeColor?: string;
+  themeTextColor?: string;
 }
 
 @Injectable({
@@ -189,19 +190,16 @@ export class PdfExportService {
     // ========== HEADER SECTION (Professional Adobe-style) ==========
 
     // Theme Logic
-    const themeColor = header.themeColor || '#ffffff'; // Default to white as requested
-    const isWhite = themeColor.toLowerCase() === '#ffffff' || themeColor.toLowerCase() === 'white';
+    const themeColor = header.themeColor || '#ffffff'; // Default to white
+    const themeTextColor = header.themeTextColor || '#000000'; // Default to black
 
     // Background gradient effect (simulated with filled rectangles)
     doc.setFillColor(themeColor);
     doc.rect(0, 0, pageWidth, 35, 'F');
 
-    // Set text color based on background (Dark text for white bg, White text for colored bg)
-    if (isWhite) {
-      doc.setTextColor(0, 0, 0);
-    } else {
-      doc.setTextColor(255, 255, 255);
-    }
+    // Set text color
+    const tcVec = this.hexToRgb(themeTextColor);
+    doc.setTextColor(tcVec[0], tcVec[1], tcVec[2]);
 
     // Accent stripe - REMOVED as per user request
     // doc.setFillColor(255, 193, 7);
@@ -364,7 +362,7 @@ export class PdfExportService {
     // Prepare columns
     const columns = ['#'];
     if (header.includePhotos) columns.push('Photo');
-    columns.push('Reg Number', 'Student Name', 'Class', 'Status', 'Fees Status', 'Parent Phone');
+    columns.push('Reg Number', 'LIN', 'Student Name', 'Class', 'Status', 'Fees Status', 'Parent Phone');
 
     // Prepare table data
     const tableData = students.map((student, index) => {
@@ -377,6 +375,7 @@ export class PdfExportService {
       }
       row.push(
         student.reg_number?.replace(/-/g, '') || '',
+        student.lin || '-',
         student.student_name || '',
         student.class_name || '',
         student.student_status || '',
@@ -395,7 +394,9 @@ export class PdfExportService {
       colStyles[colIdx] = { cellWidth: 20, minCellHeight: 20, valign: 'middle' }; // Photo
       colIdx++;
     }
-    colStyles[colIdx] = { halign: 'left', cellWidth: 35, fontStyle: 'bold', valign: 'middle' }; // Reg Number
+    colStyles[colIdx] = { halign: 'left', cellWidth: 30, fontStyle: 'bold', valign: 'middle' }; // Reg Number
+    colIdx++;
+    colStyles[colIdx] = { halign: 'left', cellWidth: 30, valign: 'middle' }; // LIN
     colIdx++;
     colStyles[colIdx] = { halign: 'left', cellWidth: 'auto', fontStyle: 'normal', valign: 'middle' }; // Name
     colIdx++;
@@ -429,8 +430,8 @@ export class PdfExportService {
         overflow: 'linebreak' // Ensure text wraps
       },
       headStyles: {
-        fillColor: themeColor,
-        textColor: isWhite ? [40, 40, 40] : [255, 255, 255],
+        fillColor: [230, 230, 230], // #e6e6e6
+        textColor: [0, 0, 0], // Black text
         fontSize: 12,
         fontStyle: 'bold',
         halign: 'left',
@@ -871,5 +872,13 @@ export class PdfExportService {
       return 'JPEG';
     }
     return 'UNKNOWN';
+  }
+  private hexToRgb(hex: string): number[] {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? [
+      parseInt(result[1], 16),
+      parseInt(result[2], 16),
+      parseInt(result[3], 16)
+    ] : [0, 0, 0];
   }
 }

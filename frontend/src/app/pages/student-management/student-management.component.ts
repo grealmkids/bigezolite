@@ -488,7 +488,7 @@ export class StudentManagementComponent implements OnInit {
 
       dialogRef.afterClosed().subscribe(result => {
         if (result) {
-          this.proceedWithDownload(result.includePhotos, result.themeColor);
+          this.proceedWithDownload(result.includePhotos, result.themeColor, result.themeTextColor);
         }
       });
     } else {
@@ -497,7 +497,7 @@ export class StudentManagementComponent implements OnInit {
     }
   }
 
-  proceedWithDownload(includePhotos: boolean, themeColor?: string): void {
+  proceedWithDownload(includePhotos: boolean, themeColor?: string, themeTextColor?: string): void {
     this.isGeneratingPdf = true;
 
     const schoolId = this.schoolService.getSelectedSchoolId();
@@ -664,7 +664,8 @@ export class StudentManagementComponent implements OnInit {
           filterInfo: filterInfo,
           badgeUrl: badgeUrl,
           includePhotos: includePhotos,
-          themeColor: themeColor
+          themeColor: themeColor,
+          themeTextColor: themeTextColor
         }).then(() => {
           this.isGeneratingPdf = false;
           this.snack.open(`PDF downloaded successfully (${allStudents.length} students)`, 'Close', {

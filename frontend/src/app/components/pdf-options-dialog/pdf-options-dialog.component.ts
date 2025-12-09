@@ -34,7 +34,10 @@ import { MatIconModule } from '@angular/material/icon';
 export class PdfOptionsDialogComponent {
   selectedOption: 'with-photos' | 'no-photos' = 'no-photos';
   selectedColor: string = 'White';
-  customColor: string = '#000000';
+  customColor: string = '#ffffff';
+
+  selectedTextColor: string = 'Black';
+  customTextColor: string = '#000000';
 
   availableColors: string[] = ['White', 'Black', 'Blue', 'Red', 'Green', 'Yellow', 'Brown', 'Purple', 'Custom'];
 
@@ -57,15 +60,25 @@ export class PdfOptionsDialogComponent {
     this.selectedOption = option;
   }
 
-  selectColor(color: string) {
-    this.selectedColor = color;
+  selectColor(type: 'bg' | 'text', color: string) {
+    if (type === 'bg') {
+      this.selectedColor = color;
+      // Auto-set text color for better UX if not Custom
+      if (color !== 'Custom' && color !== 'White') this.selectedTextColor = 'White';
+      if (color === 'White') this.selectedTextColor = 'Black';
+    } else {
+      this.selectedTextColor = color;
+    }
   }
 
   onDownload() {
     const finalColor = this.selectedColor === 'Custom' ? this.customColor : this.colorMap[this.selectedColor];
+    const finalTextColor = this.selectedTextColor === 'Custom' ? this.customTextColor : this.colorMap[this.selectedTextColor];
+
     this.dialogRef.close({
       includePhotos: this.selectedOption === 'with-photos',
-      themeColor: finalColor
+      themeColor: finalColor,
+      themeTextColor: finalTextColor
     });
   }
 

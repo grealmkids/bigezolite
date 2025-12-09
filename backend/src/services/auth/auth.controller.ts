@@ -13,7 +13,7 @@ if (!admin.apps.length) {
       console.info('Initializing firebase-admin from FIREBASE_SERVICE_ACCOUNT for project:', svc.project_id || svc.projectId || process.env.FIREBASE_PROJECT_ID);
       admin.initializeApp({ credential: admin.credential.cert(svc as admin.ServiceAccount) });
 
-    // Support reading a service account JSON directly from disk (avoids embedding secrets in env)
+      // Support reading a service account JSON directly from disk (avoids embedding secrets in env)
     } else if (process.env.FIREBASE_SERVICE_ACCOUNT_PATH) {
       try {
         // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -25,7 +25,7 @@ if (!admin.apps.length) {
         // fallthrough to ADC or other methods
       }
 
-    // Otherwise, if individual service account pieces are provided, construct the ServiceAccount object.
+      // Otherwise, if individual service account pieces are provided, construct the ServiceAccount object.
     } else if (process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY && process.env.FIREBASE_PROJECT_ID) {
       // Replace escaped newlines with real newlines for PEM parsing
       const rawKey = (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n');
@@ -91,10 +91,14 @@ export const googleAuth = async (req: Request, res: Response) => {
     const localRes = await query(localCheckSql, [maybeEmail]);
     const localUser = localRes.rows[0];
     console.debug('Google auth: local lookup result rows=', localRes.rowCount);
-    if (!localUser) {
+
+    const { createAccount } = req.body; // New flag from frontend
+
+    if (!localUser && !createAccount) {
       console.info('Google auth: no local user for email, returning 404 to client:', maybeEmail);
       return res.status(404).json({ success: false, message: 'Account does not exist. Please sign up.' });
     }
+
 
     // Prefer verifying Firebase ID tokens via firebase-admin (these are the
     // tokens produced by client SDKs after sign-inWithPopup/signInWithCredential).
@@ -151,13 +155,13 @@ export const googleAuth = async (req: Request, res: Response) => {
       }
     }
 
-  const email = decoded.email;
-  const firebaseUid = decoded.uid;
+    const email = decoded.email;
+    const firebaseUid = decoded.uid;
 
-  if (!email) return res.status(400).json({ success: false, message: 'ID token missing email.' });
+    if (!email) return res.status(400).json({ success: false, message: 'ID token missing email.' });
 
-  // localUser already fetched above
-  let user = localUser;
+    // localUser already fetched above
+    let user = localUser;
 
     if (!user) {
       // Auto-provision local user row for Firebase-authenticated user

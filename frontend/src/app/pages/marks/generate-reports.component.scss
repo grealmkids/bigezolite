@@ -276,6 +276,11 @@
 }
 
 .progress-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  /* ✅ vertical center */
+  align-items: center;
   text-align: center;
   width: 90%;
   max-width: 600px;
@@ -290,6 +295,7 @@
 
   .progress-stats {
     margin-bottom: 20px;
+    margin-top: 100px;
 
     .count-text {
       font-size: 28px;

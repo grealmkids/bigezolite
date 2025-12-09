@@ -103,12 +103,12 @@
     <div class="progress-content">
       <h2>Creating Reports...</h2>
 
-      <div class="progress-stats">
-        <span class="count-text">{{ bulkProgressCount }} out of {{ totalStudentsToGenerate }}</span>
-      </div>
-
       <div class="progress-bar-container">
         <div class="progress-bar" [style.width.%]="bulkProgressPercent"></div>
+      </div>
+
+      <div class="progress-stats">
+        <span class="count-text">{{ bulkProgressCount }} out of {{ totalStudentsToGenerate }}</span>
       </div>
 
       <div class="percentage-text">{{ bulkProgressPercent }}%</div>

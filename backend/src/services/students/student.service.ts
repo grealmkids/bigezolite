@@ -272,7 +272,7 @@ export const findStudentsBySchool = async (
 
     // Select with ordering and optional pagination (select derived fees_status)
     let sql = `SELECT students.student_id, students.reg_number, students.student_name, students.class_name, students.student_status,
-                      ${derivedStatus} AS fees_status, students.parent_phone_sms, students.student_photo_url
+                      ${derivedStatus} AS fees_status, students.parent_phone_sms, students.student_photo_url, students.lin
                FROM students ${feesJoin} ${stJoin} ${where}
                ORDER BY ${sortColumn} ${sortOrder}`;
     if (limit && limit > 0) {

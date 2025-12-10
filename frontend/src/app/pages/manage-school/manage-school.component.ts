@@ -25,7 +25,7 @@ import { MatIconModule } from '@angular/material/icon';
            
            
           </div>
-          <ng-container *ngIf="isAdmin; else notAdmin">
+          <ng-container >
              <h3 style="margin-bottom: 20px; color: #333;">SMS Provider Credentials</h3>
             <form (ngSubmit)="saveCredentials()" class="credentials-form">
             <div class="row floating">

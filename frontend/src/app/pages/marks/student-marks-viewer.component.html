@@ -126,6 +126,7 @@
 
         <div class="form-actions">
             <button class="save-btn" (click)="saveAllMarks()" [disabled]="!hasChanges || saving">
+                <i class="fas fa-save" style="color: white; margin-right: 8px;"></i>
                 {{ saving ? "Saving..." : "Save All Changes" }}
             </button>
             <button class="cancel-btn" (click)="goBack()">Back</button>

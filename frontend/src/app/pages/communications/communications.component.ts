@@ -23,7 +23,7 @@ export class CommunicationsComponent implements OnInit {
   classes: string[] = [];
   isSending = false;
   isPreview = false;
-  preview: { recipientCount: number; estimatedCost: number; currentBalance: number } | null = null;
+  preview: { recipientCount: number; estimatedCost: number; currentBalance: number; creditBalance?: number } | null = null;
 
   constructor(
     private schoolService: SchoolService,
@@ -59,7 +59,12 @@ export class CommunicationsComponent implements OnInit {
     this.communicationService.previewBulkSms(this.recipientFilter).subscribe({
       next: (resp: any) => {
         console.log('[BulkSMS][calc][response]', resp);
-        this.preview = { recipientCount: resp?.recipientCount || 0, estimatedCost: resp?.estimatedCost || 0, currentBalance: resp?.currentBalance || 0 };
+        this.preview = {
+          recipientCount: resp?.recipientCount || 0,
+          estimatedCost: resp?.estimatedCost || 0,
+          currentBalance: resp?.currentBalance || 0,
+          creditBalance: resp?.balance || 0
+        };
         this.isPreview = true;
         this.communicationService.fetchSmsCreditBalance();
       },

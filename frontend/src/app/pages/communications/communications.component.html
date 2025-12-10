@@ -49,9 +49,9 @@
               <span class="stat-value">UGX {{ preview.estimatedCost | number:'1.0-0' }}</span>
             </div>
             <div class="stat-item">
-              <span class="stat-label">Current Balance</span>
-              <span class="stat-value" [class.insufficient]="preview.currentBalance < preview.estimatedCost">UGX {{
-                preview.currentBalance | number:'1.0-0' }}</span>
+              <span class="stat-label">Current Credit Balance</span>
+              <span class="stat-value" [class.insufficient]="preview.currentBalance < preview.estimatedCost">{{
+                preview.creditBalance | number:'1.0-0' }}</span>
             </div>
           </div>
 

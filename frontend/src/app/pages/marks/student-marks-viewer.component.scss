@@ -29,6 +29,18 @@
     font-size: 24px;
     color: #333;
   }
+
+  .actions button[mat-raised-button] {
+    background: linear-gradient(90deg, #ffb36b 0%, #ff7a00 100%) !important;
+    color: #081022 !important;
+    font-weight: 700;
+    border: none;
+
+    i {
+      margin-right: 8px;
+      color: #081022;
+    }
+  }
 }
 
 .controls-section {
@@ -118,7 +130,7 @@
     .search-box {
       flex: 1;
       max-width: 400px;
-      
+
       input {
         width: 100%;
         padding: 8px 12px;
@@ -277,11 +289,20 @@
       transition: background 0.2s;
 
       &.save-btn {
-        background: #388e3c;
+        background: #029731;
+        /* Green */
         color: white;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+
+        i {
+          color: white !important;
+        }
 
         &:hover:not(:disabled) {
-          background: #2e7d32;
+          background: #027a27;
+          box-shadow: 0 4px 12px rgba(2, 151, 49, 0.3);
         }
 
         &:disabled {

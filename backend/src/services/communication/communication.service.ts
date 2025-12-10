@@ -507,9 +507,13 @@ export const previewBulkFeesRemindersData = async (
     const costPerRecipient = costPerSms * smsUnits; // total cost to send this message to one recipient
     const estimatedCost = recipientCount * costPerRecipient;
 
+    // Calculate display balance (Credits)
+    const creditBalance = Math.round((Number(totalBalance) || 0) * (config.costPerSms || 35) / 35);
+
     const preview = {
         recipientCount,
-        totalBalance, // Use the school's SMS balance instead of fees balance
+        totalBalance, // Money
+        creditBalance, // Credits
         sampleMessage,
         estimatedCost, // total cost = recipients * cost per recipient
         messageLength: sampleMessage.length,
@@ -527,7 +531,7 @@ export const previewBulkFeesRemindersData = async (
             year: s.year
         }))
     } as any;
-    console.debug('[BulkFeesPreview] preview summary:', { recipientCount: preview.recipientCount, totalBalance: preview.totalBalance, smsUnits: preview.smsUnits });
+    console.debug('[BulkFeesPreview] preview summary:', { recipientCount: preview.recipientCount, totalBalance: preview.totalBalance, creditBalance: preview.creditBalance, smsUnits: preview.smsUnits });
     return preview;
 };
 

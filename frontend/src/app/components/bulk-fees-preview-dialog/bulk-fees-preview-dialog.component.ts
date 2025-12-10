@@ -5,10 +5,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 
 @Component({
-    selector: 'app-bulk-fees-preview-dialog',
-    standalone: true,
-    imports: [CommonModule, MatDialogModule, MatButtonModule, MatIconModule],
-    template: `
+  selector: 'app-bulk-fees-preview-dialog',
+  standalone: true,
+  imports: [CommonModule, MatDialogModule, MatButtonModule, MatIconModule],
+  template: `
     <h2 mat-dialog-title>
       <mat-icon class="title-icon">campaign</mat-icon>
       Campaign Preview
@@ -29,8 +29,8 @@ import { MatIconModule } from '@angular/material/icon';
             <mat-icon>account_balance_wallet</mat-icon>
           </div>
           <div class="card-content">
-            <div class="label">Total Balance</div>
-            <div class="value">UGX {{ data.totalBalance | number:'1.0-0' }}</div>
+            <div class="label">Current Credit Balance</div>
+            <div class="value">{{ data.creditBalance | number:'1.0-0' }} Credits</div>
           </div>
         </div>
         <div class="analytics-card">
@@ -87,7 +87,7 @@ import { MatIconModule } from '@angular/material/icon';
       </button>
     </mat-dialog-actions>
   `,
-    styles: [`
+  styles: [`
     .title-icon { vertical-align: middle; margin-right: 8px; color: #2962ff; }
     .analytics-grid {
       display: grid;
@@ -157,19 +157,19 @@ import { MatIconModule } from '@angular/material/icon';
   `]
 })
 export class BulkFeesPreviewDialogComponent {
-    isSending = false;
+  isSending = false;
 
-    constructor(
-        public dialogRef: MatDialogRef<BulkFeesPreviewDialogComponent>,
-        @Inject(MAT_DIALOG_DATA) public data: any
-    ) { }
+  constructor(
+    public dialogRef: MatDialogRef<BulkFeesPreviewDialogComponent>,
+    @Inject(MAT_DIALOG_DATA) public data: any
+  ) { }
 
-    onCancel(): void {
-        this.dialogRef.close(false);
-    }
+  onCancel(): void {
+    this.dialogRef.close(false);
+  }
 
-    onSend(): void {
-        this.isSending = true;
-        this.dialogRef.close(true);
-    }
+  onSend(): void {
+    this.isSending = true;
+    this.dialogRef.close(true);
+  }
 }

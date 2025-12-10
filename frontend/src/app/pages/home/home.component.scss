@@ -9,6 +9,18 @@
     overflow-x: hidden;
 }
 
+.apptitle {
+    font-weight: normal;
+    color: #ffb36b;
+    font-size: 150px !important;
+    letter-spacing: 0.8px;
+    font-family: "Inspiration", cursive;
+}
+
+.cta {
+    padding: 20px 0 0 0;
+}
+
 .home-container {
     display: flex;
     min-height: 100vh;

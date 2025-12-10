@@ -1,0 +1,119 @@
+:host {
+    display: block;
+    width: 100%;
+    min-height: 100vh;
+    background-color: #ffffff;
+    color: #0f172a;
+    /* Brand Black-blue */
+    font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
+}
+
+.home-container {
+    display: flex;
+    min-height: 100vh;
+    width: 100%;
+}
+
+/* Left Side - Image */
+.left-section {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8fafc;
+    /* Very light subtle bg for contrast */
+    position: relative;
+    overflow: hidden;
+}
+
+.image-wrapper {
+    width: 100%;
+    max-width: 600px;
+    padding: 2rem;
+
+    img {
+        width: 100%;
+        height: auto;
+        object-fit: contain;
+        filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.08));
+    }
+}
+
+/* Right Side - Content */
+.right-section {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem;
+}
+
+.content-wrapper {
+    max-width: 480px;
+}
+
+.headline {
+    font-size: 3.5rem;
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 1.5rem;
+    color: #0f172a;
+    letter-spacing: -1px;
+}
+
+.subtext {
+    font-size: 1.125rem;
+    line-height: 1.6;
+    color: #64748b;
+    /* Slate-500 for secondary text */
+    margin-bottom: 2.5rem;
+}
+
+
+.cta-button {
+    display: inline-block;
+    background: linear-gradient(90deg, #ffb36b 0%, #ff7a00 100%);
+    /* Brand Orange Gradient */
+    color: #081022;
+    /* Dark text for contrast on orange */
+    font-size: 1.25rem;
+    font-weight: 700;
+    padding: 1rem 3rem;
+    border-radius: 50px;
+    text-decoration: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: none;
+    cursor: pointer;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(255, 122, 0, 0.25);
+    }
+
+    &:active {
+        transform: translateY(0);
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 900px) {
+    .home-container {
+        flex-direction: column;
+    }
+
+    .left-section,
+    .right-section {
+        flex: auto;
+        width: 100%;
+        padding: 2rem;
+    }
+
+    .left-section {
+        min-height: 40vh;
+    }
+
+    .headline {
+        font-size: 2.5rem;
+    }
+}

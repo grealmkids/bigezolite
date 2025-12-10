@@ -26,8 +26,10 @@ import { HolisticFeedbackComponent } from './pages/marks/holistic-feedback.compo
 import { ManageAssessmentElementsComponent } from './pages/marks/manage-assessment-elements.component';
 import { StaffListComponent } from './pages/staff-management/staff-list.component';
 
+import { HomeComponent } from './pages/home/home.component';
+
 export const routes: Routes = [
-    { path: '', redirectTo: '/login', pathMatch: 'full' },
+    { path: '', component: HomeComponent },
     { path: 'login', component: LoginComponent },
     { path: 'register', component: RegisterComponent },
     {

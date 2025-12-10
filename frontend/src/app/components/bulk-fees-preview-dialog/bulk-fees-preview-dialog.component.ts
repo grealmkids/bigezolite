@@ -29,8 +29,8 @@ import { MatIconModule } from '@angular/material/icon';
             <mat-icon>account_balance_wallet</mat-icon>
           </div>
           <div class="card-content">
-            <div class="label">Current Credit Balance</div>
-            <div class="value">{{ data.creditBalance | number:'1.0-0' }} Credits</div>
+            <div class="label">Airtime Balance</div>
+            <div class="value">UGX {{ data.creditBalance | number:'1.0-0' }}</div>
           </div>
         </div>
         <div class="analytics-card">

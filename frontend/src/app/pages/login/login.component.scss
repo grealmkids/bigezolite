@@ -26,6 +26,31 @@
   box-shadow: 0;
 }
 
+.home-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(90deg, #ffb36b 0%, #ff7a00 100%);
+  color: #081022;
+  margin-bottom: 1rem;
+  text-decoration: none;
+  transition: transform 0.2s, box-shadow 0.2s;
+
+  mat-icon {
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 122, 0, 0.3);
+  }
+}
+
 .apptitle {
   font-weight: normal;
   color: #ffb36b;

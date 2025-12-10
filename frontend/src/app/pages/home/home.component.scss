@@ -1,10 +1,9 @@
 :host {
     display: block;
     width: 100%;
-    min-height: 100vh;
+    /* Removed min-height: 100vh to reduce white space before footer */
     background-color: #ffffff;
     color: #0f172a;
-    /* Brand Black-blue */
     font-family: 'Inter', sans-serif;
     overflow-x: hidden;
 }
@@ -23,7 +22,7 @@
 
 .home-container {
     display: flex;
-    min-height: 100vh;
+    /* Removed min-height: 100vh */
     width: 100%;
 }
 
@@ -34,15 +33,16 @@
     align-items: center;
     justify-content: center;
     background: #f8fafc;
-    /* Very light subtle bg for contrast */
     position: relative;
     overflow: hidden;
+    /* Added padding adjustment */
+    padding: 2rem;
 }
 
 .image-wrapper {
     width: 100%;
     max-width: 600px;
-    padding: 2rem;
+    /* Ensure image sits nicely */
 
     img {
         width: 100%;
@@ -58,13 +58,18 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 4rem;
+    padding: 2rem;
+    /* Reduced from 4rem to reduce white space */
+    padding-bottom: 0;
+    /* Align closer to footer */
     background: #f8fafc;
-    /* Match left section background */
+    /* Match left background */
 }
 
 .content-wrapper {
     max-width: 480px;
+    margin-bottom: 2rem;
+    /* Add some breathing room before footer */
 }
 
 .headline {
@@ -82,7 +87,7 @@
     color: #64748b;
     margin-bottom: 2.5rem;
 
-    /* Feature Spans (Pills) - Nested correctly */
+    /* Feature Spans (Pills) - Unified Styling */
     span {
         display: inline-block;
         padding: 0.35rem 0.85rem;
@@ -94,44 +99,31 @@
         text-transform: uppercase;
         transition: transform 0.2s ease;
 
+        /* User Request: Faint blue background, #000066 text */
+        background: rgba(0, 100, 255, 0.08);
+        /* Faint blue */
+        color: #000066;
+
         &:hover {
             transform: translateY(-2px);
         }
     }
 }
 
-.admin {
-    background: rgba(255, 179, 107, 0.15);
-    color: #ff7a00;
-}
-
-.students {
-    background: rgba(0, 120, 255, 0.1);
-    color: #0078ff;
-}
-
-.teachers {
-    background: rgba(46, 204, 113, 0.1);
-    color: #27ae60;
-}
-
-.canteen {
-    background: rgba(155, 89, 182, 0.1);
-    color: #8e44ad;
-}
-
+/* Override specific class colors to match the unified request */
+.admin,
+.students,
+.teachers,
+.canteen,
 .alumni {
-    background: rgba(100, 116, 139, 0.1);
-    color: #475569;
+    background: rgba(0, 100, 255, 0.08) !important;
+    color: #000066 !important;
 }
-
 
 .cta-button {
     display: inline-block;
     background: linear-gradient(90deg, #ffb36b 0%, #ff7a00 100%);
-    /* Brand Orange Gradient */
     color: #081022;
-    /* Dark text for contrast on orange */
     font-size: 1.25rem;
     font-weight: 700;
     padding: 1rem 3rem;
@@ -161,11 +153,30 @@
     .right-section {
         flex: auto;
         width: 100%;
-        padding: 2rem;
+        padding: 2rem 1rem;
+        /* Compact padding */
+    }
+
+    .right-section {
+        /* User Request: Center alignment on small screens */
+        text-align: center;
+        align-items: flex-start;
+        /* Keep vertical flow but center text via text-align */
+    }
+
+    .content-wrapper {
+        margin: 0 auto 2rem;
+        /* Center the wrapper and add margin bottom */
     }
 
     .left-section {
-        min-height: 40vh;
+        min-height: auto;
+        /* Let image decide height */
+    }
+
+    .apptitle {
+        font-size: 100px !important;
+        /* Scale down title on mobile */
     }
 
     .headline {

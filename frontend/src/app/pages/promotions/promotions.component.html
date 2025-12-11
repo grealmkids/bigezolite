@@ -1,0 +1,102 @@
+<div class="promotions-container">
+    <div class="header">
+        <h2>Student Promotions</h2>
+        <p>Select a source class and year to find students, then choose a destination to promote them.</p>
+    </div>
+
+    <div class="filters-card">
+        <div class="row">
+            <mat-form-field appearance="outline">
+                <mat-label>Source Year</mat-label>
+                <mat-select [(ngModel)]="sourceYear" (selectionChange)="onFilterChange()">
+                    <mat-option *ngFor="let y of years" [value]="y">{{ y }}</mat-option>
+                </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Source Class</mat-label>
+                <mat-select [(ngModel)]="sourceClassId" (selectionChange)="onFilterChange()">
+                    <mat-option *ngFor="let c of classes" [value]="c.id">{{ c.name }}</mat-option>
+                </mat-select>
+            </mat-form-field>
+        </div>
+    </div>
+
+    <div class="content-area">
+        <!-- Student List -->
+        <div class="student-list mat-elevation-z2">
+            <div class="list-header">
+                <h3>Students ({{students.length}})</h3>
+                <span class="selected-count" *ngIf="selectedStudentIds.size > 0">{{ selectedStudentIds.size }}
+                    selected</span>
+            </div>
+
+            <div class="loading-shade" *ngIf="loading">
+                Loading...
+            </div>
+
+            <div class="table-container" *ngIf="!loading && students.length > 0">
+                <table class="simple-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">
+                                <mat-checkbox (change)="toggleAll($event)" [checked]="isAllSelected()"
+                                    [indeterminate]="selectedStudentIds.size > 0 && !isAllSelected()"></mat-checkbox>
+                            </th>
+                            <th>Name</th>
+                            <th>Reg Number</th>
+                            <th>Current Term</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let s of students" [class.selected]="selectedStudentIds.has(s.student_id)">
+                            <td>
+                                <mat-checkbox (change)="toggleStudent(s.student_id, $event)"
+                                    [checked]="selectedStudentIds.has(s.student_id)"></mat-checkbox>
+                            </td>
+                            <td>{{ s.student_name }}</td>
+                            <td>{{ s.reg_number }}</td>
+                            <td>Term {{ s.term }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="no-data" *ngIf="!loading && students.length === 0">
+                <p>No students found for the selected criteria.</p>
+            </div>
+        </div>
+
+        <!-- Destination Form -->
+        <div class="destination-card mat-elevation-z2">
+            <h3>Promote To</h3>
+            <div class="dest-form">
+                <mat-form-field appearance="outline">
+                    <mat-label>Next Academic Year</mat-label>
+                    <input matInput type="number" [(ngModel)]="destYear">
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                    <mat-label>Term</mat-label>
+                    <mat-select [(ngModel)]="destTerm">
+                        <mat-option [value]="1">Term 1</mat-option>
+                        <mat-option [value]="2">Term 2</mat-option>
+                        <mat-option [value]="3">Term 3</mat-option>
+                    </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                    <mat-label>Next Class</mat-label>
+                    <mat-select [(ngModel)]="destClassId">
+                        <mat-option *ngFor="let c of classes" [value]="c.id">{{ c.name }}</mat-option>
+                    </mat-select>
+                </mat-form-field>
+
+                <button mat-raised-button color="primary" class="promote-btn" [class.spinner]="promoting"
+                    [disabled]="isDisabled() || promoting" (click)="promote()">
+                    Promote {{ selectedStudentIds.size }} Students
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

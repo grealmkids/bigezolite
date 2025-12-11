@@ -107,6 +107,25 @@ export const createStudent = async (student: Omit<Student, 'student_id' | 'reg_n
     const result = await query(sql, params);
     const created = result.rows[0];
 
+    // [NEW] Populate term_enrollments for the new student
+    try {
+        // Find matching class_id (Case-insensitive)
+        const classRes = await query('SELECT class_id FROM classes WHERE LOWER(class_name) = LOWER($1) LIMIT 1', [student.class_name]);
+        if (classRes.rows.length > 0) {
+            const classId = classRes.rows[0].class_id;
+            const term = student.joining_term ? Number(student.joining_term) : 1;
+
+            await query(`
+                INSERT INTO term_enrollments (student_id, school_id, class_id, academic_year, term, status, is_current)
+                VALUES ($1, $2, $3, $4, $5, $6, TRUE)
+                ON CONFLICT (student_id, academic_year, term) DO UPDATE SET is_current = TRUE
+            `, [created.student_id, schoolId, classId, student.year_enrolled, term, student.student_status || 'Active']);
+        }
+    } catch (err) {
+        console.error('[createStudent] Failed to create term_enrollment:', err);
+        // We do not throw here to allow the student creation to succeed even if this auxiliary record fails
+    }
+
     // Auto-apply fees_to_track for this student (same year; optional joining term)
     try {
         const joiningTerm = (student as any)?.joining_term ? Number((student as any).joining_term) : null;

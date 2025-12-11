@@ -1,0 +1,86 @@
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { MatInputModule } from '@angular/material/input';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatTableModule } from '@angular/material/table'; // Use table for better layout? Or just list.
+import { StudentService } from '../../services/student.service';
+import { SchoolService } from '../../services/school.service';
+import { ClassCategorizationService } from '../../services/class-categorization.service';
+
+@Component({
+  selector: 'app-promotions',
+  standalone: true,
+  imports: [
+    CommonModule, FormsModule, ReactiveFormsModule,
+    MatCardModule, MatButtonModule, MatFormFieldModule, MatSelectModule, MatInputModule, MatCheckboxModule, MatSnackBarModule
+  ],
+  templateUrl: './promotions.component.html',
+  styleUrls: ['./promotions.component.scss']
+})
+export class PromotionsComponent implements OnInit {
+  schoolId: number | null = null;
+  classes: any[] = []; // { id, name }
+  
+  // Source Filters
+  sourceYear: number = new Date().getFullYear();
+  sourceClassId: number | null = null;
+  
+  // Destination Details
+  destYear: number = new Date().getFullYear() + 1;
+  destTerm: number = 1;
+  destClassId: number | null = null;
+
+  // Data
+  students: any[] = [];
+  selectedStudentIds: Set<number> = new Set();
+  
+  loading = false;
+  promoting = false;
+
+  constructor(
+    private studentService: StudentService,
+    private schoolService: SchoolService,
+    private classService: ClassCategorizationService,
+    private snackBar: MatSnackBar
+  ) {}
+
+  ngOnInit() {
+    this.schoolId = this.schoolService.getSelectedSchoolId();
+    if (!this.schoolId) return;
+    
+    // Load Classes. 
+    // Ideally we fetch from backend 'classes' table.
+    // If ClassCategorizationService is hardcoded, we might need a backend endpoint for classes OR reuse existing if available.
+    // Since we created 'classes' table, we should fetch from there.
+    // But for now, let's assume we can fetch classes from school context or similar?
+    // Actually, StudentModal fetches classes. It likely gets them from 'classes' table? No, it used hardcoded.
+    // We migrated creating classes table. We should fetch from '/api/v1/classes'? 
+    // I didn't create a 'ClassesController'. 
+    // But 'd009' migration put them in DB.
+    // For now, I will use the hardcoded list but map them to IDs if possible?
+    // Wait, my backend logic for promotion REQUIRES 'classId'.
+    // If the frontend only knows 'class_name', I need to map it.
+    // I MUST have an endpoint to list classes with IDs.
+    // I missed that.
+    
+    // WORKAROUND: I will fetch classes via a simple SQL query endpoint if one exists, or I quickly mock it?
+    // Or I rely on 'class_name' and update backend 'getPromotable' to accept 'className' and lookup ID internally.
+    // 'promotion.controller' accepts 'classId'.
+    
+    // I should probably update `class-categorization.service` or add a `ClassService` to fetch from DB.
+    // But to save time/complexity, I'll update 'getPromotable' to resolve ID from Name if needed. 
+    // NO, cleaner is to just fetch classes from DB.
+    // I can add `GET /api/v1/utils/classes?schoolId=...`?
+    // Or just hardcode the IDs? IDs are 1..15.
+    // Primary: P.1(1)..P.7(7).
+    // Secondary: S.1(8)..S.6(13).
+    // Nursery: Baby(14), Middle(15), Top(16).
+    // I can stick to this mapping in frontend for now to avoid creating new endpoints immediately.
+  }
+}

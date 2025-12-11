@@ -149,4 +149,16 @@ export class StudentService {
       observe: 'events'
     });
   }
+
+  getPromotableStudents(schoolId: number, year: number, classId: number): Observable<any[]> {
+    const params = new HttpParams()
+      .set('schoolId', schoolId.toString())
+      .set('year', year.toString())
+      .set('classId', classId.toString());
+    return this.http.get<any[]>(`${this.apiUrl}/promotable`, { params });
+  }
+
+  promoteStudents(payload: { schoolId: number, studentIds: number[], nextClassId: number, nextYear: number, nextTerm: number }): Observable<any> {
+    return this.http.post(`${this.apiUrl}/promote`, payload);
+  }
 }

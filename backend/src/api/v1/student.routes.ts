@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import * as studentController from '../../services/students/student.controller';
 import * as feesController from '../../services/fees/fees.controller'; // Import fees controller
+import * as promotionController from '../../services/students/promotion.controller'; // Import promotion controller
 import { authenticateToken } from '../../middleware/auth.middleware';
 
 import multer from 'multer';
@@ -10,6 +11,10 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 // All student routes are protected
 router.use(authenticateToken);
+
+// Promotion Routes (Must come before /:studentId)
+router.get('/promotable', promotionController.getPromotable);
+router.post('/promote', promotionController.promote);
 
 // POST /api/v1/students - Create a new student
 router.post('/', studentController.createStudent);

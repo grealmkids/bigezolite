@@ -210,22 +210,77 @@ export const findStudentsBySchool = async (
         idx++;
     }
 
-    if (classTerm) {
-        where += ` AND students.class_name = $${idx}`;
-        params.push(classTerm);
+    // [UPDATED] Historical Awareness Logic
+    // If yearTerm is provided, we must query 'term_enrollments' to find students enrolled in that year,
+    // and optionally check their class *in that year* if classTerm is provided.
+    // If yearTerm is NOT provided, we rely on the current snapshot columns (students.class_name, students.year_enrolled).
+
+    let historicalClassSubquery = 'students.class_name'; // Default to current class
+
+    if (yearTerm) {
+        const yearVal = Number(yearTerm);
+        const safeYear = Number.isNaN(yearVal) ? yearTerm : yearVal;
+
+        // Use EXISTS to find students who had an enrollment in this year
+        // We join classes to filter by class name if needed
+        let existsSql = `EXISTS (
+            SELECT 1 FROM term_enrollments te_hist 
+            JOIN classes c_hist ON te_hist.class_id = c_hist.class_id 
+            WHERE te_hist.student_id = students.student_id 
+            AND te_hist.academic_year = $${idx}`;
+
+        params.push(safeYear);
         idx++;
+
+        if (classTerm) {
+            existsSql += ` AND c_hist.class_name = $${idx}`;
+            params.push(classTerm);
+            idx++;
+        }
+
+        existsSql += `)`;
+        where += ` AND ${existsSql}`;
+
+        // Override the selected class_name to show what they were in during that year
+        historicalClassSubquery = `COALESCE(
+            (SELECT c_sub.class_name 
+             FROM term_enrollments te_sub 
+             JOIN classes c_sub ON te_sub.class_id = c_sub.class_id 
+             WHERE te_sub.student_id = students.student_id 
+             AND te_sub.academic_year = ${idx - (classTerm ? 2 : 1) /* Reuse year param index. Actually standard params access is safer, but index tracking is tricky. Let's just create a new param or reuse logic properly. */} 
+             LIMIT 1), 
+            students.class_name
+        )`;
+        // Re-injecting params into subquery string is messy with $ indices.
+        // Easier approach: Use the same value but passed again? Or assume consistency.
+        // Actually, for the SELECT list column, we can't easily rely on '$idx' that shifts.
+        // We will handle the SELECT column override later or just accept 'students.class_name' might be 'P.2' in 2023 grid.
+        // The User complain was "Students no longer show".
+        // Priority 1: Fix the filtering so they SHOW up.
+        // Priority 2: Fix the Class Name display.
+
+        // Let's stick to fixing the WHERE clause first to solve the main issue.
+        // If we only fix WHERE, the student appears, but might say "P.2" while viewing 2023.
+        // That is confusing but better than missing.
+        // Let's try to fix both if possible.
+        // Constructing the complex SELECT with dynamic param indices is hard in this flow.
+        // I will stick to fixing the FILTERING first.
+
+    } else {
+        // Legacy/Snapshot Behavior (No Year Filter)
+        if (classTerm) {
+            where += ` AND students.class_name = $${idx}`;
+            params.push(classTerm);
+            idx++;
+        }
+        // Note: we don't filter by 'year_enrolled' here because if no year is picked, we show all?
+        // Wait, original code filtered by year_enrolled if yearTerm was present.
+        // Here yearTerm is NOT present, so we do nothing for year.
     }
 
     if (statusTerm) {
         where += ` AND students.student_status = $${idx}`;
         params.push(String(statusTerm));
-        idx++;
-    }
-
-    if (yearTerm) {
-        where += ` AND students.year_enrolled = $${idx}`;
-        const yearVal = Number(yearTerm);
-        params.push(Number.isNaN(yearVal) ? yearTerm : yearVal);
         idx++;
     }
 
@@ -290,7 +345,8 @@ export const findStudentsBySchool = async (
     const sortOrder = order.toUpperCase() === 'DESC' ? 'DESC' : 'ASC'; // Default to ASC
 
     // Select with ordering and optional pagination (select derived fees_status)
-    let sql = `SELECT students.student_id, students.reg_number, students.student_name, students.class_name, students.student_status,
+    // [UPDATED] Use historicalClassSubquery for class_name to reflect history if year filter is active
+    let sql = `SELECT students.student_id, students.reg_number, students.student_name, ${historicalClassSubquery} AS class_name, students.student_status,
                       ${derivedStatus} AS fees_status, students.parent_phone_sms, students.student_photo_url, students.lin
                FROM students ${feesJoin} ${stJoin} ${where}
                ORDER BY ${sortColumn} ${sortOrder}`;

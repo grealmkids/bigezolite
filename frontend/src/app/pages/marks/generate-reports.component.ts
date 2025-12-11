@@ -125,8 +125,16 @@ export class GenerateReportsComponent implements OnInit {
     if (!this.selectedClass) return;
 
     this.loadingStudents = true;
-    // Use StudentService to fetch students filtered by class
-    this.studentService.getStudents(this.schoolId, undefined, this.selectedClass).subscribe({
+    // Use StudentService to fetch students filtered by class AND year (for historical records)
+    // getStudents(schoolId, searchTerm, classTerm, statusTerm, feesStatusTerm, yearTerm)
+    this.studentService.getStudents(
+      this.schoolId,
+      undefined,
+      this.selectedClass,
+      undefined,
+      undefined,
+      this.selectedYear.toString()
+    ).subscribe({
       next: (result: any) => {
         // StudentService returns { items: [], total: number }
         this.students = result.items || [];

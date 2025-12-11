@@ -26,7 +26,7 @@ export class EnterMarksComponent implements OnInit {
   examSet: ExamSet | null = null;
   assessmentElements: AssessmentElement[] = [];
   students: StudentMark[] = [];
-  
+
   loading = false;
   saving = false;
 
@@ -36,7 +36,7 @@ export class EnterMarksComponent implements OnInit {
     private marksService: MarksService,
     private studentService: StudentService,
     private snack: MatSnackBar
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     const storedSchoolId = localStorage.getItem('currentSchoolId');
@@ -83,7 +83,18 @@ export class EnterMarksComponent implements OnInit {
 
   loadStudents(): void {
     const classLevel = this.examSet?.class_level || '';
-    this.studentService.getStudents(this.schoolId, classLevel).subscribe({
+    const year = this.examSet?.year?.toString();
+
+    // Fix: Pass classLevel as 3rd arg (classTerm), NOT 2nd arg (searchTerm)
+    // Add year as 6th arg to support specific year enrollment check
+    this.studentService.getStudents(
+      this.schoolId,
+      undefined,
+      classLevel,
+      undefined,
+      undefined,
+      year
+    ).subscribe({
       next: (response) => {
         const items = Array.isArray(response) ? response : (response as any).items || [];
         this.students = items.map((student: any) => ({

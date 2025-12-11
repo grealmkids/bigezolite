@@ -28,58 +28,78 @@
     </div>
   </div>
 
-  <div *ngIf="loading.overview" class="loading-state">
-    <mat-spinner diameter="40"></mat-spinner>
-    <p>Loading analytics...</p>
-  </div>
-
-  <div *ngIf="!loading.overview && analytics" class="dashboard-content">
+  <div *ngIf="analytics || loading.overview" class="dashboard-content">
 
     <!-- Top Row: Key Metrics -->
     <div class="metrics-row">
+      <!-- Card 1 -->
       <div class="metric-card primary">
-        <div class="metric-header">
-          <span class="label">Total Students</span>
-          <mat-icon>groups</mat-icon>
+        <div *ngIf="loading.overview && !analytics" class="card-loader">
+          <mat-spinner diameter="30"></mat-spinner>
         </div>
-        <div class="metric-value">{{ analytics.totalStudents }}</div>
-        <div class="metric-trend">
-          <span class="trend-up">Active: {{ analytics.activeStudents }}</span>
-        </div>
+        <ng-container *ngIf="analytics">
+          <div class="metric-header">
+            <span class="label">Total Students</span>
+            <mat-icon>groups</mat-icon>
+          </div>
+          <div class="metric-value">{{ analytics.totalStudents }}</div>
+          <div class="metric-trend">
+            <span class="trend-up">Active: {{ analytics.activeStudents }}</span>
+          </div>
+        </ng-container>
       </div>
 
+      <!-- Card 2 -->
       <div class="metric-card success">
-        <div class="metric-header">
-          <span class="label">Total Collected</span>
-          <mat-icon>payments</mat-icon>
+        <div *ngIf="loading.overview && !analytics" class="card-loader">
+          <mat-spinner diameter="30"></mat-spinner>
         </div>
-        <div class="metric-value small-text">{{ analytics.totalPaidAmount | currency:'UGX ':'symbol':'1.0-0' }}</div>
-        <div class="metric-trend">
-          <span>{{ analytics.paidStudentsCount }} students</span>
-        </div>
+        <ng-container *ngIf="analytics">
+          <div class="metric-header">
+            <span class="label">Total Collected</span>
+            <mat-icon>payments</mat-icon>
+          </div>
+          <div class="metric-value small-text metric-val-color">{{ analytics.totalPaidAmount | currency:'UGX
+            ':'symbol':'1.0-0' }}</div>
+          <div class="metric-trend">
+            <span>{{ analytics.paidStudentsCount }} students</span>
+          </div>
+        </ng-container>
       </div>
 
+      <!-- Card 3 -->
       <div class="metric-card danger">
-        <div class="metric-header">
-          <span class="label">Defaulters</span>
-          <mat-icon>warning</mat-icon>
+        <div *ngIf="loading.overview && !analytics" class="card-loader">
+          <mat-spinner diameter="30"></mat-spinner>
         </div>
-        <div class="metric-value small-text">{{ analytics.totalDefaulterBalance | currency:'UGX ':'symbol':'1.0-0' }}
-        </div>
-        <div class="metric-trend">
-          <span>{{ analytics.defaulterStudentsCount }} students</span>
-        </div>
+        <ng-container *ngIf="analytics">
+          <div class="metric-header">
+            <span class="label">Defaulters</span>
+            <mat-icon>warning</mat-icon>
+          </div>
+          <div class="metric-value small-text metric-val-color">{{ analytics.totalDefaulterBalance | currency:'UGX
+            ':'symbol':'1.0-0' }}</div>
+          <div class="metric-trend">
+            <span>{{ analytics.defaulterStudentsCount }} students</span>
+          </div>
+        </ng-container>
       </div>
 
+      <!-- Card 4 -->
       <div class="metric-card info">
-        <div class="metric-header">
-          <span class="label">SMS Balance</span>
-          <mat-icon>sms</mat-icon>
+        <div *ngIf="loading.overview && !analytics" class="card-loader">
+          <mat-spinner diameter="30"></mat-spinner>
         </div>
-        <div class="metric-value small-text">{{ analytics.smsBalance | currency:'UGX ':'symbol':'1.0-0' }}</div>
-        <div class="metric-trend">
-          <span>{{ analytics.smsCount }} credits</span>
-        </div>
+        <ng-container *ngIf="analytics">
+          <div class="metric-header">
+            <span class="label">SMS Balance</span>
+            <mat-icon>sms</mat-icon>
+          </div>
+          <div class="metric-value small-text">{{ analytics.smsBalance | currency:'UGX ':'symbol':'1.0-0' }}</div>
+          <div class="metric-trend">
+            <span>{{ analytics.smsCount }} credits</span>
+          </div>
+        </ng-container>
       </div>
     </div>
 
@@ -87,61 +107,67 @@
     <div class="charts-grid">
       <div class="chart-card">
         <h3>Students per Class</h3>
-        <div class="chart-container">
+        <div *ngIf="loading.overview && !analytics" class="card-loader">
+          <mat-spinner diameter="40"></mat-spinner>
+        </div>
+        <div class="chart-container" *ngIf="analytics">
           <canvas baseChart [data]="classChartData" [options]="classChartOptions" [type]="'bar'">
           </canvas>
         </div>
       </div>
       <div class="chart-card">
         <h3>Gender Ratio</h3>
-        <div class="chart-container doughnut">
+        <div *ngIf="loading.overview && !analytics" class="card-loader">
+          <mat-spinner diameter="40"></mat-spinner>
+        </div>
+        <div class="chart-container doughnut" *ngIf="analytics">
           <canvas baseChart [data]="genderChartData" [options]="genderChartOptions" [type]="'doughnut'">
           </canvas>
           <div class="chart-overlay">
-            <div class="total">{{ analytics.activeStudents }}</div>
+            <div class="total">{{ analytics?.activeStudents }}</div>
             <div class="label">Active</div>
           </div>
         </div>
-        <div class="gender-legend">
+        <div class="gender-legend" *ngIf="analytics">
           <div class="item">
             <span class="dot boy"></span>
             <span class="lbl">Boys</span>
-            <span class="val">{{ analytics.activeBoys }}</span>
+            <span class="val">{{ analytics?.activeBoys }}</span>
           </div>
           <div class="item">
             <span class="dot girl"></span>
             <span class="lbl">Girls</span>
-            <span class="val">{{ analytics.activeGirls }}</span>
+            <span class="val">{{ analytics?.activeGirls }}</span>
           </div>
         </div>
       </div>
     </div>
 
     <!-- Secondary Metrics (Status) -->
-    <div class="status-strip">
+    <div class="status-strip" *ngIf="analytics">
       <div class="status-item">
         <span class="label">Inactive</span>
-        <span class="value">{{ analytics.inactiveStudents }}</span>
+        <span class="value">{{ analytics?.inactiveStudents }}</span>
       </div>
       <div class="divider"></div>
       <div class="status-item">
         <span class="label">Alumni</span>
-        <span class="value">{{ analytics.alumniStudents }}</span>
+        <span class="value">{{ analytics?.alumniStudents }}</span>
       </div>
       <div class="divider"></div>
       <div class="status-item">
         <span class="label">Expelled</span>
-        <span class="value">{{ analytics.expelledStudents }}</span>
+        <span class="value">{{ analytics?.expelledStudents }}</span>
       </div>
       <div class="divider"></div>
       <div class="status-item">
         <span class="label">Suspended</span>
-        <span class="value">{{ analytics.suspendedStudents }}</span>
+        <span class="value">{{ analytics?.suspendedStudents }}</span>
       </div>
       <div class="divider"></div>
       <div class="status-item">
         <span class="label">Sick</span>
-        <span class="value">{{ analytics.sickStudents }}</span>
+        <span class="value">{{ analytics?.sickStudents }}</span>
       </div>
     </div>
 

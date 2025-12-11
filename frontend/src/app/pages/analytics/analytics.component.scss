@@ -204,6 +204,10 @@
   &.danger {
     border-left: 4px solid var(--danger);
 
+    .metric-val-color {
+      color: var(--danger);
+    }
+
     .metric-value.small-text {
       color: var(--danger);
     }
@@ -220,6 +224,13 @@
       color: var(--info);
     }
   }
+}
+
+.card-loader {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100px;
 }
 
 /* Charts Grid */

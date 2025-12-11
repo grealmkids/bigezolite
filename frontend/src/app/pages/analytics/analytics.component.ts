@@ -10,8 +10,31 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { AnalyticsService, AnalyticsData } from '../../services/analytics.service';
 import { SchoolService } from '../../services/school.service';
 import { BaseChartDirective } from 'ng2-charts';
-import { ChartConfiguration, ChartData } from 'chart.js';
-import Chart from 'chart.js/auto'; // Register chart.js controllers
+import {
+  Chart,
+  ArcElement,
+  BarElement,
+  BarController,
+  DoughnutController,
+  CategoryScale,
+  LinearScale,
+  Legend,
+  Tooltip,
+  ChartConfiguration,
+  ChartData
+} from 'chart.js';
+
+// Register Chart.js components
+Chart.register(
+  ArcElement,
+  BarElement,
+  BarController,
+  DoughnutController,
+  CategoryScale,
+  LinearScale,
+  Legend,
+  Tooltip
+);
 
 @Component({
   selector: 'app-analytics',
@@ -116,6 +139,11 @@ export class AnalyticsComponent implements OnInit {
     // Reset all loading states
     this.loading = { overview: true, status: true, gender: true, sms: true, charts: true };
     this.errors = { overview: null, status: null, gender: null, sms: null };
+
+    // Set initial loading state but do not clear potential previous data immediately if just refreshing
+    if (this.analytics && refresh) {
+      // Keep data visible while refreshing
+    }
 
     const schoolId = this.schoolService.getSelectedSchoolId();
 

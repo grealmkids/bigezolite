@@ -20,6 +20,7 @@ export interface AnalyticsData {
     totalDefaulterBalance?: number;
     paidStudentsCount?: number;
     defaulterStudentsCount?: number;
+    studentsPerClass: { className: string; count: number }[];
 }
 
 /**
@@ -142,6 +143,22 @@ export const getSchoolAnalytics = async (schoolId: number, year?: number, term?:
     const feesAggResult = await query(feesAggSql, params);
     const feesAgg = feesAggResult.rows[0] || { total_paid_all: 0, total_balance_due_all: 0, paid_students_count: 0, defaulter_students_count: 0 };
 
+    // Get students per class (active only)
+    const classQuery = `
+        SELECT 
+            class_name,
+            COUNT(*) as student_count
+        FROM students
+        WHERE school_id = $1 AND student_status = 'Active'
+        GROUP BY class_name
+        ORDER BY class_name ASC
+    `;
+    const classResult = await query(classQuery, [schoolId]);
+    const studentsPerClass = classResult.rows.map(row => ({
+        className: row.class_name,
+        count: parseInt(row.student_count) || 0
+    }));
+
     return {
         totalStudents: parseInt(statusData.total_count) || 0,
         activeStudents: parseInt(statusData.active_count) || 0,
@@ -157,6 +174,7 @@ export const getSchoolAnalytics = async (schoolId: number, year?: number, term?:
         totalPaidAmount: Number(feesAgg.total_paid_all) || 0,
         totalDefaulterBalance: Number(feesAgg.total_balance_due_all) || 0,
         paidStudentsCount: Number(feesAgg.paid_students_count) || 0,
-        defaulterStudentsCount: Number(feesAgg.defaulter_students_count) || 0
+        defaulterStudentsCount: Number(feesAgg.defaulter_students_count) || 0,
+        studentsPerClass
     };
 };

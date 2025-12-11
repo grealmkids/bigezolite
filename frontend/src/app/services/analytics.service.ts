@@ -20,6 +20,7 @@ export interface AnalyticsData {
   totalDefaulterBalance?: number;
   paidStudentsCount?: number;
   defaulterStudentsCount?: number;
+  studentsPerClass: { className: string; count: number }[];
 }
 
 @Injectable({
@@ -28,7 +29,7 @@ export interface AnalyticsData {
 export class AnalyticsService {
   private apiUrl = `${environment.apiUrl}/analytics`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getAnalytics(schoolId?: number, year?: number | string, term?: number | string, refresh?: boolean): Observable<AnalyticsData> {
     const params: any = {};

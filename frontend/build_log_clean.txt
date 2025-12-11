@@ -1,0 +1,23 @@
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[33mΓ¥»[39m Building...
+[32mΓ£ö[39m Building...
+[1mInitial chunk files[22m[2m | [22m[1mNames[22m                      [2m | [22m [1mRaw size[22m
+[32mmain.js[39m            [2m | [22m[2mmain[22m                       [2m | [22m  [36m4.83 MB[39m[2m | [22m
+[32mchunk-4PVTKP6W.js[39m  [2m | [22m[2m-[22m                          [2m | [22m  [36m3.36 MB[39m[2m | [22m
+[32mpolyfills.js[39m       [2m | [22m[2mpolyfills[22m                  [2m | [22m [36m90.14 kB[39m[2m | [22m
+[32mstyles.css[39m         [2m | [22m[2mstyles[22m                     [2m | [22m  [36m4.99 kB[39m[2m | [22m
+[32mchunk-MMDJ73YK.js[39m  [2m | [22m[2m-[22m                          [2m | [22m  [36m4.61 kB[39m[2m | [22m
+[32mchunk-7YWLATDR.js[39m  [2m | [22m[2m-[22m                          [2m | [22m[36m459 bytes[39m[2m | [22m
+
+[1m [22m                  [2m | [22m[1mInitial total[22m              [2m | [22m  [1m8.29 MB[22m
+
+[1mLazy chunk files[22m   [2m | [22m[1mNames[22m                      [2m | [22m [1mRaw size[22m
+[32mchunk-KXVXM5RH.js[39m  [2m | [22m[2mhtml2canvas[22m                [2m | [22m[36m398.44 kB[39m[2m | [22m
+[32mchunk-VBQWY4HW.js[39m  [2m | [22m[2mindex-es[22m                   [2m | [22m[36m369.64 kB[39m[2m | [22m
+[32mchunk-A5MH7WDE.js[39m  [2m | [22m[2mteacher-dashboard-component[22m[2m | [22m [36m51.85 kB[39m[2m | [22m
+[32mchunk-AFHPJDVO.js[39m  [2m | [22m[2mpurify-es[22m                  [2m | [22m [36m45.93 kB[39m[2m | [22m
+
+Application bundle generation complete. [13.674 seconds]
+
+Output location: C:\Users\dell\Documents\BIGEZO 2025\FROM FLASH 2025\bigezolite\frontend\dist\frontend
+

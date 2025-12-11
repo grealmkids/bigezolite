@@ -91,7 +91,11 @@ export class AnalyticsComponent implements OnInit {
     scales: {
       y: {
         beginAtZero: true,
-        grid: { color: 'rgba(0,0,0,0.05)' }
+        grid: { color: 'rgba(0,0,0,0.05)' },
+        ticks: {
+          stepSize: 1,
+          precision: 0
+        }
       },
       x: {
         grid: { display: false }

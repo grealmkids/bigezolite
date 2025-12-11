@@ -193,7 +193,7 @@
     border-left: 4px solid var(--success);
 
     .metric-val-color {
-      color: var(--success);
+      color: var(--success) !important;
     }
 
     .metric-header mat-icon {
@@ -205,11 +205,11 @@
     border-left: 4px solid var(--danger);
 
     .metric-val-color {
-      color: var(--danger);
+      color: var(--danger) !important;
     }
 
     .metric-value.small-text {
-      color: var(--danger);
+      color: var(--danger) !important;
     }
 
     .metric-header mat-icon {

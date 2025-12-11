@@ -1,0 +1,94 @@
+# Plan: Student Promotion & Year-Based Tracking Architecture (Ugandan Workflow)
+
+## 1. Database Schema Changes
+
+To support the workflow where students enrol per term and can exist in multiple schools, we need a robust normalized schema.
+
+### A. New Table: `classes`
+Standardizes class names and provides an order for promotion.
+```sql
+CREATE TABLE classes (
+  class_id SERIAL PRIMARY KEY,
+  school_type VARCHAR(100), -- e.g., 'Primary (Local)'
+  class_name VARCHAR(50) NOT NULL, -- e.g., 'P.1'
+  rank_order INT NOT NULL, -- e.g., 1 for P.1, 2 for P.2 (Crucial for auto-promotion)
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+-- We will seed this table with the standard classes defined in your `ClassCategorizationService`.
+```
+
+### B. New Table: `term_enrollments` (The Core Ledger)
+This replaces the static `class_name` on the student. It tracks every term a student is present.
+```sql
+CREATE TABLE term_enrollments (
+  enrollment_id SERIAL PRIMARY KEY,
+  student_id INT REFERENCES students(student_id) ON DELETE CASCADE,
+  school_id INT NOT NULL, -- Redundant but fast for queries
+  class_id INT REFERENCES classes(class_id),
+  academic_year INT NOT NULL, -- e.g., 2025
+  term INT NOT NULL, -- 1, 2, or 3
+  status VARCHAR(20) DEFAULT 'Active', -- Active, Promoted, Repeated, Left
+  is_current BOOLEAN DEFAULT FALSE, -- Flag to identify the student's *latest* status
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(student_id, academic_year, term) -- One record per student per term
+);
+```
+
+### C. Updates to `students` Table
+- **Multi-School Access**: A student profile (`students` row) is specific to a school. If a student moves to a new school, a *new* row is created in `students` for that school.
+- **Unified Login**: We will link these profiles via the `users` table (by email or phone) later. For now, we ensure data is preserved even if they leave.
+- **Migration**: We will migrate existing text-based class data into `term_enrollments` for the current Term/Year.
+
+## 2. Workflows & Logic
+
+### A. "Enrolling" for a New Term (The "Registration" Flow)
+- **Concept**: At the start of Term 2, you don't re-enter data. You "Register" existing active students.
+- **Flexible Enrollment**: A student can skip Term 1 and join directly in Term 2 or 3. The `term_enrollments` table supports any (Year, Term) combination independently.
+- **UI**: A "Term Registration" view.
+  - Select "Year: 2025", "Term: 2".
+  - It shows all likely students (those active in Term 1).
+  - Admin clicks "Confirm Enrollment" for all or selected.
+  - **Backend**: Creates new rows in `term_enrollments` for (2025, Term 2).
+
+### B. Fee History Tracking
+- **Question**: "Will it track pending fees for previous years/terms?"
+- **Answer**: **YES.**
+- **Mechanism**: The `fees_records` table is *already* linked to a specific Term and Year. By preserving this data and linking students to specific Terms via `term_enrollments`, the system can accurately report:
+  - "Student X owes 50k from 2024 Term 1 (P.1)"
+  - "Student X owes 20k from 2025 Term 2 (P.2)"
+- The "Defaulters" list can now clearly show *which term* the debt comes from.
+
+### B. Promotion Logic (Yearly)
+- **When**: End of Year / Start of New Year.
+- **Logic**:
+  - Fetch students active in Term 3 of Current Year.
+  - User selects "Promote to Next Class".
+  - **Backend**:
+    - Calculates `nextClass = rank_order + 1`.
+    - Creates `term_enrollments` for (Next Year, Term 1) with the `nextClass`.
+    - Updates history status to 'Promoted'.
+
+### C. Joining Mid-Year
+- The "Add Student" form will now ask for **Year**, **Term**, and **Class**.
+- This creates the `students` profile AND the first `term_enrollments` record immediately.
+
+## 3. UI/UX Guidelines (Brand Consistency)
+To ensure the new "Promotion" and "Term Registration" features feel native:
+1.  **Modals**: Use `MatDialog` with the standard header styling (`mat-toolbar` with primary color `#667eea`).
+2.  **Forms**: Use `MatFormField` with `appearance="outline"` and the `dense-mn` class for compact rows, matching the "Add Student" modal.
+3.  **Buttons**: Use `mat-flat-button` with `color="primary"` for main actions.
+4.  **Feedback**: Use `MatSnackBar` for success/error messages (Green for success, Red for error).
+
+## 4. Impact on Fees & Marks (Legacy Sync Strategy)
+**Crucial**: To ensure your Fees and Marks modules continue working **without changes**:
+- When we promote a student (e.g., P.1 -> P.2), we will **ALSO update the legacy `class_name` text column** in the `students` table.
+- **Why?** The Fees module calculates balances based on `students.class_name` matching `fees_to_track.class_name`.
+- **Result**: By keeping this column in sync with the latest enrollment, the Fees module will automatically "see" the student in the new class and apply the correct fees. No breakage.
+
+## 5. Implementation Steps
+1.  **Safety First**: Backup database (done via git branch for code, will need DB backup or safe migration).
+2.  **Schema Migration**: Run SQL to create `classes` and `term_enrollments`.
+3.  **Data Migration**: specific script to move current `students.class_name` -> `term_enrollments` (Current Year, Current Term).
+4.  **Backend API**: Update endpoints to read/write from `term_enrollments`.
+5.  **Frontend**: Update Student Modal and Lists to reflect term-based structure.
+

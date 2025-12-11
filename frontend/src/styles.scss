@@ -1,12 +1,29 @@
-
 // Custom Theming for Angular Material
 // For more information: https://material.angular.dev/guide/theming
 @use '@angular/material' as mat;
+
 /* Removed Google Fonts import for offline builds; consider including locally or via index.html link */
 /* @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap'); */
-@font-face { font-family: 'Poppins'; font-weight: 400; font-style: normal; src: local('Poppins'); }
-@font-face { font-family: 'Poppins'; font-weight: 500; font-style: normal; src: local('Poppins'); }
-@font-face { font-family: 'Poppins'; font-weight: 700; font-style: normal; src: local('Poppins'); }
+@font-face {
+  font-family: 'Poppins';
+  font-weight: 400;
+  font-style: normal;
+  src: local('Poppins');
+}
+
+@font-face {
+  font-family: 'Poppins';
+  font-weight: 500;
+  font-style: normal;
+  src: local('Poppins');
+}
+
+@font-face {
+  font-family: 'Poppins';
+  font-weight: 700;
+  font-style: normal;
+  src: local('Poppins');
+}
 
 // Include the core styles for Angular Material (typography, density, etc.)
 @include mat.core();
@@ -19,13 +36,20 @@
   /* legacy aliases used throughout components */
   --color-primary: #ff9933;
   --color-secondary: #0059b3;
-  --color-green:#0cc151;
+  --color-green: #0cc151;
 }
-.welcometext{font-family: "Inspiration", cursive;
+
+.welcometext {
+  font-family: "Inspiration", cursive;
   font-weight: 400;
   font-size: 80px;
-  font-style: normal;}
-mat-nav-list mat-icon{margin-right: 10px !important;}
+  font-style: normal;
+}
+
+mat-nav-list mat-icon {
+  margin-right: 10px !important;
+}
+
 /* When on auth pages (login/register) hide the global toolbar and set dark background */
 body.auth-bg {
   background: radial-gradient(circle at 10% 20%, #0f172a 0%, #071124 20%, #031428 45%, #021022 100%) !important;
@@ -89,6 +113,7 @@ body.auth-bg mat-toolbar {
   border-radius: 6px !important;
   padding: 6px 16px !important;
 }
+
 /* NOTE: Custom Material theming removed to avoid build-time SASS errors.
    The app will use CSS variables defined above and the default Material theme.
    If you want a custom Material theme, re-add a validated theme block
@@ -112,8 +137,15 @@ body {
   background-color: var(--primary-color) !important;
   color: white !important;
 }
-html, body { height: 100%; }
-body { margin: 0; }
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+}
 
 /* Manage school form styles */
 .manage-school.card {
@@ -122,7 +154,7 @@ body { margin: 0; }
   padding: 1.5rem;
   max-width: 900px;
   margin: 1rem auto;
-  box-shadow: 0 12px 30px rgba(2,6,23,0.06);
+  box-shadow: 0 12px 30px rgba(2, 6, 23, 0.06);
 }
 
 .school-form .form-row {
@@ -135,11 +167,24 @@ body { margin: 0; }
   color: #111827;
   margin-bottom: 0.375rem;
 }
-.topbar{background-color: var(--color-primary) !important;}
-input{background: #fff2d7 !important;
+
+.topbar {
+  background-color: var(--color-primary) !important;
+}
+
+input {
+  background: #fff2d7 !important;
   color: #000000 !important;
-border: 2px solid #000000 !important;}
-.search-bar input{width: auto !important; font-size: 18px !important; font-weight: 600 !important; padding: 10px 20px !important;}
+  border: 2px solid #000000 !important;
+}
+
+.search-bar input {
+  width: auto !important;
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  padding: 10px 20px !important;
+}
+
 .school-form input {
   width: 100%;
   padding: 0.6rem 0.8rem;
@@ -148,37 +193,110 @@ border: 2px solid #000000 !important;}
   background: #fdedcb;
 }
 
-.school-form.two-col { display: flex; gap: 1rem; }
+.school-form.two-col {
+  display: flex;
+  gap: 1rem;
+}
 
-.form-actions { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1rem; }
+.form-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
 
-.btn.primary { background: var(--color-primary); color: white; border-radius: 8px; padding: 0.6rem 1rem; font-weight: 700; }
-.btn.danger { background: #ef4444; color: white; border-radius: 8px; padding: 0.6rem 1rem; font-weight: 700; }
+.btn.primary {
+  background: var(--color-primary);
+  color: white;
+  border-radius: 8px;
+  padding: 0.6rem 1rem;
+  font-weight: 700;
+}
+
+.btn.danger {
+  background: #ef4444;
+  color: white;
+  border-radius: 8px;
+  padding: 0.6rem 1rem;
+  font-weight: 700;
+}
 
 /* Persistent green snackbar for SMS balance */
-.mat-snack-bar-container button{
+.mat-snack-bar-container button {
   background-color: #ffffff !important;
   color: #000000 !important;
 }
-.mat-snack-bar-container button:hover{
+
+.mat-snack-bar-container button:hover {
   background-color: #ffffff !important;
   color: #000000 !important;
 }
+
 .mat-snack-bar-container.sms-balance-snackbar,
 .sms-balance-snackbar.mat-snack-bar-container,
 .sms-balance-snackbar .mat-simple-snackbar {
-  background: linear-gradient(90deg,#06b52b 0%, #0aa84b 100%) !important;
+  background: linear-gradient(90deg, #06b52b 0%, #0aa84b 100%) !important;
   color: #fff !important;
   font-weight: 800;
   border-radius: 8px !important;
-  box-shadow: 0 12px 36px rgba(6,120,30,0.12) !important;
+  box-shadow: 0 12px 36px rgba(6, 120, 30, 0.12) !important;
 }
+
 .sms-balance-snackbar .mat-simple-snackbar-action,
 .mat-snack-bar-container.sms-balance-snackbar .mat-simple-snackbar-action {
-  color: rgba(255,255,255,0.95) !important;
+  color: rgba(255, 255, 255, 0.95) !important;
   font-weight: 800;
 }
 
 /* Ensure snackbar overlays on top */
-.cdk-global-overlay-wrapper { z-index: 2000; }
+.cdk-global-overlay-wrapper {
+  z-index: 2000;
+}
 
+/* GLOBAL OVERRIDES */
+/* Fix for transparent dropdowns across the app */
+.mat-select-panel {
+  background: #fff !important;
+}
+
+.mat-option {
+  background: #fff !important;
+  color: rgba(0, 0, 0, 0.87) !important;
+}
+
+.mat-option:hover,
+.mat-option.mat-selected {
+  background: #f5f5f5 !important;
+}
+
+/* Ensure Mat Card has white background by default unless specified */
+/* Ensure Mat Card has white background by default unless specified */
+mat-card {
+  background: #fff !important;
+}
+
+/* FIX: MDC Dropdown Panel Background */
+.mat-mdc-select-panel,
+.mdc-menu-surface.mat-mdc-select-panel {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+}
+
+/* FIX: Option Background */
+.mat-mdc-option {
+  background-color: #ffffff !important;
+  color: rgba(0, 0, 0, 0.87) !important;
+}
+
+.mat-mdc-option:hover,
+.mat-mdc-option.mat-mdc-option-active,
+.mat-mdc-option.mdc-list-item--selected {
+  background-color: #f5f5f5 !important;
+}
+
+/* Force override for any cdk overlay pane that might be transparent */
+.cdk-overlay-pane {
+  .mat-mdc-select-panel {
+    background-color: #ffffff !important;
+  }
+}

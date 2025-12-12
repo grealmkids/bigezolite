@@ -247,7 +247,7 @@ export const findStudentsBySchool = async (
              FROM term_enrollments te_sub 
              JOIN classes c_sub ON te_sub.class_id = c_sub.class_id 
              WHERE te_sub.student_id = students.student_id 
-             AND te_sub.academic_year = ${idx - (classTerm ? 2 : 1) /* Reuse year param index. Actually standard params access is safer, but index tracking is tricky. Let's just create a new param or reuse logic properly. */} 
+             AND te_sub.academic_year = $${idx - (classTerm ? 2 : 1) /* Reuse year param index. */} 
              LIMIT 1), 
             students.class_name
         )`;

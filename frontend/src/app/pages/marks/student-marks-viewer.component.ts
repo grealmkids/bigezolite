@@ -232,7 +232,18 @@ export class StudentMarksViewerComponent implements OnInit {
     console.log(`[ViewMarks] loadStudentsAndMarks started. Class: ${this.selectedClass}, ExamSet: ${this.selectedExamSetId}, Element: ${this.selectedElementId}`);
 
     // Load students
-    this.studentService.getStudents(this.schoolId, undefined, this.selectedClass).subscribe({
+    // FIX: Pass historical YEAR to getStudents so we see students who were in this class *at that time*
+    const examSet = this.examSets.find(e => e.exam_set_id === this.selectedExamSetId);
+    const yearParam = examSet ? examSet.year.toString() : this.selectedYear.toString();
+
+    this.studentService.getStudents(
+      this.schoolId,
+      undefined,
+      this.selectedClass,
+      undefined,
+      undefined,
+      yearParam
+    ).subscribe({
       next: (response) => {
         const items = Array.isArray(response) ? response : (response as any).items || [];
         console.log(`[ViewMarks] Loaded ${items.length} students`);
